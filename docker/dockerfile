@@ -3,7 +3,7 @@ FROM rust:slim-bookworm AS build
 WORKDIR /build
 COPY server/ server/
 
-RUN cargo build -- release
+RUN cargo build --release
 
 FROM gcr.io/distroless/static-debian11:latest
 

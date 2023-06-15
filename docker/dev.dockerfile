@@ -3,9 +3,9 @@ FROM rust:slim-bookworm AS build
 WORKDIR /build
 COPY server/ server/
 
-RUN cargo build -- release
+RUN cargo build
 
-FROM gcr.io/distroless/static-debian11:latest
+FROM ubuntu:latest
 
 WORKDIR /lemmy
 COPY --from=build /build/server/target/release/lemmy-search bin/lemmy-search
