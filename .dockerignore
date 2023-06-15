@@ -1,0 +1,4 @@
+server/target/
+.git
+.github
+*.md

@@ -1,0 +1,16 @@
+FROM rust:slim-bookworm AS build
+
+WORKDIR /build
+COPY server/ server/
+
+RUN cargo build --manifest-path=server/Cargo.toml --release
+
+FROM gcr.io/distroless/static-debian11:latest
+
+WORKDIR /lemmy
+COPY ui/ ui/
+COPY --from=build /build/server/target/release/lemmy-search bin/lemmy-search
+
+
+EXPOSE 80
+ENTRYPOINT [ "/bin/lemmy-search" ]
