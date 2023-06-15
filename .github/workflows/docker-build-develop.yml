@@ -1,18 +1,22 @@
-name: docker build
+name: docker build develop
 run-name: ${{ github.actor }} is building and pushing to docker-hub.
 on:
   push:
     branches:
-      - 'master'
+      - 'develop'
     paths:
-      - 'src/**'
-      - 'docker/dockerfile'
+      - 'server/**'
+      - 'ui/**'
+      - 'docker/dev.dockerfile'
       - 'Cargo.toml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   docker:
+    env:
+      DOCKER_FILE: 'docker/dev.dockerfile'
+      DOCKER_TAG: 'marsara9/lemmy-search:dev'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,7 +29,6 @@ jobs:
         uses: docker/setup-buildx-action@v2
         with:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
-          buildkitd-flags: --allow-insecure-entitlement security.insecure
 
       - name: Login to Docker Hub
         uses: docker/login-action@v2
@@ -37,12 +40,10 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: docker/dockerfile
+          file: ${{env.DOCKER_FILE}}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: marsara9/lemmy-search:latest
-          allow: |
-            security.insecure
+          tags: ${{env.DOCKER_TAG}}
 
       # - uses: meeDamian/sync-readme@v1.0.6
       #   with:
