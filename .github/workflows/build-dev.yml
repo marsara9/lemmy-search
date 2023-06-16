@@ -1,0 +1,20 @@
+name: docker build develop
+run-name: ${{ github.actor }} is building and pushing to docker-hub.
+on:
+  push:
+    branches:
+      - 'develop'
+    paths:
+      - 'server/**'
+      - 'ui/**'
+      - 'docker/dev.dockerfile'
+      - 'Cargo.toml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  call-build-docker:
+    uses: ./,github/workflows/docker-build.yml@develop
+    with:
+      docker-file: docker/dev.dockerfile
+      docker-tag: marsara9/lemmy-search:dev
