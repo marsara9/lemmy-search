@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   call-build-docker:
-    uses: ./.github/workflows/docker-build.yml@develop
+    uses: ./.github/workflows/docker-build.yml
     with:
       docker-file: docker/dev.dockerfile
       docker-tag: marsara9/lemmy-search:dev
