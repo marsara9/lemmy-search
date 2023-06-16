@@ -14,5 +14,5 @@ COPY ui/ ui/
 COPY --from=build /build/crawler/target/debug/lemmy-crawler bin/lemmy-crawler
 COPY --from=build /build/server/target/debug/lemmy-search bin/lemmy-search
 
-EXPOSE 80
+EXPOSE 8000
 ENTRYPOINT [ "/lemmy/bin/lemmy-search" ]
