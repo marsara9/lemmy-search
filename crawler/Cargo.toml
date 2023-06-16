@@ -1,8 +1,8 @@
 [package]
-name = "lemmy-search"
+name = "lemmy-crawler"
 version = "0.1.0"
 edition = "2021"
-authors = []
+authors = ["MarSara9"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

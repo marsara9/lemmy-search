@@ -1,0 +1,36 @@
+body {
+    background-color: #222;
+}
+
+form#search {
+  margin: 15% auto;
+  max-width: 768px;
+  padding: 24px;
+  display: flex;
+  flex-flow: column wrap;
+}
+
+form#search > * {
+    margin: 12px;
+    padding: 12px;
+}
+
+form#search > input[type=text] {
+    border: 1px solid #222;
+    border-radius: 4px;
+    background-color: #444;
+    color: #fff;
+    font-size: 1.3rem;
+}
+
+input[type=button], input[type=submit] {
+    border: 1px solid #222;
+    border-radius: 4px;
+    background-color: #444;
+    color: #fff;
+    font-size: 1.3rem;
+}
+
+input[type=button]:hover, input[type=submit]:hover {
+    background-color: #313131;
+}
