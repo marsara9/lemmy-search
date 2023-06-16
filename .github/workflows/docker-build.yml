@@ -1,17 +1,14 @@
-name: docker build develop
+name: docker build
 run-name: ${{ github.actor }} is building and pushing to docker-hub.
 on:
-  push:
-    branches:
-      - 'develop'
-    paths:
-      - 'server/**'
-      - 'ui/**'
-      - 'docker/dev.dockerfile'
-      - 'Cargo.toml'
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  workflow_call:
+    inputs:
+        docker-file:
+            required: true
+            type: string
+        docker-tag:
+            required: true
+            type: string
 jobs:
   docker:
     env:
@@ -40,10 +37,10 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          file: ${{env.DOCKER_FILE}}
+          file: ${{ inputs.docker-file }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           push: true
-          tags: ${{env.DOCKER_TAG}}
+          tags: ${{ inputs.docker-tag }}
 
       # - uses: meeDamian/sync-readme@v1.0.6
       #   with:

@@ -13,4 +13,4 @@ COPY --from=build /build/server/target/release/lemmy-search bin/lemmy-search
 
 
 EXPOSE 80
-ENTRYPOINT [ "/bin/lemmy-search" ]
+ENTRYPOINT [ "/lemmy/bin/lemmy-search" ]

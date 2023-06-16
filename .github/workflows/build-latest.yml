@@ -1,0 +1,21 @@
+name: build release
+run-name: ${{ github.actor }} is building and pushing to docker-hub.
+on:
+  push:
+    branches:
+      - 'master'
+    paths:
+      - 'server/**'
+      - 'ui/**'
+      - 'docker/dockerfile'
+      - 'Cargo.toml'
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  call-build-docker:
+    uses: ./.github/workflows/docker-build.yml
+    with:
+      docker-file: docker/dockerfile
+      docker-tag: marsara9/lemmy-search:latest
+    secrets: inherit
