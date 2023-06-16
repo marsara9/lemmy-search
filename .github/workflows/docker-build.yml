@@ -1,4 +1,4 @@
-name: docker build develop
+name: docker build
 run-name: ${{ github.actor }} is building and pushing to docker-hub.
 on:
   workflow_call:

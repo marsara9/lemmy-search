@@ -1,4 +1,4 @@
-name: docker build release
+name: build release
 run-name: ${{ github.actor }} is building and pushing to docker-hub.
 on:
   push:
