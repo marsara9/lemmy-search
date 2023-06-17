@@ -1,23 +1,21 @@
-#[macro_use] extern crate rocket;
-
-use rocket::fs::{FileServer, relative};
 use std::env;
+use actix_files as fs;
+use actix_web::{App, HttpServer};
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-}
-
-#[launch]
-fn rocket() -> _ {
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
     let args: Vec<String> = env::args().collect();
     let ui_directory = match args.get(1) {
         Some(path) => path,
-        None => relative!("/ui")
-    };
+        None => "./ui"
+    }.to_owned();
 
-    println!("UI directory set to: '{}'", ui_directory.to_string());
-
-    rocket::build()
-        .mount("/", FileServer::from(ui_directory))
+    HttpServer::new(move || {
+        App::new().service(
+            fs::Files::new("/", &ui_directory)
+                .index_file("index.html")
+        )
+    }).bind(("0.0.0.0", 8000))?
+        .run()
+        .await
 }
