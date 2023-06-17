@@ -5,10 +5,10 @@ on:
     branches:
       - 'develop'
     paths:
+      - 'crawler/**'
       - 'server/**'
       - 'ui/**'
       - 'docker/dev.dockerfile'
-      - 'Cargo.toml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
