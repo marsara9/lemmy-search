@@ -1,18 +1,22 @@
 FROM rust:slim-bookworm AS build
 
 WORKDIR /build
+COPY Cargo.toml .
 COPY crawler/ crawler/
 COPY server/ server/
 
-RUN cargo build --manifest-path=crawler/Cargo.toml --release
-RUN cargo build --manifest-path=server/Cargo.toml --release
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        pkg-config libssl-dev
+
+RUN cargo build --release
 
 FROM gcr.io/distroless/static-debian11:latest
 
 WORKDIR /lemmy
 COPY ui/ ui/
-COPY --from=build /build/crawler/target/release/lemmy-crawler bin/lemmy-crawler
-COPY --from=build /build/server/target/release/lemmy-search bin/lemmy-search
+COPY --from=build /build/target/release/lemmy-crawler bin/lemmy-crawler
+COPY --from=build /build/target/release/lemmy-search bin/lemmy-search
 
 EXPOSE 8000
-ENTRYPOINT [ "./bin/lemmy-search" ]
+ENTRYPOINT [ "/lemmy/bin/lemmy-search", "/lemmy/ui" ]

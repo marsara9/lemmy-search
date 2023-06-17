@@ -13,6 +13,13 @@ use reqwest::Client;
 
 const DEFAULT_LIMIT : i64 = 50;
 
+fn get_url(
+    instance : &str,
+    path : &str
+) -> String {
+    return format!("https://{}{}", instance, path);
+}
+
 async fn fetch_json<T: Serialize + ?Sized, R: DeserializeOwned>(
     url : String,
     params : &T
@@ -42,7 +49,7 @@ pub async fn fetch_comments(
         ..Default::default()
     };
 
-    let url = format!("https://{}/api/v3/comment/list", instance);    
+    let url = get_url(instance, "/api/v3/comment/list");
     return fetch_json::<GetComments, GetCommentsResponse>(url, &params)
         .await;
 }
@@ -60,7 +67,7 @@ pub async fn fetch_posts(
         ..Default::default()
     };
 
-    let url = format!("https://{}/api/v3/post/list", instance);    
+    let url = get_url(instance, "/api/v3/post/list");
     return fetch_json::<GetPosts, GetPostsResponse>(url, &params)
         .await;
 }
@@ -75,7 +82,7 @@ pub async fn fetch_all_communities(
         ..Default::default()
     };
 
-    let url = format!("https://{}/api/v3/community/list", instance);    
+    let url = get_url(instance, "/api/v3/community/list");
     return fetch_json::<ListCommunities, ListCommunitiesResponse>(url, &params)
         .await;
 }
