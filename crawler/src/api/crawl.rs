@@ -6,8 +6,8 @@ use lemmy_api_common::{
     }, 
     lemmy_db_schema::{
         ListingType, 
-        SortType, newtypes::CommunityId
-    }, post::{GetPosts, GetPostsResponse}
+        SortType, newtypes::{CommunityId, PostId}, CommentSortType
+    }, post::{GetPosts, GetPostsResponse}, comment::{GetCommentsResponse, GetComments}
 };
 use reqwest::Client;
 
@@ -29,6 +29,24 @@ async fn fetch_json<T: Serialize + ?Sized, R: DeserializeOwned>(
         .unwrap();
 }
 
+pub async fn fetch_comments(
+    instance : &str,
+    post_id : PostId,
+    page: i64
+) -> GetCommentsResponse {
+    let params = GetComments {
+        post_id: Some(post_id),
+        page: Some(page),
+        sort: Some(CommentSortType::Old),
+        limit: Some(DEFAULT_LIMIT),
+        ..Default::default()
+    };
+
+    let url = format!("https://{}/api/v3/comment/list", instance);    
+    return fetch_json::<GetComments, GetCommentsResponse>(url, &params)
+        .await;
+}
+
 pub async fn fetch_posts(
     instance : &str,
     community_id : CommunityId,
@@ -42,7 +60,7 @@ pub async fn fetch_posts(
         ..Default::default()
     };
 
-    let url = format!("https://{}/api/v3/community/list", instance);    
+    let url = format!("https://{}/api/v3/post/list", instance);    
     return fetch_json::<GetPosts, GetPostsResponse>(url, &params)
         .await;
 }
