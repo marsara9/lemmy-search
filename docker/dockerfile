@@ -19,4 +19,4 @@ COPY --from=build /build/target/release/lemmy-crawler bin/lemmy-crawler
 COPY --from=build /build/target/release/lemmy-search bin/lemmy-search
 
 EXPOSE 8000
-ENTRYPOINT [ "/lemmy/bin/lemmy-search /lemmy/ui" ]
+ENTRYPOINT [ "/lemmy/bin/lemmy-search", "/lemmy/ui" ]
