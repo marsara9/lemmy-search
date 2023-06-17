@@ -1,8 +1,12 @@
-FROM rust:slim-bookworm AS build
+FROM --platform=$BUILDPLATFORM rust:slim-bookworm AS build
 
 WORKDIR /build
 COPY crawler/ crawler/
 COPY server/ server/
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        pkg-config libssl-dev
 
 RUN cargo build --manifest-path=crawler/Cargo.toml
 RUN cargo build --manifest-path=server/Cargo.toml
