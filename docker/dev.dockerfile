@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:slim-bookworm AS build
+FROM rust:slim-bookworm AS build
 
 WORKDIR /build
 COPY crawler/ crawler/
