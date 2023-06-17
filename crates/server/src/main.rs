@@ -1,6 +1,11 @@
 use std::env;
 use actix_files as fs;
-use actix_web::{App, HttpServer};
+use actix_web::{
+    App, 
+    HttpServer
+};
+
+mod search;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -14,7 +19,8 @@ async fn main() -> std::io::Result<()> {
         App::new().service(
             fs::Files::new("/", &ui_directory)
                 .index_file("index.html")
-        )
+        ).service(search::search)
+            .service(search::get_instances)
     }).bind(("0.0.0.0", 8000))?
         .run()
         .await

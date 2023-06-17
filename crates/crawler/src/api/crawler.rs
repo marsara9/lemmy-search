@@ -1,4 +1,9 @@
-use serde::{Serialize, de::DeserializeOwned};
+
+use reqwest::Client;
+use serde::{
+    Serialize, 
+    de::DeserializeOwned
+};
 use lemmy_api_common::{
     community::{
         ListCommunities, 
@@ -7,10 +12,22 @@ use lemmy_api_common::{
     lemmy_db_schema::{
         ListingType, 
         SortType, newtypes::{CommunityId, PostId}, CommentSortType
-    }, post::{GetPosts, GetPostsResponse}, comment::{GetCommentsResponse, GetComments}, site::{GetFederatedInstances, GetFederatedInstancesResponse, SiteResponse, GetSite}
+    }, 
+    post::{
+        GetPosts, 
+        GetPostsResponse
+    }, 
+    comment::{
+        GetCommentsResponse, 
+        GetComments
+    }, 
+    site::{
+        GetFederatedInstances, 
+        GetFederatedInstancesResponse, 
+        SiteResponse, 
+        GetSite
+    }
 };
-use reqwest::Client;
-
 pub struct Crawler {
     pub instance : String
 }

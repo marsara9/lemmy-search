@@ -9,10 +9,10 @@ repository = "https://github.com/marsara9/lemmy-search"
 
 [workspace]
 members = [
-    "database",
-    "crawler",
-    "server"
+    "crates/common",
+    "crates/crawler",
+    "crates/server"
 ]
 
 [workspace.dependencies]
-lemmy-search-database = { path = "./database" }
+lemmy-search-common = { path = "./crates/common" }

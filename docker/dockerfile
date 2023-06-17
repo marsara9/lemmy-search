@@ -2,9 +2,7 @@ FROM rust:slim-bookworm AS build
 
 WORKDIR /build
 COPY Cargo.toml .
-COPY database/ database/
-COPY crawler/ crawler/
-COPY server/ server/
+COPY crates/ crates/
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -16,7 +14,7 @@ FROM gcr.io/distroless/static-debian11:latest
 
 WORKDIR /lemmy
 COPY ui/ ui/
-COPY --from=build /build/target/release/liblemmy_search_database.rlib bin/liblemmy_search_database.rlib
+COPY --from=build /build/target/release/liblemmy_search_common.rlib bin/liblemmy_search_common.rlib
 COPY --from=build /build/target/release/lemmy-search-crawler bin/lemmy-search-crawler
 COPY --from=build /build/target/release/lemmy-search bin/lemmy-search
 
