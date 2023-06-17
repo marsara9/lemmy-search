@@ -1,9 +1,11 @@
 [package]
 name = "lemmy-search"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 authors = ["MarSara9"]
 
 [dependencies]
+lemmy-search-database = { workspace = true }
+
 actix-web = "4.3.*"
 actix-files = "0.6.*"

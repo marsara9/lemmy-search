@@ -1,5 +1,18 @@
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+authors = ["MarSara9"]
+description = "A search engine for Lemmy instances"
+license = "AGPL-3.0"
+documentation = ""
+repository = "https://github.com/marsara9/lemmy-search"
+
 [workspace]
 members = [
+    "database",
     "crawler",
     "server"
 ]
+
+[workspace.dependencies]
+lemmy-search-database = { path = "./database" }
