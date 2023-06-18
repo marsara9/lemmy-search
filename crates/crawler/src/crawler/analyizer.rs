@@ -1,11 +1,9 @@
 use std::collections::HashSet;
 
 use super::Crawler;
-use lemmy_search_common::{
-    models::{
-        LemmyPost, 
-        LemmyComment
-    }
+use lemmy_search_common::models::{
+    LemmyPost, 
+    LemmyComment
 };
 
 trait Analyizer {
@@ -28,7 +26,7 @@ impl Analyizer for Crawler {
             words.insert(word.to_string());
         }
         match post.body {
-            Some(body) => for word in post.title.split_whitespace() {
+            Some(body) => for word in body.split_whitespace() {
                 words.insert(word.to_string());
             },
             None => {}
