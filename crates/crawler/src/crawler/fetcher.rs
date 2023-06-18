@@ -1,9 +1,7 @@
-use std::pin::Pin;
-
 use super::{Crawler, Fetcher};
 use async_trait::async_trait;
 use crate::rest;
-use futures::{future::join_all, Future, FutureExt};
+use futures::FutureExt;
 
 use lemmy_api_common::{
     community::{
@@ -102,9 +100,8 @@ impl Fetcher for Crawler {
         let number_of_calls = number_of_communities / Self::DEFAULT_LIMIT;
 
         let url = self.get_url("/api/v3/community/list");
-        let urlStr = url.as_str();
         
-        let results = (0..number_of_calls).map(|index|
+        let calls = (0..number_of_calls).map(|index|
             ListCommunities {
                 type_: Some(ListingType::Local),
                 sort: Some(SortType::Old),
@@ -113,12 +110,14 @@ impl Fetcher for Crawler {
                 ..Default::default()
             }
         ).map(|params|
-            rest::fetch_json::<ListCommunities, ListCommunitiesResponse>(urlStr.to_string(), Box::new(params)).boxed()
+            rest::fetch_json::<ListCommunities, ListCommunitiesResponse>(url.to_owned(), Box::new(params)).boxed()
         ).map(async_std::task::spawn)
             .collect::<Vec<async_std::task::JoinHandle<ListCommunitiesResponse>>>();
 
-        futures::future::join_all(results).await.iter().map(|list|
+        let results = futures::future::join_all(calls).await.iter().map(|list|
             list.to_owned().communities
-        ).flatten().collect()
+        ).flatten().collect();
+
+        results
     }
 }

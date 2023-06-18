@@ -9,6 +9,8 @@ async fn main() -> Result<()> {
         instance: "voyager.lemmy.ml".to_string()
     };
 
+    let _ = cralwer.crawl();
+
     // let communities = cralwer.fetch_all_communities()
     //     .await;
 
