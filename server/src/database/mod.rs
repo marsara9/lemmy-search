@@ -14,14 +14,15 @@ pub struct Database {
 
 impl  Database {
     
-    fn new(location : &str) -> Self {
+    pub fn new(location : String) -> Self {
+        let location_str = location.as_str();
         Database {
-            location : location.to_string(),
-            client : Client::connect(location, NoTls).unwrap()
+            location : location.to_owned(),
+            client : Client::connect(location_str, NoTls).unwrap()
         }
     }
 
-    async fn init(&mut self) -> Result<(), Error> {
+    pub async fn init(&mut self) -> Result<(), Error> {
         self.client.batch_execute("
             CREATE TABLE IF NOT EXISTS words (
                 id              UUID PRIMARY KEY,

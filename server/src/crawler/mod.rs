@@ -1,23 +1,62 @@
-mod analyizer;
+pub mod analyizer;
+pub mod crawler;
 
-pub struct Crawler {
-    pub instance : String
+use crate::config;
+
+use self::crawler::Crawler;
+use std::time::Duration;
+use clokwerk::{
+    TimeUnits, 
+    Job, 
+    AsyncScheduler
+};
+use tokio::task::JoinHandle;
+
+pub struct Runner {
+    config : config::Crawler,
+    handle : Option<JoinHandle<()>>
 }
 
-impl Crawler {
-    fn get_url(
-        &self,
-        path : &str
-    ) -> String {
-        return format!("https://{}{}", self.instance, path);
+impl Runner {
+    pub fn new(config : config::Crawler) -> Self {
+        Runner { 
+            config,
+            handle : None
+        }
     }
 
-    // pub async fn crawl(&self) {
-    //     let site_data = self.fetch_site_data()
-    //         .await.site_view;
+    pub fn start(&mut self) {
+        self.stop();
 
-    //     let number_of_communities = site_data.counts.communities;
+        let mut scheduler = AsyncScheduler::with_tz(chrono::Utc);
 
-    //     let _ = self.fetch_all_communities(number_of_communities);
-    // }
+        let instance = self.config.seed_instance.to_owned();
+
+        scheduler.every(1.day())
+            .at("03:00")
+            .run(move || Self::run(instance.to_owned()));
+
+        self.handle = Some(tokio::spawn(async move {
+            loop {
+                scheduler.run_pending().await;
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            }
+        }));
+    }
+
+    pub fn stop(&mut self) {
+        match &self.handle {
+            Some(value) => value.abort(),
+            None => {}
+        }
+        self.handle = None
+    }
+
+    async fn run(
+        instance : String
+    ) {
+        Crawler::new(instance)
+                    .crawl()
+                    .await;
+    }
 }

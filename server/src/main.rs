@@ -1,4 +1,5 @@
 mod api;
+mod config;
 mod crawler;
 mod database;
 
@@ -8,6 +9,8 @@ use actix_web::{
     App, 
     HttpServer
 };
+use crawler::Runner;
+use database::Database;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -17,7 +20,16 @@ async fn main() -> std::io::Result<()> {
         None => "./ui"
     }.to_owned();
 
-    HttpServer::new(move || {
+    let config = config::Config::load();
+
+    let mut database = Database::new(config.postgres.location);
+    let _ = database.init()
+        .await;
+
+    let mut cralwer_runner = Runner::new(config.crawler);
+    cralwer_runner.start();
+
+    let result = HttpServer::new(move || {
         App::new()
             .service(api::search::heartbeat)
             .service(api::search::search)
@@ -28,5 +40,9 @@ async fn main() -> std::io::Result<()> {
             )
     }).bind(("0.0.0.0", 8000))?
         .run()
-        .await
+        .await;
+
+    cralwer_runner.stop();
+
+    result
 }

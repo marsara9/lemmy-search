@@ -1,24 +1,22 @@
 use std::collections::HashSet;
 
-use super::Crawler;
 use crate::api::lemmy::models::{
     post::Post, 
     comment::Comment
 };
 
-trait Analyizer {
-    fn get_distinct_words_in_post(
-        post : Post
-    ) -> HashSet<String>;
+pub struct Analyizer;
 
-    fn get_distinct_words_in_comment(
-        comment : Comment
-    ) -> HashSet<String>;
-}
+impl Analyizer {
 
-impl Analyizer for Crawler {
+    pub fn new() -> Self {
+        Analyizer {
+            
+        }
+    }
 
-    fn get_distinct_words_in_post(
+    pub fn get_distinct_words_in_post(
+        &self,
         post : Post
     ) -> HashSet<String> {
         let mut words = HashSet::<String>::new();
@@ -34,7 +32,8 @@ impl Analyizer for Crawler {
         words
     }
 
-    fn get_distinct_words_in_comment(
+    pub fn get_distinct_words_in_comment(
+        &self,
         comment : Comment
     ) -> HashSet<String> {
         HashSet::from_iter(comment.content.split_whitespace().map(|word|

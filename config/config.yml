@@ -1,0 +1,4 @@
+crawler:
+  seed_instance: "voyager.lemmy.ml"
+postgres:
+  location: ""

@@ -10,7 +10,7 @@ use super::models::{
     comment::{
         CommentListResponse, 
         CommentListRequest, 
-        Comment
+        Comment, CommentData
     }
 };
 
@@ -20,7 +20,13 @@ pub struct Fetcher {
 
 impl Fetcher {
 
-    const DEFAULT_LIMIT : i64 = 50;
+    pub const DEFAULT_LIMIT : i64 = 50;
+
+    pub fn new(instance : String) -> Self {
+        Fetcher {
+            instance
+        }
+    }
 
     fn get_url(
         &self,
@@ -29,7 +35,7 @@ impl Fetcher {
         return format!("https://{}{}", self.instance, path);
     }
 
-    async fn fetch_site_data(
+    pub async fn fetch_site_data(
         &self
     ) -> SiteResponse {
         let params = SiteRequest;
@@ -39,7 +45,7 @@ impl Fetcher {
             .await;
     }
 
-    async fn fetch_all_data(
+    pub async fn fetch_all_data(
         &self,
         number_of_comments : Option<i64>
     ) -> Vec<Comment> {
@@ -76,5 +82,23 @@ impl Fetcher {
         ).flatten().collect();
 
         results
+    }
+
+    pub async fn fetch_comments(
+        &self,
+        page: i64
+    ) -> Vec<CommentData> {
+        let url = self.get_url("/api/v3/comment/list");
+
+        let params = CommentListRequest {
+            sort: Some(SortType::Old),
+            limit: Self::DEFAULT_LIMIT,
+            page: page,
+            ..Default::default()
+        };
+
+        fetch_json::<CommentListRequest, CommentListResponse>(url.to_owned(), Box::new(params))
+            .await
+            .comments
     }
 }
