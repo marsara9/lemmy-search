@@ -1,17 +1,18 @@
 use reqwest::Result;
-mod api;
+mod crawler;
+pub mod rest;
 
 #[tokio::main]
 async fn main() -> Result<()> {
 
-    let cralwer = api::crawler::Crawler {
+    let cralwer = crawler::Crawler {
         instance: "voyager.lemmy.ml".to_string()
     };
 
-    let communities = cralwer.fetch_all_communities()
-        .await;
+    // let communities = cralwer.fetch_all_communities()
+    //     .await;
 
-    print!("{:?}", &communities);
+    // print!("{:?}", &communities);
 
     Ok(())
 }

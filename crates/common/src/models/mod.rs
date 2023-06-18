@@ -11,6 +11,7 @@ pub struct LemmyInstance {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LemmyPost {
     pub title : String,
+    pub body : Option<String>,
     pub up_votes : i64,
     pub instance : LemmyInstance,
     pub comments : Vec<LemmyComment>

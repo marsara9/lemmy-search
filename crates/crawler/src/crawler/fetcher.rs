@@ -1,9 +1,10 @@
+use std::pin::Pin;
 
-use reqwest::Client;
-use serde::{
-    Serialize, 
-    de::DeserializeOwned
-};
+use super::{Crawler, Fetcher};
+use async_trait::async_trait;
+use crate::rest;
+use futures::{future::join_all, Future, FutureExt};
+
 use lemmy_api_common::{
     community::{
         ListCommunities, 
@@ -26,39 +27,14 @@ use lemmy_api_common::{
         GetFederatedInstancesResponse, 
         SiteResponse, 
         GetSite
-    }
+    }, 
+    lemmy_db_views_actor::structs::CommunityView
 };
-pub struct Crawler {
-    pub instance : String
-}
 
-impl Crawler {
-    const DEFAULT_LIMIT : i64 = 50;
+#[async_trait]
+impl Fetcher for Crawler {
 
-    fn get_url(
-        &self,
-        path : &str
-    ) -> String {
-        return format!("https://{}{}", self.instance, path);
-    }
-    
-    async fn fetch_json<T: Serialize + ?Sized, R: DeserializeOwned>(
-        url : String,
-        params : &T
-    ) -> R {
-        let client = Client::new();
-        return client
-            .get(url)
-            .query(&params)
-            .send()
-            .await
-            .unwrap()
-            .json()
-            .await
-            .unwrap();
-    }
-
-    pub async fn fetch_site_data(
+    async fn fetch_site_data(
         &self
     ) -> SiteResponse {
         let params = GetSite {
@@ -66,11 +42,11 @@ impl Crawler {
         };
 
         let url = self.get_url("/api/v3/site");
-        return Self::fetch_json::<GetSite, SiteResponse>(url, &params)
+        return rest::fetch_json::<GetSite, SiteResponse>(url, Box::new(params))
             .await;
     }
 
-    pub async fn fetch_instances(
+    async fn fetch_instances(
         &self
     ) -> GetFederatedInstancesResponse {
         let params = GetFederatedInstances {
@@ -78,11 +54,11 @@ impl Crawler {
         };
 
         let url = self.get_url("/api/v3/federated_instances");
-        return Self::fetch_json::<GetFederatedInstances, GetFederatedInstancesResponse>(url, &params)
+        return rest::fetch_json::<GetFederatedInstances, GetFederatedInstancesResponse>(url, Box::new(params))
             .await;
     }
     
-    pub async fn fetch_comments(
+    async fn fetch_comments(
         &self,
         post_id : PostId,
         page: i64
@@ -96,11 +72,11 @@ impl Crawler {
         };
     
         let url = self.get_url("/api/v3/comment/list");
-        return Self::fetch_json::<GetComments, GetCommentsResponse>(url, &params)
+        return rest::fetch_json::<GetComments, GetCommentsResponse>(url, Box::new(params))
             .await;
     }
     
-    pub async fn fetch_posts(
+    async fn fetch_posts(
         &self,
         community_id : CommunityId,
         page: i64
@@ -114,22 +90,35 @@ impl Crawler {
         };
     
         let url = self.get_url("/api/v3/post/list");
-        return Self::fetch_json::<GetPosts, GetPostsResponse>(url, &params)
+        return rest::fetch_json::<GetPosts, GetPostsResponse>(url, Box::new(params))
             .await;
     }
     
-    pub async fn fetch_all_communities(
-        self
-    ) -> ListCommunitiesResponse {
-        let params = ListCommunities {
-            type_: Some(ListingType::Local),
-            sort: Some(SortType::Old),
-            limit: Some(Self::DEFAULT_LIMIT),
-            ..Default::default()
-        };
-    
+    async fn fetch_all_communities(
+        &self,
+        number_of_communities : i64
+    ) -> Vec<CommunityView> {
+
+        let number_of_calls = number_of_communities / Self::DEFAULT_LIMIT;
+
         let url = self.get_url("/api/v3/community/list");
-        return Self::fetch_json::<ListCommunities, ListCommunitiesResponse>(url, &params)
-            .await;
+        let urlStr = url.as_str();
+        
+        let results = (0..number_of_calls).map(|index|
+            ListCommunities {
+                type_: Some(ListingType::Local),
+                sort: Some(SortType::Old),
+                limit: Some(Self::DEFAULT_LIMIT),
+                page: Some(index),
+                ..Default::default()
+            }
+        ).map(|params|
+            rest::fetch_json::<ListCommunities, ListCommunitiesResponse>(urlStr.to_string(), Box::new(params)).boxed()
+        ).map(async_std::task::spawn)
+            .collect::<Vec<async_std::task::JoinHandle<ListCommunitiesResponse>>>();
+
+        futures::future::join_all(results).await.iter().map(|list|
+            list.to_owned().communities
+        ).flatten().collect()
     }
 }
