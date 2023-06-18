@@ -1,29 +1,46 @@
 body {
     background-color: #222;
+    font-family: Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    color: #fff;
 }
 
-form#search {
+#menu {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+}
+
+#content {
   margin: 15% auto;
   max-width: 768px;
   padding: 24px;
   display: flex;
   flex-flow: column wrap;
+  gap: 24px;
 }
 
-form#search > * {
-    margin: 12px;
+#content > #logo > span {
+    font-size: 3rem;
+    margin: 16px;
+}
+
+#content > #logo > img {
+    vertical-align: bottom;
+}
+
+#content > #logo > img:nth-of-type(2) {
+    margin-left: -80px;
+    margin-bottom: 12px;
+    width: 64px;
+    height: 64px;
+}
+
+#content > * {
     padding: 12px;
 }
 
-form#search > input[type=text] {
-    border: 1px solid #222;
-    border-radius: 4px;
-    background-color: #444;
-    color: #fff;
-    font-size: 1.3rem;
-}
-
-input[type=button], input[type=submit] {
+input, select {
     border: 1px solid #222;
     border-radius: 4px;
     background-color: #444;

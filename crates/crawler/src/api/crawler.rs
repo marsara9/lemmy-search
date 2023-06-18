@@ -1,4 +1,9 @@
-use serde::{Serialize, de::DeserializeOwned};
+
+use reqwest::Client;
+use serde::{
+    Serialize, 
+    de::DeserializeOwned
+};
 use lemmy_api_common::{
     community::{
         ListCommunities, 
@@ -7,10 +12,22 @@ use lemmy_api_common::{
     lemmy_db_schema::{
         ListingType, 
         SortType, newtypes::{CommunityId, PostId}, CommentSortType
-    }, post::{GetPosts, GetPostsResponse}, comment::{GetCommentsResponse, GetComments}
+    }, 
+    post::{
+        GetPosts, 
+        GetPostsResponse
+    }, 
+    comment::{
+        GetCommentsResponse, 
+        GetComments
+    }, 
+    site::{
+        GetFederatedInstances, 
+        GetFederatedInstancesResponse, 
+        SiteResponse, 
+        GetSite
+    }
 };
-use reqwest::Client;
-
 pub struct Crawler {
     pub instance : String
 }
@@ -39,6 +56,30 @@ impl Crawler {
             .json()
             .await
             .unwrap();
+    }
+
+    pub async fn fetch_site_data(
+        &self
+    ) -> SiteResponse {
+        let params = GetSite {
+            auth: None
+        };
+
+        let url = self.get_url("/api/v3/site");
+        return Self::fetch_json::<GetSite, SiteResponse>(url, &params)
+            .await;
+    }
+
+    pub async fn fetch_instances(
+        &self
+    ) -> GetFederatedInstancesResponse {
+        let params = GetFederatedInstances {
+            auth: None
+        };
+
+        let url = self.get_url("/api/v3/federated_instances");
+        return Self::fetch_json::<GetFederatedInstances, GetFederatedInstancesResponse>(url, &params)
+            .await;
     }
     
     pub async fn fetch_comments(
