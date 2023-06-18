@@ -8,7 +8,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         pkg-config libssl-dev
 
-RUN cargo build
+RUN cargo build --verbose
 
 FROM ubuntu:latest
 

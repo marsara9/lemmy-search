@@ -16,11 +16,14 @@ async fn main() -> std::io::Result<()> {
     }.to_owned();
 
     HttpServer::new(move || {
-        App::new().service(
-            fs::Files::new("/", &ui_directory)
-                .index_file("index.html")
-        ).service(search::search)
+        App::new()
+            .service(search::heartbeat)
+            .service(search::search)
             .service(search::get_instances)
+            .service(
+                fs::Files::new("/", &ui_directory)
+                    .index_file("index.html")
+            )
     }).bind(("0.0.0.0", 8000))?
         .run()
         .await
