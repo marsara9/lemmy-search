@@ -1,3 +1,5 @@
+pub mod models;
+
 use actix_web::{
     get, 
     web::{
@@ -7,10 +9,9 @@ use actix_web::{
     Responder, 
     Result
 };
-use lemmy_search_common::models::{
-    SearchQuery, 
-    SearchResult,
-    LemmyInstance
+use crate::api::search::models::search::{
+    SearchQuery,
+    SearchResult
 };
 
 #[get("/heartbeat")]
@@ -37,7 +38,7 @@ pub async fn search(
 pub async fn get_instances(
 
 ) -> Result<impl Responder> {
-    let instances = Vec::<LemmyInstance>::new();
+    let instances = Vec::<String>::new();
 
     Ok(Json(instances))   
 }

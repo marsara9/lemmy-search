@@ -1,11 +1,13 @@
+mod api;
+mod crawler;
+mod database;
+
 use std::env;
 use actix_files as fs;
 use actix_web::{
     App, 
     HttpServer
 };
-
-mod search;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -17,9 +19,9 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .service(search::heartbeat)
-            .service(search::search)
-            .service(search::get_instances)
+            .service(api::search::heartbeat)
+            .service(api::search::search)
+            .service(api::search::get_instances)
             .service(
                 fs::Files::new("/", &ui_directory)
                     .index_file("index.html")
