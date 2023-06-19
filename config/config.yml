@@ -4,5 +4,6 @@ crawler:
 postgres:
   user: "lemmy"
   password: "password"
-  hostname: "lemmy-search-db:5432"
+  hostname: "lemmy-search-db"
+  port: 5432
   database: "lemmy-search-db"

@@ -24,11 +24,10 @@ async fn main() -> std::io::Result<()> {
     let config = config::Config::load();
 
     let database = Database::new(config.postgres);
-    let pool = database.build_database_pool()
-        .await
-        .unwrap();    
+    let _ = database.init_database()
+        .await;
 
-    let mut cralwer_runner = Runner::new(config.crawler, pool.clone());
+    let mut cralwer_runner = Runner::new(config.crawler, database.clone());
     cralwer_runner.start();
 
     let factory = move || {

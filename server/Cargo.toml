@@ -15,6 +15,5 @@ futures = { version = "0.3.*", features = ["std", "async-await", "executor"] }
 clokwerk = "0.4.*"
 chrono = { version = "0.4.*", features = ["std"] }
 config-file = { version = "0.2.3", features = ["yaml"] }
-diesel = { version = "2.1.*", features = ["postgres"] }
-diesel-async = { version = "0.3.*", features = ["postgres", "deadpool"] }
-deadpool = { version = "0.9.*", features = ["rt_tokio_1"], optional = false }
+postgres = "0.19.*"
+r2d2_postgres = {version = "0.18.*", features = [] }

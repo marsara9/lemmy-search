@@ -1,11 +1,12 @@
 use crate::{
-    api::lemmy::fetcher::Fetcher
+    api::lemmy::fetcher::Fetcher, database::{Database, self}
 };
 use super::analyizer::Analyizer;
 
 pub struct Crawler {
     pub instance : String,
     
+    database : Database,
     fetcher : Fetcher,
     analyizer : Analyizer
 }
@@ -13,10 +14,12 @@ pub struct Crawler {
 impl Crawler {
 
     pub fn new(
-        instacne : String        
+        instacne : String,
+        database : Database
     ) -> Self {
         Crawler {
             instance: instacne.clone(),
+            database,
             fetcher: Fetcher::new(instacne),
             analyizer: Analyizer::new()
         }

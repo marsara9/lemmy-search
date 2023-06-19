@@ -19,6 +19,7 @@ pub struct Postgres {
     pub user : String,
     pub password : String,
     pub hostname : String,
+    pub port : u16,
     pub database : String
 }
 

@@ -1,55 +1,84 @@
-use std::time::Duration;
-
-use deadpool::Runtime;
-use diesel_async::{
-    AsyncPgConnection, 
-    pooled_connection::{
-        deadpool::{Pool, BuildError}, 
-        AsyncDieselConnectionManager
-    }
-};
-
-use crate::config::Postgres;
-
 pub mod dbo;
 
+use crate::config::Postgres;
+use postgres::{
+    NoTls, 
+    Config
+};
+use r2d2_postgres::{
+    PostgresConnectionManager, 
+    r2d2::Pool
+};
+
+pub type DatabasePool = Pool<PostgresConnectionManager<NoTls>>;
+
+#[derive(Clone)]
 pub struct Database {
-    connection_string : String
+    pub pool : DatabasePool
 }
 
-pub type DatabasePool = Pool<AsyncPgConnection>;
-
 impl Database {
-
-    const POOL_TIMEOUT: Option<Duration> = Some(Duration::from_secs(5));
     
     pub fn new(config : Postgres) -> Self {
-        let connection_string = format!(
-            "postgresql://{}:{}@{}/{}",
-            config.user,
-            config.password,
-            config.hostname,
-            config.database
+        let db_config = Config::new()
+            .user(&config.user)
+            .password(config.password)
+            .host(&config.hostname)
+            .port(config.port)
+            .dbname(&config.database)
+            .to_owned();
+
+        let manager = PostgresConnectionManager::new(
+            db_config, NoTls            
         );
+        let pool = Pool::new(manager)
+            .unwrap();
 
         Database {
-            connection_string
+            pool
         }
     }
 
-    pub async fn build_database_pool(
-        &self
-    ) -> Result<DatabasePool, BuildError> {
-        
-        let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(&self.connection_string);
-        let pool = Pool::builder(manager)
-          .max_size(5)
-          .wait_timeout(Self::POOL_TIMEOUT)
-          .create_timeout(Self::POOL_TIMEOUT)
-          .recycle_timeout(Self::POOL_TIMEOUT)
-          .runtime(Runtime::Tokio1)
-          .build()?;
+    pub async fn init_database(
+        &self,
+    ) -> Result<(), postgres::Error> {
+        let mut client = self.pool.get().unwrap();
 
-        Ok(pool)
-      }
+        client.batch_execute("
+            CREATE TABLE IF NOT EXISTS words (
+                id              UUID PRIMARY KEY,
+                word            VARCHAR NOT NULL
+            )
+        ")?;
+
+        client.batch_execute("
+            CREATE TABLE IF NOT EXISTS words_xref_posts (
+                id              UUID PRIMARY KEY,
+                word_id         UUID NOT NULL,
+                post_id         UUID NOT NULL
+            )
+        ")?;
+
+        client.batch_execute("
+            CREATE TABLE IF NOT EXISTS posts (
+                id              UUID PRIMARY KEY,
+                title           VARCHAR NOT NULL,
+                body            VARCHAR NULL,
+                upvotes         INTEGER,
+                last_updaate    DATE,
+            )
+        ")?;
+
+        client.batch_execute("
+            CREATE TABLE IF NOT EXISTS comments (
+                id              UUID PRIMARY KEY,
+                post_id         UUID NOT NULL,
+                body            VARCHAR NULL,
+                upvotes         INTEGER,
+                last_updaate    DATE,
+            )
+        ")?;
+
+        Ok(())
+    }
 }

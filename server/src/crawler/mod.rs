@@ -1,7 +1,10 @@
 pub mod analyizer;
 pub mod crawler;
 
-use crate::{config, database::DatabasePool};
+use crate::{
+    config, 
+    database::Database
+};
 
 use self::crawler::Crawler;
 use std::time::Duration;
@@ -15,16 +18,18 @@ use tokio::task::JoinHandle;
 pub struct Runner {
     config : config::Crawler,
     handle : Option<JoinHandle<()>>,
+    database : Database
 }
 
 impl Runner {
     pub fn new(
         config : config::Crawler,
-        pool : DatabasePool
+        database : Database
     ) -> Self {
         Runner { 
             config,
-            handle : None
+            handle : None,
+            database
         }
     }
 
@@ -33,11 +38,12 @@ impl Runner {
 
         let mut scheduler = AsyncScheduler::with_tz(chrono::Utc);
 
-        let config = self.config.clone();      
+        let config = self.config.clone();
+        let database = self.database.clone();
 
         scheduler.every(1.day())
             .at("03:00")
-            .run(move || Self::run(config.to_owned()));
+            .run(move || Self::run(config.to_owned(), database.to_owned()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {
@@ -56,10 +62,11 @@ impl Runner {
     }    
 
     async fn run(
-        config : config::Crawler
+        config : config::Crawler,
+        database : Database
     ) {
         if config.enabled {
-        Crawler::new(config.seed_instance.to_owned())
+            Crawler::new(config.seed_instance, database)
                     .crawl()
                     .await;
         }
