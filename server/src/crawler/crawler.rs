@@ -1,6 +1,5 @@
 use crate::{
-    api::lemmy::fetcher::Fetcher, 
-    database::Database
+    api::lemmy::fetcher::Fetcher
 };
 use super::analyizer::Analyizer;
 
@@ -37,9 +36,10 @@ impl Crawler {
                 .await;
 
             for comment in comments {
-                let worlds = self.analyizer.get_distinct_words_in_comment(
+                let words = self.analyizer.get_distinct_words_in_comment(
                     comment.comment
                 );
+                println!("Words: {:?}", words);
             }
         }
     }

@@ -33,11 +33,11 @@ impl Runner {
 
         let mut scheduler = AsyncScheduler::with_tz(chrono::Utc);
 
-        let instance = self.config.seed_instance.to_owned();        
+        let config = self.config.clone();      
 
         scheduler.every(1.day())
             .at("03:00")
-            .run(move || Self::run(instance.to_owned()));
+            .run(move || Self::run(config.to_owned()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {
@@ -56,10 +56,12 @@ impl Runner {
     }    
 
     async fn run(
-        instance : String
+        config : config::Crawler
     ) {
-        Crawler::new(instance.to_owned())
+        if config.enabled {
+        Crawler::new(config.seed_instance.to_owned())
                     .crawl()
                     .await;
+        }
     }
 }

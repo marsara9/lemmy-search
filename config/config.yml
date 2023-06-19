@@ -1,4 +1,5 @@
 crawler:
+  enabled: false
   seed_instance: "voyager.lemmy.ml"
 postgres:
   user: "lemmy"
