@@ -5,7 +5,7 @@ on:
     branches:
       - 'develop'
     paths:
-      - 'crates/**'
+      - 'server/**'
       - 'ui/**'
       - 'docker/dev.dockerfile'
 concurrency:

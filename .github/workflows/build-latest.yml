@@ -5,7 +5,7 @@ on:
     branches:
       - 'master'
     paths:
-      - 'crates/**'
+      - 'server/**'
       - 'ui/**'
       - 'docker/dockerfile'
 concurrency:
