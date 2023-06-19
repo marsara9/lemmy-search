@@ -15,7 +15,10 @@ pub struct Crawler {
 
 #[derive(Deserialize)]
 pub struct Postgres {
-    pub location : String,
+    pub user : String,
+    pub password : String,
+    pub hostname : String,
+    pub database : String
 }
 
 impl Config {

@@ -22,7 +22,7 @@ async fn main() -> std::io::Result<()> {
 
     let config = config::Config::load();
 
-    let mut database = Database::new(config.postgres.location);
+    let mut database = Database::new(config.postgres);
     let _ = database.init()
         .await;
 

@@ -10,15 +10,20 @@ use clokwerk::{
     Job, 
     AsyncScheduler
 };
+use futures::Future;
 use tokio::task::JoinHandle;
 
 pub struct Runner {
     config : config::Crawler,
-    handle : Option<JoinHandle<()>>
+    handle : Option<JoinHandle<()>>,
 }
 
+pub type RunFuture<'a> = dyn 'static + FnMut() -> (dyn Future<Output = ()> + Send);
+
 impl Runner {
-    pub fn new(config : config::Crawler) -> Self {
+    pub fn new(
+        config : config::Crawler
+    ) -> Self {
         Runner { 
             config,
             handle : None
@@ -30,7 +35,7 @@ impl Runner {
 
         let mut scheduler = AsyncScheduler::with_tz(chrono::Utc);
 
-        let instance = self.config.seed_instance.to_owned();
+        let instance = self.config.seed_instance.to_owned();        
 
         scheduler.every(1.day())
             .at("03:00")
@@ -39,7 +44,7 @@ impl Runner {
         self.handle = Some(tokio::spawn(async move {
             loop {
                 scheduler.run_pending().await;
-                tokio::time::sleep(Duration::from_millis(100)).await;
+                tokio::time::sleep(Duration::from_secs(1)).await;
             }
         }));
     }
@@ -50,12 +55,12 @@ impl Runner {
             None => {}
         }
         self.handle = None
-    }
+    }    
 
     async fn run(
         instance : String
     ) {
-        Crawler::new(instance)
+        Crawler::new(instance.to_owned())
                     .crawl()
                     .await;
     }

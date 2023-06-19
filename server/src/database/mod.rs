@@ -4,21 +4,27 @@ use postgres::{
     Error
 };
 
+use crate::config::Postgres;
+
 pub mod dbo;
 
 pub struct Database {
-    pub location : String,
-
     client : Client
 }
 
 impl  Database {
     
-    pub fn new(location : String) -> Self {
-        let location_str = location.as_str();
+    pub fn new(config : Postgres) -> Self {
+        let connection_string = format!(
+            "postgresql://{}:{}@{}/{}",
+            config.user,
+            config.password,
+            config.hostname,
+            config.database
+        );
+
         Database {
-            location : location.to_owned(),
-            client : Client::connect(location_str, NoTls).unwrap()
+            client : Client::connect(connection_string.as_str(), NoTls).unwrap()
         }
     }
 

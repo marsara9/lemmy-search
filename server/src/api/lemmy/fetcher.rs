@@ -76,8 +76,8 @@ impl Fetcher {
             .collect::<Vec<JoinHandle<CommentListResponse>>>();
 
         let results = futures::future::join_all(calls).await.iter().map(|list|
-            list.comments.iter().map(|commentData|
-                commentData.comment.clone()
+            list.comments.iter().map(|comment_data|
+                comment_data.comment.clone()
             )
         ).flatten().collect();
 

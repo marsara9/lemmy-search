@@ -1,4 +1,7 @@
 crawler:
   seed_instance: "voyager.lemmy.ml"
 postgres:
-  location: ""
+  user: "lemmy"
+  password: "password"
+  hostname: "lemmy-search-db"
+  database: "lemmy-search-db"

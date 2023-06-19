@@ -1,16 +1,21 @@
-use crate::api::lemmy::fetcher::Fetcher;
+use crate::{
+    api::lemmy::fetcher::Fetcher, 
+    database::Database
+};
 use super::analyizer::Analyizer;
 
 pub struct Crawler {
     pub instance : String,
     
     fetcher : Fetcher,
-    analyizer : Analyizer 
+    analyizer : Analyizer
 }
 
 impl Crawler {
 
-    pub fn new(instacne : String) -> Self {
+    pub fn new(
+        instacne : String        
+    ) -> Self {
         Crawler {
             instance: instacne.clone(),
             fetcher: Fetcher::new(instacne),
@@ -37,14 +42,5 @@ impl Crawler {
                 );
             }
         }
-
-        
-
-        // let site_data = self.fetch_site_data()
-        //     .await.site_view;
-
-        // let number_of_communities = site_data.counts.communities;
-
-        // let _ = self.fetch_all_communities(number_of_communities);
     }
 }
