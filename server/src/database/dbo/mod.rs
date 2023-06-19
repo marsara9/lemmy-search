@@ -16,6 +16,11 @@ use r2d2_postgres::{
 
 #[async_trait]
 pub trait DBO<T : Default> {
+
+    async fn create_table_if_not_exists(
+        &self
+    ) -> bool;
+
     async fn create(
         &self, 
         object : &T

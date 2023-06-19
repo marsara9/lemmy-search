@@ -28,10 +28,24 @@ impl SiteDBO {
 #[async_trait]
 impl DBO<SiteView> for SiteDBO {
 
-    // id              UUID PRIMARY KEY,
-    // name            VARCHAR NULL,
-    // actor_id        VARCHAR NOT NULL,
-    // last_update     DATE
+    async fn create_table_if_not_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("
+                CREATE TABLE IF NOT EXISTS sites (
+                    id              UUID PRIMARY KEY,
+                    name            VARCHAR NULL,
+                    actor_id        VARCHAR NOT NULL,
+                    last_update     DATE
+                )
+            ", &[]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
 
     async fn create(
         &self, 

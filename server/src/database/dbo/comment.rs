@@ -33,11 +33,25 @@ impl CommentDBO {
 #[async_trait]
 impl DBO<CommentData> for CommentDBO {
 
-    // id              UUID PRIMARY KEY,
-    // post_id         UUID NOT NULL,
-    // body            VARCHAR NULL,
-    // upvotes         INTEGER,
-    // last_update     DATE    
+    async fn create_table_if_not_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("
+                CREATE TABLE IF NOT EXISTS comments (
+                    remote_id         INT,
+                    instance_actor_id VARCHAR NOT NULL,     
+                    body              VARCHAR NULL,
+                    upvotes           INTEGER,
+                    late_update       DATE
+                )
+            ", &[]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
 
     async fn create(
         &self, 
@@ -117,5 +131,4 @@ impl DBO<CommentData> for CommentDBO {
     ) -> bool {
         false
     }
-
 }

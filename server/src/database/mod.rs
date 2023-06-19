@@ -1,7 +1,7 @@
 pub mod dbo;
 
 use std::thread;
-use crate::config::Postgres;
+use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO}};
 use postgres::{
     NoTls, 
     Config,
@@ -55,6 +55,16 @@ impl Database {
     ) -> Result<(), Error> {
         println!("Creating database...");
 
+        println!("\tCreating COMMENTS table...");
+        CommentDBO::new(self.pool.clone())
+            .create_table_if_not_exists()
+            .await;
+
+        println!("\tCreating SITES table...");
+        SiteDBO::new(self.pool.clone())
+            .create_table_if_not_exists()
+            .await;
+
         let pool = self.pool.clone();
         let _ = match thread::spawn(move || {
             let mut client = pool.get().unwrap();
@@ -87,7 +97,7 @@ impl Database {
                 )
             ").unwrap();
 
-            println!("\tCreating COMMENTS table...");
+            
             client.batch_execute("
                 CREATE TABLE IF NOT EXISTS comments (
                     id              UUID PRIMARY KEY,
