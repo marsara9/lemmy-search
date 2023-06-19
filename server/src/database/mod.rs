@@ -1,7 +1,7 @@
 pub mod dbo;
 
+use std::thread;
 use std::collections::HashSet;
-
 use crate::{
     config::Postgres, 
     api::lemmy::models::comment::Comment
@@ -24,8 +24,22 @@ pub struct Database {
 }
 
 impl Database {
-    
-    pub fn new(config : &Postgres) -> Self {
+
+    pub async fn create(
+        config : &Postgres
+    ) -> Result<Self, r2d2_postgres::r2d2::Error> {
+        Self::create_database_pool(config)
+            .await
+            .map(|pool| {
+                Database {
+                    pool
+                }
+            })
+    }
+
+    async fn create_database_pool(
+        config : &Postgres
+    ) -> Result<DatabasePool, r2d2_postgres::r2d2::Error> {
         let db_config = Config::new()
             .user(&config.user)
             .password(&config.password)
@@ -37,21 +51,7 @@ impl Database {
         let manager = PostgresConnectionManager::new(
             db_config, NoTls            
         );
-        let result = Pool::new(manager);
-        let pool = match result {
-            Ok(value) => value,
-            Err(err) => {
-                println!("Database connection pool creation failed...");
-                if config.log {
-                    println!("{}", err);
-                }
-                panic!()
-            }
-        };
-
-        Database {
-            pool
-        }
+        Pool::new(manager)
     }
 
     pub async fn init_database(
@@ -59,44 +59,56 @@ impl Database {
     ) -> Result<(), Error> {
         println!("Creating database...");
 
-        let mut client = self.pool.get().unwrap();
+        let pool = self.pool.clone();
+        let _ = match thread::spawn(move || {
+            let mut client = pool.get().unwrap();
 
-        client.batch_execute("
-            CREATE TABLE IF NOT EXISTS words (
-                id              UUID PRIMARY KEY,
-                word            VARCHAR NOT NULL
-            )
-        ")?;
+            println!("Creating WORDS table...");
+            client.batch_execute("
+                CREATE TABLE IF NOT EXISTS words (
+                    id              UUID PRIMARY KEY,
+                    word            VARCHAR NOT NULL
+                )
+            ").unwrap();
 
-        client.batch_execute("
-            CREATE TABLE IF NOT EXISTS words_xref_posts (
-                id              UUID PRIMARY KEY,
-                word_id         UUID NOT NULL,
-                post_id         UUID NOT NULL
-            )
-        ")?;
+            println!("Creating WORDS_XREF_POSTS table...");
+            client.batch_execute("
+                CREATE TABLE IF NOT EXISTS words_xref_posts (
+                    id              UUID PRIMARY KEY,
+                    word_id         UUID NOT NULL,
+                    post_id         UUID NOT NULL
+                )
+            ").unwrap();
 
-        client.batch_execute("
-            CREATE TABLE IF NOT EXISTS posts (
-                id              UUID PRIMARY KEY,
-                title           VARCHAR NOT NULL,
-                body            VARCHAR NULL,
-                upvotes         INTEGER,
-                last_updaate    DATE,
-            )
-        ")?;
+            println!("Creating POSTS table...");
+            client.batch_execute("
+                CREATE TABLE IF NOT EXISTS posts (
+                    id              UUID PRIMARY KEY,
+                    title           VARCHAR NOT NULL,
+                    body            VARCHAR NULL,
+                    upvotes         INTEGER,
+                    last_updaate    DATE,
+                )
+            ").unwrap();
 
-        client.batch_execute("
-            CREATE TABLE IF NOT EXISTS comments (
-                id              UUID PRIMARY KEY,
-                post_id         UUID NOT NULL,
-                body            VARCHAR NULL,
-                upvotes         INTEGER,
-                last_updaate    DATE,
-            )
-        ")?;
-
-        println!("Database creation complete...");
+            println!("Creating COMMENTS table...");
+            client.batch_execute("
+                CREATE TABLE IF NOT EXISTS comments (
+                    id              UUID PRIMARY KEY,
+                    post_id         UUID NOT NULL,
+                    body            VARCHAR NULL,
+                    upvotes         INTEGER,
+                    last_updaate    DATE,
+                )
+            ").unwrap();
+        }).join() {
+            Ok(_) => {
+                println!("Database creation complete...");
+            },
+            Err(_) => {
+                println!("Database creation failed!");
+            },
+        };
 
         Ok(())
     }

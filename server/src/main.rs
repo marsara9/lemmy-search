@@ -23,7 +23,17 @@ async fn main() -> std::io::Result<()> {
 
     let config = config::Config::load();
 
-    let database = Database::new(&config.postgres);
+    let database = match Database::create(&config.postgres).await {
+        Ok(value) => value,
+        Err(err) => {
+            println!("Database pool creation failed...");
+            if config.postgres.log {
+                println!("{}", err);
+            }
+            panic!();
+        }
+    };
+
     let init_result = database.init_database()
         .await;
     match init_result {
