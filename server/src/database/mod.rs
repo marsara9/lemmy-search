@@ -1,11 +1,7 @@
 pub mod dbo;
 
 use std::thread;
-use std::collections::HashSet;
-use crate::{
-    config::Postgres, 
-    api::lemmy::models::comment::Comment
-};
+use crate::config::Postgres;
 use postgres::{
     NoTls, 
     Config,
@@ -87,7 +83,7 @@ impl Database {
                     title           VARCHAR NOT NULL,
                     body            VARCHAR NULL,
                     upvotes         INTEGER,
-                    last_updaate    DATE
+                    last_update     DATE
                 )
             ").unwrap();
 
@@ -98,7 +94,17 @@ impl Database {
                     post_id         UUID NOT NULL,
                     body            VARCHAR NULL,
                     upvotes         INTEGER,
-                    last_updaate    DATE
+                    last_update     DATE
+                )
+            ").unwrap();
+
+            println!("\tCreating SITES table...");
+            client.batch_execute("
+                CREATE TABLE IF NOT EXISTS sites (
+                    id              UUID PRIMARY KEY,
+                    name            VARCHAR NULL,
+                    actor_id        VARCHAR NOT NULL,
+                    last_update     DATE
                 )
             ").unwrap();
         }).join() {
@@ -110,14 +116,6 @@ impl Database {
             },
         };
 
-        Ok(())
-    }
-
-    pub async fn insert_comment(
-        &self,
-        _comment : &Comment,
-        _words : HashSet<String>
-    ) -> Result<(), Error>  {
         Ok(())
     }
 }

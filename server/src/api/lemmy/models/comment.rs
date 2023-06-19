@@ -36,5 +36,5 @@ pub struct Comment {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Counts {
-    pub score : i32
+    pub score : Option<i32>
 }

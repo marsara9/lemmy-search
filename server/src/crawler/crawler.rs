@@ -1,7 +1,10 @@
 use super::analyizer::Analyizer;
 use crate::{
     api::lemmy::fetcher::Fetcher, 
-    database::Database
+    database::{
+        Database,        
+        dbo::{comment::CommentDBO, DBO}
+    }
 };
 
 pub struct Crawler {
@@ -33,7 +36,8 @@ impl Crawler {
             .await
             .site_view
             .counts
-            .comments;
+            .comments
+            .unwrap_or(1);
 
         for page in 0..(number_of_comments / Fetcher::DEFAULT_LIMIT) {
             let comments = self.fetcher.fetch_comments(page)
@@ -44,7 +48,9 @@ impl Crawler {
                     &comment_data.comment
                 );
                 println!("Words: {:?}", words);
-                let _ = self.database.insert_comment(&comment_data.comment, words)
+
+                CommentDBO::new(self.database.pool.clone())
+                    .create(&comment_data)
                     .await;
             }
         }

@@ -14,7 +14,8 @@ pub struct SiteResponse {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SiteView {
-    pub local_site_rate_limit : LocalSiteRateLimit,
+    pub site : Site,
+    pub local_site_rate_limit : Option<LocalSiteRateLimit>,
     pub counts : Counts
 }
 
@@ -24,13 +25,19 @@ pub struct FederatedInstances {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Site {
+    pub name : String,
+    pub actor_id : String
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct LocalSiteRateLimit {
 
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Counts {
-    pub posts : i64,
-    pub comments : i64,
-    pub communities : i64
+    pub posts : Option<i64>,
+    pub comments : Option<i64>,
+    pub communities : Option<i64>
 }

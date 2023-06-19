@@ -1,25 +1,55 @@
-use serde::{
-    Serialize, 
-    Deserialize
+pub mod site;
+pub mod comment;
+
+use async_trait::async_trait;
+use super::DatabasePool;
+use uuid::Uuid;
+use postgres::NoTls;
+use std::{
+    thread, 
+    any::Any, borrow::BorrowMut
+};
+use r2d2_postgres::{
+    r2d2::PooledConnection, 
+    PostgresConnectionManager
 };
 
-use crate::api::lemmy::models::post::Post;
+#[async_trait]
+pub trait DBO<T : Default> {
+    async fn create(
+        &self, 
+        object : &T
+    ) -> bool;
 
-// #[derive(Debug, Serialize, Deserialize, Clone)]
-// pub struct Page {
-//     pub word : String,
-//     pub posts : Vec<LemmyPost>
-// }
+    async fn retrieve(
+        &self, 
+        uuid : &Uuid
+    ) -> Option<T>;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchQuery {
-    pub query : String,
-    pub page : Option<i64>
+    async fn update(
+        &self, 
+        uuid : &Uuid
+    ) -> bool;
+
+    async fn delete(
+        &self, 
+        uuid : &Uuid
+    ) -> bool;
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchResult {
-    pub original_query : SearchQuery,
-    pub search_results : Vec<Post>,
-    pub total_pages : i64
+async fn get_database_client<T, F>(
+    pool : &DatabasePool,
+    callback : F
+) -> Result<T, Box<(dyn Any + Send + 'static)>> 
+where 
+    F : FnOnce(&mut PooledConnection<PostgresConnectionManager<NoTls>>) -> T,
+    F : Send + 'static,
+    T : Send + 'static
+{
+    let pool = pool.clone();
+    thread::spawn(move || {
+        let mut client = pool.get().unwrap();
+
+        callback(client.borrow_mut())
+    }).join()
 }

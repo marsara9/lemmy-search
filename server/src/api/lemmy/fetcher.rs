@@ -57,6 +57,7 @@ impl Fetcher {
                 .site_view
                 .counts
                 .comments
+                .unwrap_or(0)
         };
 
         let number_of_calls = number_of_comments / Self::DEFAULT_LIMIT;
