@@ -1,9 +1,8 @@
-use std::borrow::BorrowMut;
-
-use crate::{
-    api::lemmy::fetcher::Fetcher, database::{Database, self}
-};
 use super::analyizer::Analyizer;
+use crate::{
+    api::lemmy::fetcher::Fetcher, 
+    database::Database
+};
 
 pub struct Crawler {
     pub instance : String,

@@ -94,8 +94,8 @@ impl Database {
 
     pub async fn insert_comment(
         &self,
-        comment : &Comment,
-        words : HashSet<String>
+        _comment : &Comment,
+        _words : HashSet<String>
     ) -> Result<(), Error>  {
         Ok(())
     }
