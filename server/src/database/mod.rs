@@ -1,9 +1,15 @@
 pub mod dbo;
 
-use crate::config::Postgres;
+use std::collections::HashSet;
+
+use crate::{
+    config::Postgres, 
+    api::lemmy::models::comment::Comment
+};
 use postgres::{
     NoTls, 
-    Config
+    Config,
+    Error
 };
 use r2d2_postgres::{
     PostgresConnectionManager, 
@@ -41,7 +47,9 @@ impl Database {
 
     pub async fn init_database(
         &self,
-    ) -> Result<(), postgres::Error> {
+    ) -> Result<(), Error> {
+        println!("Creating database...");
+
         let mut client = self.pool.get().unwrap();
 
         client.batch_execute("
@@ -79,6 +87,16 @@ impl Database {
             )
         ")?;
 
+        println!("Database creation complete...");
+
+        Ok(())
+    }
+
+    pub async fn insert_comment(
+        &self,
+        comment : &Comment,
+        words : HashSet<String>
+    ) -> Result<(), Error>  {
         Ok(())
     }
 }

@@ -1,3 +1,5 @@
+use std::borrow::BorrowMut;
+
 use crate::{
     api::lemmy::fetcher::Fetcher, database::{Database, self}
 };
@@ -38,11 +40,13 @@ impl Crawler {
             let comments = self.fetcher.fetch_comments(page)
                 .await;
 
-            for comment in comments {
+            for comment_data in comments {
                 let words = self.analyizer.get_distinct_words_in_comment(
-                    comment.comment
+                    &comment_data.comment
                 );
                 println!("Words: {:?}", words);
+                let _ = self.database.insert_comment(&comment_data.comment, words)
+                    .await;
             }
         }
     }

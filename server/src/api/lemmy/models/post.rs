@@ -32,10 +32,11 @@ pub struct  PostData {
 pub struct Post {
     pub id : i32,
     pub name : String,
-    pub body : Option<String    >
+    pub body : Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Counts {
-    pub comments : i64
+    pub comments : i64,
+    pub score : i32
 }

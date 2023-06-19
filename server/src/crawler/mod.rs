@@ -42,7 +42,7 @@ impl Runner {
         let database = self.database.clone();
 
         scheduler.every(1.day())
-            .at("03:00")
+            .at("07:00")
             .run(move || Self::run(config.to_owned(), database.to_owned()));
 
         self.handle = Some(tokio::spawn(async move {
