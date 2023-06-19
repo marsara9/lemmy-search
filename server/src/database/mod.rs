@@ -1,7 +1,12 @@
-use postgres::{
-    Client, 
-    NoTls, 
-    Error
+use std::time::Duration;
+
+use deadpool::Runtime;
+use diesel_async::{
+    AsyncPgConnection, 
+    pooled_connection::{
+        deadpool::{Pool, BuildError}, 
+        AsyncDieselConnectionManager
+    }
 };
 
 use crate::config::Postgres;
@@ -9,10 +14,14 @@ use crate::config::Postgres;
 pub mod dbo;
 
 pub struct Database {
-    client : Client
+    connection_string : String
 }
 
-impl  Database {
+pub type DatabasePool = Pool<AsyncPgConnection>;
+
+impl Database {
+
+    const POOL_TIMEOUT: Option<Duration> = Some(Duration::from_secs(5));
     
     pub fn new(config : Postgres) -> Self {
         let connection_string = format!(
@@ -24,46 +33,23 @@ impl  Database {
         );
 
         Database {
-            client : Client::connect(connection_string.as_str(), NoTls).unwrap()
+            connection_string
         }
     }
 
-    pub async fn init(&mut self) -> Result<(), Error> {
-        self.client.batch_execute("
-            CREATE TABLE IF NOT EXISTS words (
-                id              UUID PRIMARY KEY,
-                word            VARCHAR NOT NULL
-            )
-        ")?;
+    pub async fn build_database_pool(
+        &self
+    ) -> Result<DatabasePool, BuildError> {
+        
+        let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(&self.connection_string);
+        let pool = Pool::builder(manager)
+          .max_size(5)
+          .wait_timeout(Self::POOL_TIMEOUT)
+          .create_timeout(Self::POOL_TIMEOUT)
+          .recycle_timeout(Self::POOL_TIMEOUT)
+          .runtime(Runtime::Tokio1)
+          .build()?;
 
-        self.client.batch_execute("
-            CREATE TABLE IF NOT EXISTS words_xref_posts (
-                id              UUID PRIMARY KEY,
-                word_id         UUID NOT NULL,
-                post_id         UUID NOT NULL
-            )
-        ")?;
-
-        self.client.batch_execute("
-            CREATE TABLE IF NOT EXISTS posts (
-                id              UUID PRIMARY KEY,
-                title           VARCHAR NOT NULL,
-                body            VARCHAR NULL,
-                upvotes         INTEGER,
-                last_updaate    DATE,
-            )
-        ")?;
-
-        self.client.batch_execute("
-            CREATE TABLE IF NOT EXISTS comments (
-                id              UUID PRIMARY KEY,
-                post_id         UUID NOT NULL,
-                body            VARCHAR NULL,
-                upvotes         INTEGER,
-                last_updaate    DATE,
-            )
-        ")?;
-
-        Ok(())
-    }
+        Ok(pool)
+      }
 }

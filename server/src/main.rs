@@ -9,6 +9,7 @@ use actix_web::{
     App, 
     HttpServer
 };
+use api::search::SearchHandler;
 use crawler::Runner;
 use database::Database;
 
@@ -22,23 +23,28 @@ async fn main() -> std::io::Result<()> {
 
     let config = config::Config::load();
 
-    let mut database = Database::new(config.postgres);
-    let _ = database.init()
-        .await;
+    let database = Database::new(config.postgres);
+    let pool = database.build_database_pool()
+        .await
+        .unwrap();    
 
-    let mut cralwer_runner = Runner::new(config.crawler);
+    let mut cralwer_runner = Runner::new(config.crawler, pool.clone());
     cralwer_runner.start();
 
-    let result = HttpServer::new(move || {
-        App::new()
-            .service(api::search::heartbeat)
-            .service(api::search::search)
-            .service(api::search::get_instances)
-            .service(
-                fs::Files::new("/", &ui_directory)
-                    .index_file("index.html")
-            )
-    }).bind(("0.0.0.0", 8000))?
+    let factory = move || {
+        let search_handler = SearchHandler::new();
+        let mut app = App::new();
+        for (path, route) in search_handler.routes {
+            app = app.route(path.as_str(), route);
+        }
+        app.service(
+            fs::Files::new("/", &ui_directory)
+                .index_file("index.html")
+        )
+    };
+
+    let result = HttpServer::new(factory)
+        .bind(("0.0.0.0", 8000))?
         .run()
         .await;
 

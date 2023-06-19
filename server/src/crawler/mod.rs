@@ -1,7 +1,7 @@
 pub mod analyizer;
 pub mod crawler;
 
-use crate::config;
+use crate::{config, database::DatabasePool};
 
 use self::crawler::Crawler;
 use std::time::Duration;
@@ -10,7 +10,6 @@ use clokwerk::{
     Job, 
     AsyncScheduler
 };
-use futures::Future;
 use tokio::task::JoinHandle;
 
 pub struct Runner {
@@ -18,11 +17,10 @@ pub struct Runner {
     handle : Option<JoinHandle<()>>,
 }
 
-pub type RunFuture<'a> = dyn 'static + FnMut() -> (dyn Future<Output = ()> + Send);
-
 impl Runner {
     pub fn new(
-        config : config::Crawler
+        config : config::Crawler,
+        pool : DatabasePool
     ) -> Self {
         Runner { 
             config,

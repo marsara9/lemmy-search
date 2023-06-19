@@ -3,5 +3,5 @@ crawler:
 postgres:
   user: "lemmy"
   password: "password"
-  hostname: "lemmy-search-db"
+  hostname: "lemmy-search-db:5432"
   database: "lemmy-search-db"
