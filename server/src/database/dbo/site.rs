@@ -23,9 +23,36 @@ impl SiteDBO {
             pool
         }
     }
+
+    pub async fn retrieve_all(
+        &self
+    ) -> Vec<SiteView> {
+        get_database_client(&self.pool, move |client| {
+            match client.query("
+                SELECT actor_id, name 
+                    FROM sites
+                ",
+                &[] 
+            ) {
+                Ok(rows) => {
+                    rows.iter().map(|row| {
+                        SiteView {
+                            site: Site { 
+                                actor_id: row.get(0),
+                                name: row.get(1)
+                            },
+                            ..Default::default()
+                        }
+                    }).collect()
+                },
+                Err(_) => Vec::<SiteView>::new()
+            }
+        }).await.unwrap_or(Vec::<SiteView>::new())
+    }
 }
 
 #[async_trait]
+#[allow(unused_variables)]
 impl DBO<SiteView> for SiteDBO {
 
     async fn create_table_if_not_exists(
@@ -34,10 +61,11 @@ impl DBO<SiteView> for SiteDBO {
         match get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS sites (
-                    id              UUID PRIMARY KEY,
-                    name            VARCHAR NULL,
-                    actor_id        VARCHAR NOT NULL,
-                    last_update     DATE
+                    id                UUID PRIMARY KEY,
+                    instance          VARCHAR NOT NULL,
+                    name              VARCHAR NULL,
+                    actor_id          VARCHAR NOT NULL,
+                    last_update       DATE
                 )
             ", &[]
             )
@@ -49,15 +77,19 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn create(
         &self, 
+        instance : &str,
         object : &SiteView
     ) -> bool {
+        let instance = instance.to_owned();  
         let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO sites (id, actor_id, laste_updated) 
+                INSERT INTO sites (id, instance, name, actor_id, laste_updated) 
                     VALUES ($1, $2, $3)",
                     &[
                         &Uuid::new_v4(),
+                        &instance,
+                        &object.site.name,
                         &object.site.actor_id,
                         &Utc::now()
                     ]
@@ -70,17 +102,22 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn retrieve(
         &self,
-        uuid : &Uuid,
+        remote_id : &i64,
+        instance : &str
     ) -> Option<SiteView> {
-        let uuid = uuid.to_owned();
+        let remote_id = remote_id.to_owned();
+        let instance = instance.to_owned();
         get_database_client(&self.pool, move |client| {
-            match client.query_one(
-                "SELECT actor_id, name FROM sites WHERE id = $1",
-                &[&uuid] 
+            match client.query_one("
+                SELECT actor_id, name 
+                    FROM sites
+                    WHERE instance = $1
+                ",
+                &[&instance] 
             ) {
                 Ok(row) => Some(SiteView {
                     site: Site {
-                        actor_id: row.get(0),
+                        actor_id : row.get(0),
                         name: row.get(1)
                     },
                     ..Default::default()
@@ -90,11 +127,19 @@ impl DBO<SiteView> for SiteDBO {
         }).await.unwrap_or(None)
     }
 
-    async fn update(&self, uuid : &Uuid) -> bool {
+    async fn update(
+        &self, 
+        remote_id : &i64,
+        instance : &str
+    ) -> bool {
         false
     }
 
-    async fn delete(&self, uuid : &Uuid) -> bool {
+    async fn delete(
+        &self, 
+        remote_id : &i64,
+        instance : &str
+    ) -> bool {
         false
     }
 }

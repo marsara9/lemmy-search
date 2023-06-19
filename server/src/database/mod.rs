@@ -1,7 +1,7 @@
 pub mod dbo;
 
 use std::thread;
-use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO}};
+use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO, post::PostDAO}};
 use postgres::{
     NoTls, 
     Config,
@@ -55,6 +55,11 @@ impl Database {
     ) -> Result<(), Error> {
         println!("Creating database...");
 
+        println!("\tCreating POSTS table...");
+        PostDAO::new(self.pool.clone())
+            .create_table_if_not_exists()
+            .await;
+
         println!("\tCreating COMMENTS table...");
         CommentDBO::new(self.pool.clone())
             .create_table_if_not_exists()
@@ -104,16 +109,6 @@ impl Database {
                     post_id         UUID NOT NULL,
                     body            VARCHAR NULL,
                     upvotes         INTEGER,
-                    last_update     DATE
-                )
-            ").unwrap();
-
-            println!("\tCreating SITES table...");
-            client.batch_execute("
-                CREATE TABLE IF NOT EXISTS sites (
-                    id              UUID PRIMARY KEY,
-                    name            VARCHAR NULL,
-                    actor_id        VARCHAR NOT NULL,
                     last_update     DATE
                 )
             ").unwrap();

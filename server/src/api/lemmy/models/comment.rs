@@ -31,6 +31,7 @@ pub struct CommentData {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Comment {
+    pub id : i64,
     pub content : String,
 }
 

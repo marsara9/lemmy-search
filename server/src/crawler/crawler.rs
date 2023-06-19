@@ -3,7 +3,7 @@ use crate::{
     api::lemmy::fetcher::Fetcher, 
     database::{
         Database,        
-        dbo::{comment::CommentDBO, DBO}
+        dbo::{comment::CommentDBO, DBO, site::SiteDBO}
     }
 };
 
@@ -32,9 +32,15 @@ impl Crawler {
     pub async fn crawl(
         &self
     ) {
-        let number_of_comments = self.fetcher.fetch_site_data()
+        let site_view = self.fetcher.fetch_site_data()
             .await
-            .site_view
+            .site_view;
+
+        SiteDBO::new(self.database.pool.clone())
+            .create(&self.instance, &site_view)
+            .await;
+
+        let number_of_comments = site_view
             .counts
             .comments
             .unwrap_or(1);
@@ -50,7 +56,7 @@ impl Crawler {
                 println!("Words: {:?}", words);
 
                 CommentDBO::new(self.database.pool.clone())
-                    .create(&comment_data)
+                    .create(&self.instance, &comment_data, )
                     .await;
             }
         }

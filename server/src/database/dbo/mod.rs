@@ -1,5 +1,6 @@
 pub mod site;
 pub mod comment;
+pub mod post;
 
 use async_trait::async_trait;
 use super::DatabasePool;
@@ -23,22 +24,26 @@ pub trait DBO<T : Default> {
 
     async fn create(
         &self, 
+        instance : &str,
         object : &T
     ) -> bool;
 
     async fn retrieve(
         &self, 
-        uuid : &Uuid
+        remote_id : &i64,
+        instance : &str
     ) -> Option<T>;
 
     async fn update(
         &self, 
-        uuid : &Uuid
+        remote_id : &i64,
+        instance : &str
     ) -> bool;
 
     async fn delete(
         &self, 
-        uuid : &Uuid
+        remote_id : &i64,
+        instance : &str
     ) -> bool;
 }
 

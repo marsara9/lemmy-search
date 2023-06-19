@@ -3,12 +3,10 @@ use async_trait::async_trait;
 use crate::{
     database::DatabasePool,
     api::lemmy::models::{
-        comment::{
-            Comment, 
-            CommentData, 
-            Counts
+        post::{
+            Post, 
+            PostData, Counts
         }, 
-        post::Post, 
         community::Community
     }
 };
@@ -17,11 +15,11 @@ use super::{
     get_database_client
 };
 
-pub struct CommentDBO {
+pub struct PostDAO {
     pool : DatabasePool
 }
 
-impl CommentDBO {
+impl PostDAO {
     pub fn new(pool : DatabasePool) -> Self {
         return Self {
             pool
@@ -31,19 +29,20 @@ impl CommentDBO {
 
 #[async_trait]
 #[allow(unused_variables)]
-impl DBO<CommentData> for CommentDBO {
+impl DBO<PostData> for PostDAO {
 
     async fn create_table_if_not_exists(
         &self
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("
-                CREATE TABLE IF NOT EXISTS comments (
+                CREATE TABLE IF NOT EXISTS  (
                     remote_id         INT,
                     instance          VARCHAR NOT NULL,
-                    content           VARCHAR NULL,
+                    name              VARCHAR NOT NULL,
+                    body              VARCHAR NULL,
                     score             INTEGER,
-                    late_update       DATE
+                    last_update       DATE
                 )
             ", &[]
             )
@@ -56,19 +55,19 @@ impl DBO<CommentData> for CommentDBO {
     async fn create(
         &self, 
         instance : &str,
-        object : &CommentData
-    ) -> bool {
+        object : &PostData
+    ) -> bool {        
         let instance = instance.to_owned();  
         let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO comments (remote_id, instance, post_id, body, upvotes, laste_updated) 
+                INSERT INTO posts (remote_id, instance, name, body, score, last_update) 
                     VALUES ($1, $2, $3)",
                     &[
-                        &object.comment.id,
-                        &instance,
                         &object.post.id,
-                        &object.comment.content,
+                        &instance,
+                        &object.post.name,
+                        &object.post.body,
                         &object.counts.score,
                         &Utc::now()
                     ]
@@ -83,43 +82,37 @@ impl DBO<CommentData> for CommentDBO {
         &self, 
         remote_id : &i64,
         instance : &str
-    ) -> Option<CommentData> {
+    ) -> Option<PostData> {
         let remote_id = remote_id.to_owned();
         let instance = instance.to_owned();
         get_database_client(&self.pool, move |client| {
             match client.query_one("
-                SELECT m.body, 
-                        m.upvotes,
-                        p.remote_id,
-                        p.title, 
+                SELECT p.name,
                         p.body,
                         c.remote_id,
                         c.name,
-                        c.title
-                    FROM comments AS m 
-                        JOIN posts AS p on p.id = m.post_id
-                        OIN communities AS c on c.id = m.community_id
-                    WHERE m.rmote_id = $1 AND m.instance = $2
+                        c.title,
+                        p.score
+                    FROM posts AS p
+                        JOIN communities AS c on c.id = m.community_id
+                    WHERE p.remote_id = $1 AND p.instance = $2
                 ",
                 &[&remote_id, &instance] 
             ) {
-                Ok(row) => Some(CommentData { 
-                    comment : Comment {
-                        id: remote_id.clone(),
-                        content: row.get(0),
+                Ok(row) => Some(PostData { 
+                    post: Post { 
+                        id: remote_id.clone(), 
+                        name: row.get(0), 
+                        body: row.get(1)
                     },
-                    counts: Counts {
-                        score : Some(row.get(1))
+                    community : Community { 
+                        id: row.get(2), 
+                        name: row.get(3), 
+                        title: row.get(4) 
                     },
-                    post : Post {
-                        id: row.get(2),
-                        name : row.get(3),
-                        body : row.get(4)
-                    },
-                    community : Community {
-                        id: row.get(5),
-                        name: row.get(6),
-                        title: row.get(7)
+                    counts : Counts {
+                        score : row.get(5),
+                        ..Default::default()
                     }
                 }),
                 Err(_) => None
