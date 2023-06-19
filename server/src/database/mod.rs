@@ -63,7 +63,7 @@ impl Database {
         let _ = match thread::spawn(move || {
             let mut client = pool.get().unwrap();
 
-            println!("Creating WORDS table...");
+            println!("\tCreating WORDS table...");
             client.batch_execute("
                 CREATE TABLE IF NOT EXISTS words (
                     id              UUID PRIMARY KEY,
@@ -71,7 +71,7 @@ impl Database {
                 )
             ").unwrap();
 
-            println!("Creating WORDS_XREF_POSTS table...");
+            println!("\tCreating WORDS_XREF_POSTS table...");
             client.batch_execute("
                 CREATE TABLE IF NOT EXISTS words_xref_posts (
                     id              UUID PRIMARY KEY,
@@ -80,25 +80,25 @@ impl Database {
                 )
             ").unwrap();
 
-            println!("Creating POSTS table...");
+            println!("\tCreating POSTS table...");
             client.batch_execute("
                 CREATE TABLE IF NOT EXISTS posts (
                     id              UUID PRIMARY KEY,
                     title           VARCHAR NOT NULL,
                     body            VARCHAR NULL,
                     upvotes         INTEGER,
-                    last_updaate    DATE,
+                    last_updaate    DATE
                 )
             ").unwrap();
 
-            println!("Creating COMMENTS table...");
+            println!("\tCreating COMMENTS table...");
             client.batch_execute("
                 CREATE TABLE IF NOT EXISTS comments (
                     id              UUID PRIMARY KEY,
                     post_id         UUID NOT NULL,
                     body            VARCHAR NULL,
                     upvotes         INTEGER,
-                    last_updaate    DATE,
+                    last_updaate    DATE
                 )
             ").unwrap();
         }).join() {
