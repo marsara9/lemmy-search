@@ -1,0 +1,8 @@
+crawler:
+  enabled: false
+  seed_instance: "voyager.lemmy.ml"
+postgres:
+  user: "lemmy"
+  password: "password"
+  hostname: "lemmy-search-db:5432"
+  database: "lemmy-search-db"

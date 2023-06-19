@@ -1,22 +1,24 @@
 FROM rust:slim-bookworm AS build
 
 WORKDIR /build
-COPY Cargo.toml .
-COPY crates/ crates/
+COPY server/ server/
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        pkg-config libssl-dev
+        pkg-config libssl-dev libpq-dev
 
-RUN cargo build --verbose
+RUN cargo build --manifest-path=server/Cargo.toml --verbose
 
 FROM ubuntu:latest
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libpq-dev
+
 WORKDIR /lemmy
 COPY ui/ ui/
-COPY --from=build /build/target/debug/liblemmy_search_common.rlib bin/liblemmy_search_common.rlib
-COPY --from=build /build/target/debug/lemmy-search-crawler bin/lemmy-search-crawler
-COPY --from=build /build/target/debug/lemmy-search bin/lemmy-search
+COPY config/ config/
+COPY --from=build /build/server/target/debug/lemmy-search bin/lemmy-search
 
 EXPOSE 8000
 ENTRYPOINT [ "/lemmy/bin/lemmy-search", "/lemmy/ui" ]

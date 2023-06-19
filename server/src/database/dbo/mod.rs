@@ -4,6 +4,12 @@ use serde::{
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Page {
+    pub word : String,
+    pub posts : Vec<LemmyPost>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LemmyInstance {
     pub name : String
 }
@@ -11,6 +17,7 @@ pub struct LemmyInstance {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LemmyPost {
     pub title : String,
+    pub body : Option<String>,
     pub up_votes : i64,
     pub instance : LemmyInstance,
     pub comments : Vec<LemmyComment>

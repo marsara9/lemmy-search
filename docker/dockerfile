@@ -1,22 +1,31 @@
+FROM debian:stable-slim AS deps
+RUN cd /tmp && \
+    apt-get update && \
+    apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
+        --no-conflicts --no-breaks --no-replaces --no-enhances --no-pre-depends \
+        libpq-dev | \
+        grep "^\w") && \
+    mkdir /dpkg && \
+    for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
+
 FROM rust:slim-bookworm AS build
 
 WORKDIR /build
-COPY Cargo.toml .
-COPY crates/ crates/
+COPY server/ server/
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        pkg-config libssl-dev
+        pkg-config libssl-dev libpq-dev
 
-RUN cargo build --release
+RUN cargo build --manifest-path=server/Cargo.toml --release
 
 FROM gcr.io/distroless/static-debian11:latest
 
 WORKDIR /lemmy
 COPY ui/ ui/
-COPY --from=build /build/target/release/liblemmy_search_common.rlib bin/liblemmy_search_common.rlib
-COPY --from=build /build/target/release/lemmy-search-crawler bin/lemmy-search-crawler
-COPY --from=build /build/target/release/lemmy-search bin/lemmy-search
+COPY config/ config/
+COPY --from=deps /dpkg /
+COPY --from=build /build/server/target/release/lemmy-search bin/lemmy-search
 
 EXPOSE 8000
 ENTRYPOINT [ "/lemmy/bin/lemmy-search", "/lemmy/ui" ]
