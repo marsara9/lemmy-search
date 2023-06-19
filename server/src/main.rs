@@ -52,10 +52,9 @@ async fn main() -> std::io::Result<()> {
     cralwer_runner.start();
 
     let pool = Data::new(Mutex::new(database.pool.clone()));
-    // let pool = Data::new(database.pool.clone());
 
     let factory = move || {
-        let search_handler = SearchHandler::new(database.clone());
+        let search_handler = SearchHandler::new();
         let mut app = App::new()
             .app_data(pool.clone());
         for (path, route) in search_handler.routes {

@@ -4,7 +4,6 @@ pub mod post;
 
 use async_trait::async_trait;
 use super::DatabasePool;
-use uuid::Uuid;
 use postgres::NoTls;
 use std::{
     thread, 

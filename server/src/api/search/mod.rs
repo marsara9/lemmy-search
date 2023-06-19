@@ -19,22 +19,19 @@ use crate::{
         SearchResult
     }, 
     database::{
-        Database, dbo::site::SiteDBO, DatabasePool
+        dbo::site::SiteDBO, 
+        DatabasePool
     }
 };
 
 pub struct SearchHandler {
-    pub routes : HashMap<String, Route>,
-    database : Database
+    pub routes : HashMap<String, Route>
 }
 
 impl SearchHandler {
-    pub fn new(
-        database : Database
-    ) -> Self {
+    pub fn new() -> Self {
         let mut handler = SearchHandler {
-            routes : HashMap::<String, Route>::new(),
-            database : database
+            routes : HashMap::<String, Route>::new()
         };
 
         handler.routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
