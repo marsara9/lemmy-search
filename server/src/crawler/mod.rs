@@ -23,11 +23,11 @@ pub struct Runner {
 
 impl Runner {
     pub fn new(
-        config : config::Crawler,
+        config : &config::Crawler,
         database : Database
     ) -> Self {
         Runner { 
-            config,
+            config : config.to_owned(),
             handle : None,
             database
         }

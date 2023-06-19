@@ -25,10 +25,10 @@ pub struct Database {
 
 impl Database {
     
-    pub fn new(config : Postgres) -> Self {
+    pub fn new(config : &Postgres) -> Self {
         let db_config = Config::new()
             .user(&config.user)
-            .password(config.password)
+            .password(&config.password)
             .host(&config.hostname)
             .port(config.port)
             .dbname(&config.database)
@@ -37,8 +37,17 @@ impl Database {
         let manager = PostgresConnectionManager::new(
             db_config, NoTls            
         );
-        let pool = Pool::new(manager)
-            .unwrap();
+        let result = Pool::new(manager);
+        let pool = match result {
+            Ok(value) => value,
+            Err(err) => {
+                println!("Database connection pool creation failed...");
+                if config.log {
+                    println!("{}", err);
+                }
+                panic!()
+            }
+        };
 
         Database {
             pool

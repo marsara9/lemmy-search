@@ -3,31 +3,13 @@ use serde::{
     Deserialize
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Page {
-    pub word : String,
-    pub posts : Vec<LemmyPost>
-}
+use crate::api::lemmy::models::post::Post;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LemmyInstance {
-    pub name : String
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LemmyPost {
-    pub title : String,
-    pub body : Option<String>,
-    pub up_votes : i64,
-    pub instance : LemmyInstance,
-    pub comments : Vec<LemmyComment>
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LemmyComment {
-    pub body : String,
-    pub up_votes : i64
-}
+// #[derive(Debug, Serialize, Deserialize, Clone)]
+// pub struct Page {
+//     pub word : String,
+//     pub posts : Vec<LemmyPost>
+// }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchQuery {
@@ -38,6 +20,6 @@ pub struct SearchQuery {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchResult {
     pub original_query : SearchQuery,
-    pub search_results : Vec<LemmyPost>,
+    pub search_results : Vec<Post>,
     pub total_pages : i64
 }

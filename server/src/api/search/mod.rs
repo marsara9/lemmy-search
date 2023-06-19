@@ -15,7 +15,7 @@ use crate::{
     api::search::models::search::{
         SearchQuery,
         SearchResult
-    }
+    }, database::Database
 };
 
 pub struct SearchHandler {
@@ -24,6 +24,7 @@ pub struct SearchHandler {
 
 impl SearchHandler {
     pub fn new(
+        database : Database
     ) -> Self {
         let mut routes = HashMap::<String, Route>::new();
         routes.insert("/heartbeat".to_string(), web::get().to(Self::heartbeat));
@@ -61,33 +62,4 @@ impl SearchHandler {
         Ok(Json(instances))   
     }
     
-}
-
-#[get("/heartbeat")]
-pub async fn heartbeat(
-
-) -> Result<impl Responder> {
-    Ok("Ready")
-}
-
-#[get("/search")]
-pub async fn search(
-    search_query: Query<SearchQuery>
-) -> Result<impl Responder> {
-    let search_results = SearchResult {
-        original_query : search_query.into_inner(),
-        search_results : Vec::new(),
-        total_pages : 0
-
-    };
-    Ok(Json(search_results))
-}
-
-#[get("/instances")]
-pub async fn get_instances(
-
-) -> Result<impl Responder> {
-    let instances = Vec::<String>::new();
-
-    Ok(Json(instances))   
 }

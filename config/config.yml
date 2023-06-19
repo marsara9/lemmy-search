@@ -1,9 +1,11 @@
 crawler:
   enabled: false
   seed_instance: "voyager.lemmy.ml"
+  log: false
 postgres:
   user: "lemmy"
   password: "password"
   hostname: "lemmy-search-db"
   port: 5432
   database: "lemmy-search-db"
+  log: false

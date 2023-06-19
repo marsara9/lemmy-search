@@ -23,15 +23,25 @@ async fn main() -> std::io::Result<()> {
 
     let config = config::Config::load();
 
-    let database = Database::new(config.postgres);
-    let _ = database.init_database()
+    let database = Database::new(&config.postgres);
+    let init_result = database.init_database()
         .await;
+    match init_result {
+        Ok(_) => {}
+        Err(err) => {
+            println!("Database initialization failed...");
+            if config.postgres.log {
+                println!("{}", err);
+            }
+            panic!();
+        }
+    }
 
-    let mut cralwer_runner = Runner::new(config.crawler, database.clone());
+    let mut cralwer_runner = Runner::new(&config.crawler, database.clone());
     cralwer_runner.start();
 
     let factory = move || {
-        let search_handler = SearchHandler::new();
+        let search_handler = SearchHandler::new(database.clone());
         let mut app = App::new();
         for (path, route) in search_handler.routes {
             app = app.route(path.as_str(), route);
