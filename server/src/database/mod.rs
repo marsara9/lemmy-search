@@ -90,28 +90,6 @@ impl Database {
                     post_id         UUID NOT NULL
                 )
             ").unwrap();
-
-            println!("\tCreating POSTS table...");
-            client.batch_execute("
-                CREATE TABLE IF NOT EXISTS posts (
-                    id              UUID PRIMARY KEY,
-                    title           VARCHAR NOT NULL,
-                    body            VARCHAR NULL,
-                    upvotes         INTEGER,
-                    last_update     DATE
-                )
-            ").unwrap();
-
-            
-            client.batch_execute("
-                CREATE TABLE IF NOT EXISTS comments (
-                    id              UUID PRIMARY KEY,
-                    post_id         UUID NOT NULL,
-                    body            VARCHAR NULL,
-                    upvotes         INTEGER,
-                    last_update     DATE
-                )
-            ").unwrap();
         }).join() {
             Ok(_) => {
                 println!("Database creation complete...");
