@@ -1,21 +1,28 @@
-use reqwest::Client;
+use reqwest::{
+    Client,
+    Error
+};
 use serde::{
     Serialize, 
     de::DeserializeOwned
 };
 
-pub async fn fetch_json<T: Serialize + ?Sized, R: DeserializeOwned>(
-    url : String,
-    params : Box<T>
-) -> R {
+pub async fn fetch_json<T: Serialize + Sized, R: DeserializeOwned>(
+    url : &str,
+    params : T
+) -> Result<R, Error> {
     let client = Client::new();
-    return client
+    return match client
         .get(url)
-        .query(params.as_ref())
+        .query(&params)
         .send()
-        .await
-        .unwrap()
-        .json()
-        .await
-        .unwrap();
+        .await {
+            Ok(response) => {
+                response.json()
+                    .await
+            }
+            Err(err) => {
+                Err(err)
+            }
+        }
 }

@@ -1,43 +1,69 @@
-use serde::{
-    Serialize, 
-    Deserialize
+pub mod site;
+pub mod comment;
+pub mod post;
+pub mod word;
+
+use async_trait::async_trait;
+use super::DatabasePool;
+use postgres::NoTls;
+use std::{
+    thread, 
+    any::Any, borrow::BorrowMut
+};
+use r2d2_postgres::{
+    r2d2::PooledConnection, 
+    PostgresConnectionManager
 };
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct Page {
-    pub word : String,
-    pub posts : Vec<LemmyPost>
+#[async_trait]
+pub trait DBO<T : Default> {
+
+    async fn create_table_if_not_exists(
+        &self
+    ) -> bool;
+
+    async fn drop_table_if_exists(
+        &self
+    ) -> bool;
+
+    async fn create(
+        &self, 
+        instance : &str,
+        object : &T
+    ) -> bool;
+
+    async fn retrieve(
+        &self, 
+        remote_id : &i64,
+        instance : &str
+    ) -> Option<T>;
+
+    async fn update(
+        &self, 
+        remote_id : &i64,
+        instance : &str
+    ) -> bool;
+
+    async fn delete(
+        &self, 
+        remote_id : &i64,
+        instance : &str
+    ) -> bool;
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LemmyInstance {
-    pub name : String
-}
+async fn get_database_client<T, F>(
+    pool : &DatabasePool,
+    callback : F
+) -> Result<T, Box<(dyn Any + Send + 'static)>> 
+where 
+    F : FnOnce(&mut PooledConnection<PostgresConnectionManager<NoTls>>) -> T,
+    F : Send + 'static,
+    T : Send + 'static
+{
+    let pool = pool.clone();
+    thread::spawn(move || {
+        let mut client = pool.get().unwrap();
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LemmyPost {
-    pub title : String,
-    pub body : Option<String>,
-    pub up_votes : i64,
-    pub instance : LemmyInstance,
-    pub comments : Vec<LemmyComment>
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct LemmyComment {
-    pub body : String,
-    pub up_votes : i64
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchQuery {
-    pub query : String,
-    pub page : Option<i64>
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchResult {
-    pub original_query : SearchQuery,
-    pub search_results : Vec<LemmyPost>,
-    pub total_pages : i64
+        callback(client.borrow_mut())
+    }).join()
 }

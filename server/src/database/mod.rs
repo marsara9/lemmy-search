@@ -1,55 +1,118 @@
-use std::time::Duration;
-
-use deadpool::Runtime;
-use diesel_async::{
-    AsyncPgConnection, 
-    pooled_connection::{
-        deadpool::{Pool, BuildError}, 
-        AsyncDieselConnectionManager
-    }
-};
-
-use crate::config::Postgres;
-
 pub mod dbo;
 
-pub struct Database {
-    connection_string : String
-}
+use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO, post::PostDAO, word::WordDAO}};
+use postgres::{
+    NoTls, 
+    Config,
+    Error
+};
+use r2d2_postgres::{
+    PostgresConnectionManager, 
+    r2d2::Pool
+};
 
-pub type DatabasePool = Pool<AsyncPgConnection>;
+pub type DatabasePool = Pool<PostgresConnectionManager<NoTls>>;
+
+#[derive(Clone)]
+pub struct Database {
+    pub pool : DatabasePool
+}
 
 impl Database {
 
-    const POOL_TIMEOUT: Option<Duration> = Some(Duration::from_secs(5));
-    
-    pub fn new(config : Postgres) -> Self {
-        let connection_string = format!(
-            "postgresql://{}:{}@{}/{}",
-            config.user,
-            config.password,
-            config.hostname,
-            config.database
-        );
-
-        Database {
-            connection_string
-        }
+    pub async fn create(
+        config : &Postgres
+    ) -> Result<Self, r2d2_postgres::r2d2::Error> {
+        Self::create_database_pool(config)
+            .await
+            .map(|pool| {
+                Database {
+                    pool
+                }
+            })
     }
 
-    pub async fn build_database_pool(
-        &self
-    ) -> Result<DatabasePool, BuildError> {
-        
-        let manager = AsyncDieselConnectionManager::<AsyncPgConnection>::new(&self.connection_string);
-        let pool = Pool::builder(manager)
-          .max_size(5)
-          .wait_timeout(Self::POOL_TIMEOUT)
-          .create_timeout(Self::POOL_TIMEOUT)
-          .recycle_timeout(Self::POOL_TIMEOUT)
-          .runtime(Runtime::Tokio1)
-          .build()?;
+    async fn create_database_pool(
+        config : &Postgres
+    ) -> Result<DatabasePool, r2d2_postgres::r2d2::Error> {
+        let db_config = Config::new()
+            .user(&config.user)
+            .password(&config.password)
+            .host(&config.hostname)
+            .port(config.port)
+            .dbname(&config.database)
+            .to_owned();
 
-        Ok(pool)
-      }
+        let manager = PostgresConnectionManager::new(
+            db_config, NoTls            
+        );
+        Pool::new(manager)
+    }
+
+    pub async fn init_database(
+        &self,
+    ) -> Result<(), Error> {
+        println!("Creating database...");
+
+        println!("\tCreating POSTS table...");
+        let post = PostDAO::new(self.pool.clone());
+        post.drop_table_if_exists()
+            .await;
+        post.create_table_if_not_exists()
+            .await;
+
+        println!("\tCreating COMMENTS table...");
+        let comment = CommentDBO::new(self.pool.clone());
+        comment.drop_table_if_exists()
+            .await;
+        comment.create_table_if_not_exists()
+            .await;
+
+        println!("\tCreating SITES table...");
+        let site = SiteDBO::new(self.pool.clone());
+        site.drop_table_if_exists()
+            .await;
+        site.create_table_if_not_exists()
+            .await;
+
+        println!("\tCreating WORDS table...");
+        let word = WordDAO::new(self.pool.clone());
+        word.drop_table_if_exists()
+            .await;
+        word.create_table_if_not_exists()
+            .await;
+
+        println!("\tCreating WORDS_XREF_POSTS table...");
+
+        // let pool = self.pool.clone();
+        // let _ = match thread::spawn(move || {
+        //     let mut client = pool.get().unwrap();
+
+        //     println!("\tCreating WORDS table...");
+        //     client.batch_execute("
+        //         CREATE TABLE IF NOT EXISTS words (
+        //             id              UUID PRIMARY KEY,
+        //             word            VARCHAR NOT NULL
+        //         )
+        //     ").unwrap();
+
+        //     println!("\tCreating WORDS_XREF_POSTS table...");
+        //     client.batch_execute("
+        //         CREATE TABLE IF NOT EXISTS words_xref_posts (
+        //             id              UUID PRIMARY KEY,
+        //             word_id         UUID NOT NULL,
+        //             post_id         UUID NOT NULL
+        //         )
+        //     ").unwrap();
+        // }).join() {
+        //     Ok(_) => {
+        //         println!("Database creation complete...");
+        //     },
+        //     Err(_) => {
+        //         println!("Database creation failed!");
+        //     },
+        // };
+
+        Ok(())
+    }
 }

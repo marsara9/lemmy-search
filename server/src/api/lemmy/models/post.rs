@@ -10,7 +10,7 @@ use super::{
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PostListRequest {
-    pub community_id : Option<i32>,
+    pub community_id : Option<i64>,
     pub sort : Option<SortType>,
     pub limit : i64,
     pub page : i64
@@ -30,12 +30,13 @@ pub struct  PostData {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Post {
-    pub id : i32,
+    pub id : i64,
     pub name : String,
-    pub body : Option<String    >
+    pub body : Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Counts {
-    pub comments : i64
+    pub comments : i64,
+    pub score : i32
 }

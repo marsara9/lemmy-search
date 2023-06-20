@@ -3,11 +3,12 @@ mod config;
 mod crawler;
 mod database;
 
-use std::env;
+use std::{env, sync::Mutex};
 use actix_files as fs;
 use actix_web::{
     App, 
-    HttpServer
+    HttpServer,
+    web::Data
 };
 use api::search::SearchHandler;
 use crawler::Runner;
@@ -23,17 +24,39 @@ async fn main() -> std::io::Result<()> {
 
     let config = config::Config::load();
 
-    let database = Database::new(config.postgres);
-    let pool = database.build_database_pool()
-        .await
-        .unwrap();    
+    let database = match Database::create(&config.postgres).await {
+        Ok(value) => value,
+        Err(err) => {
+            println!("Database pool creation failed...");
+            if config.postgres.log {
+                println!("{}", err);
+            }
+            panic!();
+        }
+    };
 
-    let mut cralwer_runner = Runner::new(config.crawler, pool.clone());
+    let init_result = database.init_database()
+        .await;
+    match init_result {
+        Ok(_) => {}
+        Err(err) => {
+            println!("Database initialization failed...");
+            if config.postgres.log {
+                println!("{}", err);
+            }
+            panic!();
+        }
+    }
+
+    let mut cralwer_runner = Runner::new(&config.crawler, database.clone());
     cralwer_runner.start();
+
+    let pool = Data::new(Mutex::new(database.pool.clone()));
 
     let factory = move || {
         let search_handler = SearchHandler::new();
-        let mut app = App::new();
+        let mut app = App::new()
+            .app_data(pool.clone());
         for (path, route) in search_handler.routes {
             app = app.route(path.as_str(), route);
         }

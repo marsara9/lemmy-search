@@ -10,20 +10,18 @@ pub struct Analyizer;
 impl Analyizer {
 
     pub fn new() -> Self {
-        Analyizer {
-            
-        }
+        Self {}
     }
 
     pub fn get_distinct_words_in_post(
         &self,
-        post : Post
+        post : &Post
     ) -> HashSet<String> {
         let mut words = HashSet::<String>::new();
         for word in post.name.split_whitespace() {
             words.insert(word.to_string());
         }
-        match post.body {
+        match &post.body {
             Some(body) => for word in body.split_whitespace() {
                 words.insert(word.to_string());
             },
@@ -34,7 +32,7 @@ impl Analyizer {
 
     pub fn get_distinct_words_in_comment(
         &self,
-        comment : Comment
+        comment : &Comment
     ) -> HashSet<String> {
         HashSet::from_iter(comment.content.split_whitespace().map(|word|
             word.to_string()

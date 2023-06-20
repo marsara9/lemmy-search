@@ -11,6 +11,7 @@ use super::{
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CommentListRequest {
+    pub post_id : Option<i64>,
     pub sort : Option<SortType>,
     pub limit : i64,
     pub page : i64
@@ -31,10 +32,11 @@ pub struct CommentData {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Comment {
+    pub id : i64,
     pub content : String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Counts {
-    pub score : i32
+    pub score : Option<i32>
 }
