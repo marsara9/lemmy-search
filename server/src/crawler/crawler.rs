@@ -38,6 +38,7 @@ impl Crawler {
     ) {
         let site_view = self.fetcher.fetch_site_data()
             .await
+            .unwrap()
             .site_view;
 
         SiteDBO::new(self.database.pool.clone())
@@ -49,20 +50,20 @@ impl Crawler {
             .comments
             .unwrap_or(1);
 
-        for page in 0..(number_of_comments / Fetcher::DEFAULT_LIMIT) {
-            let comments = self.fetcher.fetch_comments(page)
-                .await;
+        // for page in 0..(number_of_comments / Fetcher::DEFAULT_LIMIT) {
+        //     let comments = self.fetcher.fetch_comments(page)
+        //         .await;
 
-            for comment_data in comments {
-                let words = self.analyizer.get_distinct_words_in_comment(
-                    &comment_data.comment
-                );
-                println!("Words: {:?}", words);
+        //     for comment_data in comments {
+        //         let words = self.analyizer.get_distinct_words_in_comment(
+        //             &comment_data.comment
+        //         );
+        //         println!("Words: {:?}", words);
 
-                CommentDBO::new(self.database.pool.clone())
-                    .create(&self.instance, &comment_data, )
-                    .await;
-            }
-        }
+        //         CommentDBO::new(self.database.pool.clone())
+        //             .create(&self.instance, &comment_data, )
+        //             .await;
+        //     }
+        // }
     }
 }

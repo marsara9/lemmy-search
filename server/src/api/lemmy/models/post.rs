@@ -10,7 +10,7 @@ use super::{
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PostListRequest {
-    pub community_id : Option<i32>,
+    pub community_id : Option<i64>,
     pub sort : Option<SortType>,
     pub limit : i64,
     pub page : i64
