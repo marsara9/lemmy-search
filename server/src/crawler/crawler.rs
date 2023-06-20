@@ -3,7 +3,11 @@ use crate::{
     api::lemmy::fetcher::Fetcher, 
     database::{
         Database,        
-        dbo::{comment::CommentDBO, DBO, site::SiteDBO}
+        dbo::{
+            DBO, 
+            comment::CommentDBO, 
+            site::SiteDBO
+        }
     }
 };
 
@@ -21,7 +25,7 @@ impl Crawler {
         instacne : String,
         database : Database
     ) -> Self {
-        Crawler {
+        Self {
             instance: instacne.clone(),
             database,
             fetcher: Fetcher::new(instacne),

@@ -1,6 +1,9 @@
 pub mod models;
 
-use std::{collections::HashMap, sync::Mutex};
+use std::{
+    collections::HashMap, 
+    sync::Mutex
+};
 
 use actix_web::{
     web::{
@@ -30,15 +33,14 @@ pub struct SearchHandler {
 
 impl SearchHandler {
     pub fn new() -> Self {
-        let mut handler = SearchHandler {
-            routes : HashMap::<String, Route>::new()
-        };
+        let mut routes = HashMap::<String, Route>::new();
+        routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
+        routes.insert("/search".to_string(), get().to(Self::search));
+        routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
-        handler.routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
-        handler.routes.insert("/search".to_string(), get().to(Self::search));
-        handler.routes.insert("/instances".to_string(), get().to(Self::get_instances));
-
-        handler
+        Self {
+            routes
+        }
     }
 
     pub async fn heartbeat<'a>(

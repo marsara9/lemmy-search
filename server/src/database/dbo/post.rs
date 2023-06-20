@@ -36,16 +36,28 @@ impl DBO<PostData> for PostDAO {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("
-                CREATE TABLE IF NOT EXISTS  (
-                    remote_id         INT,
+                CREATE TABLE IF NOT EXISTS posts (
+                    remote_id         INTEGER,
                     instance          VARCHAR NOT NULL,
                     name              VARCHAR NOT NULL,
                     body              VARCHAR NULL,
                     score             INTEGER,
-                    last_update       DATE
+                    last_update       DATE,
+                    PRIMARY KEY(remote_id, instance)
                 )
             ", &[]
             )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    async fn drop_table_if_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("DROP TABLE IF EXISTS posts", &[])
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -62,7 +74,8 @@ impl DBO<PostData> for PostDAO {
         match get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO posts (remote_id, instance, name, body, score, last_update) 
-                    VALUES ($1, $2, $3)",
+                    VALUES ($1, $2, $3)
+                ",
                     &[
                         &object.post.id,
                         &instance,

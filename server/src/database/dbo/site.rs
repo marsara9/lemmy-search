@@ -64,11 +64,22 @@ impl DBO<SiteView> for SiteDBO {
                     id                UUID PRIMARY KEY,
                     instance          VARCHAR NOT NULL,
                     name              VARCHAR NULL,
-                    actor_id          VARCHAR NOT NULL,
+                    actor_id          VARCHAR NOT NULL UNIQUE,
                     last_update       DATE
                 )
             ", &[]
             )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    async fn drop_table_if_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("DROP TABLE IF EXISTS sites", &[])
         }).await {
             Ok(_) => true,
             Err(_) => false

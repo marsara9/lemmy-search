@@ -1,6 +1,7 @@
 pub mod site;
 pub mod comment;
 pub mod post;
+pub mod word;
 
 use async_trait::async_trait;
 use super::DatabasePool;
@@ -18,6 +19,10 @@ use r2d2_postgres::{
 pub trait DBO<T : Default> {
 
     async fn create_table_if_not_exists(
+        &self
+    ) -> bool;
+
+    async fn drop_table_if_exists(
         &self
     ) -> bool;
 

@@ -39,14 +39,26 @@ impl DBO<CommentData> for CommentDBO {
         match get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS comments (
-                    remote_id         INT,
+                    remote_id         INTEGER,
                     instance          VARCHAR NOT NULL,
                     content           VARCHAR NULL,
                     score             INTEGER,
-                    late_update       DATE
+                    late_update       DATE,
+                    PRIMARY KEY(remote_id, instance)
                 )
             ", &[]
             )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    async fn drop_table_if_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("DROP TABLE IF EXISTS comments", &[])
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -63,7 +75,8 @@ impl DBO<CommentData> for CommentDBO {
         match get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO comments (remote_id, instance, post_id, body, upvotes, laste_updated) 
-                    VALUES ($1, $2, $3)",
+                    VALUES ($1, $2, $3)
+                ",
                     &[
                         &object.comment.id,
                         &instance,
@@ -99,7 +112,7 @@ impl DBO<CommentData> for CommentDBO {
                     FROM comments AS m 
                         JOIN posts AS p on p.id = m.post_id
                         OIN communities AS c on c.id = m.community_id
-                    WHERE m.rmote_id = $1 AND m.instance = $2
+                    WHERE m.remote_id = $1 AND m.instance = $2
                 ",
                 &[&remote_id, &instance] 
             ) {

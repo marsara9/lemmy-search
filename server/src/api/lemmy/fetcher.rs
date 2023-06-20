@@ -23,7 +23,7 @@ impl Fetcher {
     pub const DEFAULT_LIMIT : i64 = 50;
 
     pub fn new(instance : String) -> Self {
-        Fetcher {
+        Self {
             instance
         }
     }

@@ -10,9 +10,7 @@ pub struct Analyizer;
 impl Analyizer {
 
     pub fn new() -> Self {
-        Analyizer {
-            
-        }
+        Self {}
     }
 
     pub fn get_distinct_words_in_post(

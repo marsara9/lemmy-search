@@ -1,19 +1,18 @@
 pub mod analyizer;
 pub mod crawler;
 
+use self::crawler::Crawler;
+use std::time::Duration;
+use tokio::task::JoinHandle;
 use crate::{
     config, 
     database::Database
 };
-
-use self::crawler::Crawler;
-use std::time::Duration;
 use clokwerk::{
     TimeUnits, 
     Job, 
     AsyncScheduler
 };
-use tokio::task::JoinHandle;
 
 pub struct Runner {
     config : config::Crawler,
@@ -26,7 +25,7 @@ impl Runner {
         config : &config::Crawler,
         database : Database
     ) -> Self {
-        Runner { 
+        Self { 
             config : config.to_owned(),
             handle : None,
             database
@@ -66,9 +65,12 @@ impl Runner {
         database : Database
     ) {
         if config.enabled {
+            println!("Crawler is starting to index '{}'...", config.seed_instance);
             Crawler::new(config.seed_instance, database)
                     .crawl()
                     .await;
+        } else {
+            println!("Crawler is currently disabled; skipping...");
         }
     }
 }

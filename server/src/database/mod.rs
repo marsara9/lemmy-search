@@ -1,7 +1,6 @@
 pub mod dbo;
 
-use std::thread;
-use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO, post::PostDAO}};
+use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO, post::PostDAO, word::WordDAO}};
 use postgres::{
     NoTls, 
     Config,
@@ -56,48 +55,63 @@ impl Database {
         println!("Creating database...");
 
         println!("\tCreating POSTS table...");
-        PostDAO::new(self.pool.clone())
-            .create_table_if_not_exists()
+        let post = PostDAO::new(self.pool.clone());
+        post.drop_table_if_exists()
+            .await;
+        post.create_table_if_not_exists()
             .await;
 
         println!("\tCreating COMMENTS table...");
-        CommentDBO::new(self.pool.clone())
-            .create_table_if_not_exists()
+        let comment = CommentDBO::new(self.pool.clone());
+        comment.drop_table_if_exists()
+            .await;
+        comment.create_table_if_not_exists()
             .await;
 
         println!("\tCreating SITES table...");
-        SiteDBO::new(self.pool.clone())
-            .create_table_if_not_exists()
+        let site = SiteDBO::new(self.pool.clone());
+        site.drop_table_if_exists()
+            .await;
+        site.create_table_if_not_exists()
             .await;
 
-        let pool = self.pool.clone();
-        let _ = match thread::spawn(move || {
-            let mut client = pool.get().unwrap();
+        println!("\tCreating WORDS table...");
+        let word = WordDAO::new(self.pool.clone());
+        word.drop_table_if_exists()
+            .await;
+        word.create_table_if_not_exists()
+            .await;
 
-            println!("\tCreating WORDS table...");
-            client.batch_execute("
-                CREATE TABLE IF NOT EXISTS words (
-                    id              UUID PRIMARY KEY,
-                    word            VARCHAR NOT NULL
-                )
-            ").unwrap();
+        println!("\tCreating WORDS_XREF_POSTS table...");
 
-            println!("\tCreating WORDS_XREF_POSTS table...");
-            client.batch_execute("
-                CREATE TABLE IF NOT EXISTS words_xref_posts (
-                    id              UUID PRIMARY KEY,
-                    word_id         UUID NOT NULL,
-                    post_id         UUID NOT NULL
-                )
-            ").unwrap();
-        }).join() {
-            Ok(_) => {
-                println!("Database creation complete...");
-            },
-            Err(_) => {
-                println!("Database creation failed!");
-            },
-        };
+        // let pool = self.pool.clone();
+        // let _ = match thread::spawn(move || {
+        //     let mut client = pool.get().unwrap();
+
+        //     println!("\tCreating WORDS table...");
+        //     client.batch_execute("
+        //         CREATE TABLE IF NOT EXISTS words (
+        //             id              UUID PRIMARY KEY,
+        //             word            VARCHAR NOT NULL
+        //         )
+        //     ").unwrap();
+
+        //     println!("\tCreating WORDS_XREF_POSTS table...");
+        //     client.batch_execute("
+        //         CREATE TABLE IF NOT EXISTS words_xref_posts (
+        //             id              UUID PRIMARY KEY,
+        //             word_id         UUID NOT NULL,
+        //             post_id         UUID NOT NULL
+        //         )
+        //     ").unwrap();
+        // }).join() {
+        //     Ok(_) => {
+        //         println!("Database creation complete...");
+        //     },
+        //     Err(_) => {
+        //         println!("Database creation failed!");
+        //     },
+        // };
 
         Ok(())
     }

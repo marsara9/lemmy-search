@@ -7,7 +7,6 @@ pub struct Config {
     pub postgres : Postgres,
 }
 
-
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Crawler {
     pub enabled : bool,
