@@ -39,11 +39,11 @@ impl DBO<CommentData> for CommentDBO {
         match get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS comments (
-                    remote_id         INTEGER,
+                    remote_id         INTEGER NOT NULL,
                     instance          VARCHAR NOT NULL,
                     content           VARCHAR NULL,
                     score             INTEGER,
-                    late_update       DATE,
+                    late_update       DATE NOT NULL,
                     PRIMARY KEY(remote_id, instance)
                 )
             ", &[]
