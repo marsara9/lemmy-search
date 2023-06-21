@@ -1,3 +1,7 @@
+use crate::{api::{search::models::search::SearchPost, lemmy::models::{comment::Comment, post::Post}}, database::DatabasePool};
+
+use super::get_database_client;
+
 
 pub struct SearchDatabase {
     pub pool : DatabasePool
@@ -54,18 +58,20 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>
-    ) -> Option<Vec<SearchPost>> {
-        match get_database_client(&self.pool, |client| {
+    ) -> Option<Vec<SearchPost>> {        
+        let query = query.to_owned();
+        match get_database_client(&self.pool, move|client| {
             client.execute("
-                SELECT * FROM words
-                    WHERE word IN $1
+                SELECT * FROM words AS w
+                    JOIN posts AS p ON p.remote_id = w.post_remote_id AND p.instance = 
+                WHERE w.word IN $1
             ", 
             &[
                 &query
             ])
         }).await {
-            Ok(_) => true,
-            Err(_) => false
+            Ok(_) => None,
+            Err(_) => None
         }
     }
 }

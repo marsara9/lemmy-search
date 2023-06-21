@@ -2,6 +2,7 @@ pub mod site;
 pub mod comment;
 pub mod post;
 pub mod word;
+pub mod search;
 
 use async_trait::async_trait;
 use super::DatabasePool;
