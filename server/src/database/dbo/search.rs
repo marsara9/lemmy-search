@@ -18,7 +18,13 @@ pub struct SearchDatabase {
 #[allow(unused)]
 impl SearchDatabase {
 
-    async fn create_table_if_not_exists(
+    pub fn new(pool : DatabasePool) -> Self {
+        Self {
+            pool
+        }
+    }
+
+    pub async fn create_table_if_not_exists(
         &self
     ) -> bool {
         match get_database_client(&self.pool, |client| {
@@ -35,7 +41,7 @@ impl SearchDatabase {
         }
     }
 
-    async fn drop_table_if_exists(
+    pub async fn drop_table_if_exists(
         &self
     ) -> bool {
         match get_database_client(&self.pool, |client| {
@@ -46,21 +52,21 @@ impl SearchDatabase {
         }
     }
 
-    async fn upsert_post(
+    pub async fn upsert_post(
         &self,
         post : &Post
     ) -> bool {
         false
     }
 
-    async fn upsert_comment(
+    pub async fn upsert_comment(
         &self,
         comment : &Comment
     ) {
 
     }
 
-    async fn search(
+    pub async fn search(
         &self,
         query : &str,
         instance : &Option<String>,

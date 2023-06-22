@@ -1,10 +1,12 @@
 pub mod models;
 
+use regex::Regex;
+use lazy_static::lazy_static;
+use self::models::search::SearchPost;
 use std::{
     collections::HashMap, 
     sync::Mutex
 };
-
 use actix_web::{
     web::{
         Json, 
@@ -22,16 +24,23 @@ use crate::{
         SearchResult
     }, 
     database::{
-        dbo::site::SiteDBO, 
+        dbo::{site::SiteDBO, search::SearchDatabase}, 
         DatabasePool
     }
 };
+
+lazy_static! {
+    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>\\W+@[\\W-\.]+)").unwrap();
+    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\\W+@[\\W-\.]+)").unwrap();
+    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\\W+@[\\W-\.]+)").unwrap();
+}
 
 pub struct SearchHandler {
     pub routes : HashMap<String, Route>
 }
 
 impl SearchHandler {
+
     pub fn new() -> Self {
         let mut routes = HashMap::<String, Route>::new();
         routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
@@ -50,15 +59,51 @@ impl SearchHandler {
     }
 
     pub async fn search<'a>(
-        _pool : Data<Mutex<DatabasePool>>,
+        pool : Data<Mutex<DatabasePool>>,
         search_query: Query<SearchQuery>
     ) -> Result<impl Responder> {
-        let search_results = SearchResult {
+
+        let query = search_query.query.to_owned();
+        let mut modified_query = query.clone();
+        let instance = match SITE_MATCH.captures(&query) {
+            Some(caps) => {
+                let cap = &caps["site"];
+                modified_query = modified_query.replace(cap, "");
+                Some(cap.to_string())
+            },
+            None => None
+        };
+        let community = match COMMUNITY_MATCH.captures(&query) {
+            Some(caps) => {
+                let cap = &caps["community"];
+                modified_query = modified_query.replace(cap, "");
+                Some(cap.to_string())
+            },
+            None => None
+        };
+        let author = match AUTHOR_MATCH.captures(&query) {
+            Some(caps) => {
+                let cap = &caps["author"];
+                modified_query = modified_query.replace(cap, "");
+                Some(cap.to_string())
+            },
+            None => None
+        };
+
+
+        let search = SearchDatabase::new(pool.lock().unwrap().clone());
+        let search_results = search.search(&modified_query, &instance, &community, &author)
+            .await;
+
+        let results: SearchResult = SearchResult {
             original_query : search_query.into_inner(),
-            search_results : Vec::new(),
+            search_results : match search_results {
+                Some(value) => value,
+                None => Vec::<SearchPost>::new(),
+            },
             total_pages : 0
         };
-        Ok(Json(search_results))
+        Ok(Json(results))
     }
 
     pub async fn get_instances<'a>(
