@@ -33,6 +33,10 @@ impl CommentDBO {
 #[allow(unused_variables)]
 impl DBO<CommentData> for CommentDBO {
 
+    fn get_object_name(&self) -> &str {
+        "CommentData"
+    }
+
     async fn create_table_if_not_exists(
         &self
     ) -> bool {
@@ -68,9 +72,8 @@ impl DBO<CommentData> for CommentDBO {
 
     async fn create(
         &self,
-        object : &CommentData
-    ) -> bool { 
-        let object = object.to_owned();
+        object : CommentData
+    ) -> bool {
         match get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, laste_updated) 
@@ -143,7 +146,7 @@ impl DBO<CommentData> for CommentDBO {
 
     async fn update(
         &self, 
-        ap_id : &str
+        object : CommentData
     ) -> bool {
         false
     }

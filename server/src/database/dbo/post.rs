@@ -15,11 +15,11 @@ use super::{
     get_database_client
 };
 
-pub struct PostDAO {
+pub struct PostDBO {
     pool : DatabasePool
 }
 
-impl PostDAO {
+impl PostDBO {
     pub fn new(pool : DatabasePool) -> Self {
         return Self {
             pool
@@ -29,7 +29,11 @@ impl PostDAO {
 
 #[async_trait]
 #[allow(unused_variables)]
-impl DBO<PostData> for PostDAO {
+impl DBO<PostData> for PostDBO {
+
+    fn get_object_name(&self) -> &str {
+        "PostData"
+    }
 
     async fn create_table_if_not_exists(
         &self
@@ -66,9 +70,8 @@ impl DBO<PostData> for PostDAO {
 
     async fn create(
         &self,
-        object : &PostData
+        object : PostData
     ) -> bool {
-        let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO posts (ap_id, name, body, score, author_actor_id, community_ap_id, last_update) 
@@ -136,7 +139,7 @@ impl DBO<PostData> for PostDAO {
 
     async fn update(
         &self, 
-        ap_id : &str
+        object : PostData
     ) -> bool {
         false
     }

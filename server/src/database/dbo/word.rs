@@ -24,6 +24,10 @@ impl WordDAO {
 #[allow(unused_variables)]
 impl DBO<String> for WordDAO {
 
+    fn get_object_name(&self) -> &str {
+        "String"
+    }
+
     async fn create_table_if_not_exists(
         &self
     ) -> bool {
@@ -54,7 +58,7 @@ impl DBO<String> for WordDAO {
 
     async fn create(
         &self, 
-        object : &String
+        object : String
     ) -> bool {
         let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
@@ -66,7 +70,7 @@ impl DBO<String> for WordDAO {
                 ",
                     &[
                         &Uuid::new_v4(),
-                        &object
+                        &object.to_lowercase()
                     ]
             )
         }).await {
@@ -84,7 +88,7 @@ impl DBO<String> for WordDAO {
 
     async fn update(
         &self, 
-        ap_id : &str
+        object : String
     ) -> bool {
         false
     }

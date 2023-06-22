@@ -42,7 +42,7 @@ impl Runner {
 
         scheduler.every(1.day())
             .at("07:00")
-            .run(move || Self::run(config.to_owned(), database.to_owned()));
+            .run(move || Self::run(config.clone(), database.clone()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {
@@ -66,7 +66,7 @@ impl Runner {
     ) {
         if config.enabled {
             println!("Crawler is starting to index '{}'...", config.seed_instance);
-            Crawler::new(config.seed_instance, database)
+            Crawler::new(config.seed_instance.clone(), config.clone(), database)
                     .crawl()
                     .await;
         } else {

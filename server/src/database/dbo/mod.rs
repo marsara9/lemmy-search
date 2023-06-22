@@ -20,6 +20,8 @@ use r2d2_postgres::{
 #[async_trait]
 pub trait DBO<T : Default> {
 
+    fn get_object_name(&self) -> &str;
+
     async fn create_table_if_not_exists(
         &self
     ) -> bool;
@@ -30,7 +32,7 @@ pub trait DBO<T : Default> {
 
     async fn create(
         &self,
-        object : &T
+        object : T
     ) -> bool;
 
     async fn retrieve(
@@ -40,7 +42,7 @@ pub trait DBO<T : Default> {
 
     async fn update(
         &self, 
-        ap_id : &str
+        object : T
     ) -> bool;
 
     async fn delete(

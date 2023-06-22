@@ -1,6 +1,15 @@
 pub mod dbo;
 
-use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO, post::PostDAO, word::WordDAO, community::CommunityDBO}};
+use crate::{
+    config::Postgres, 
+    database::dbo::{
+        comment::CommentDBO, 
+        DBO, site::SiteDBO, 
+        post::PostDBO, 
+        word::WordDAO, 
+        community::CommunityDBO
+    }
+};
 use postgres::{
     NoTls, 
     Config,
@@ -62,7 +71,7 @@ impl Database {
             .await;
 
         println!("\tCreating POSTS table...");
-        let post = PostDAO::new(self.pool.clone());
+        let post = PostDBO::new(self.pool.clone());
         post.drop_table_if_exists()
             .await;
         post.create_table_if_not_exists()

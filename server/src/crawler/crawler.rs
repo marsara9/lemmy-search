@@ -1,17 +1,26 @@
+use std::time::Duration;
+
+use async_std::task::sleep;
+use futures::Future;
+
 use crate::{
     api::lemmy::fetcher::Fetcher, 
     database::{
         Database,        
         dbo::{
             DBO, 
-            site::SiteDBO
+            site::SiteDBO, 
+            community::CommunityDBO, 
+            post::PostDBO, 
+            comment::CommentDBO
         }
-    }
+    }, config
 };
 
 pub struct Crawler {
     pub instance : String,
-    
+
+    config : config::Crawler,
     database : Database,
     fetcher : Fetcher,
 }
@@ -19,13 +28,15 @@ pub struct Crawler {
 impl Crawler {
 
     pub fn new(
-        instacne : String,
+        instance : String,
+        config : config::Crawler,
         database : Database
     ) -> Self {
         Self {
-            instance: instacne.clone(),
+            instance: instance.clone(),
+            config,
             database,
-            fetcher: Fetcher::new(instacne)
+            fetcher: Fetcher::new(instance)
         }
     }
 
@@ -37,29 +48,111 @@ impl Crawler {
             .unwrap()
             .site_view;
 
-        SiteDBO::new(self.database.pool.clone())
-            .create(&site_view)
-            .await;
+        let site_dbo = SiteDBO::new(self.database.pool.clone());
+        let community_dbo = CommunityDBO::new(self.database.pool.clone());
+        let post_dbo = PostDBO::new(self.database.pool.clone());
+        let comment_dbo = CommentDBO::new(self.database.pool.clone());
 
-        let number_of_comments = site_view
-            .counts
-            .comments
-            .unwrap_or(1);
+        if site_dbo.retrieve(&self.instance)
+            .await
+            .is_some() {
+            site_dbo.update(site_view.clone())
+                .await;
+        } else {
+            site_dbo.create(site_view.clone())
+                .await;
+        }
 
-        // for page in 0..(number_of_comments / Fetcher::DEFAULT_LIMIT) {
-        //     let comments = self.fetcher.fetch_comments(page)
-        //         .await;
+        self.fetch_paged_object(
+            site_dbo.get_last_community_page(&self.instance)
+                .await, 
+            site_view.counts.communities.unwrap_or(0) / Fetcher::DEFAULT_LIMIT,
+            community_dbo,
+            |page| {
+                self.fetcher.fetch_communities(page)
+            },
+            |page| {
+                site_dbo.set_last_community_page(&self.instance, page)
+            }
+        ).await;
 
-        //     for comment_data in comments {
-        //         let words = self.analyizer.get_distinct_words_in_comment(
-        //             &comment_data.comment
-        //         );
-        //         println!("Words: {:?}", words);
+        self.fetch_paged_object(
+            site_dbo.get_last_post_page(&self.instance)
+                .await, 
+            site_view.counts.posts.unwrap_or(0) / Fetcher::DEFAULT_LIMIT,
+            post_dbo,
+            |page| {
+                self.fetcher.fetch_posts(page)
+            },
+            |page| {
+                site_dbo.set_last_post_page(&self.instance, page)
+            }
+        ).await;
 
-        //         CommentDBO::new(self.database.pool.clone())
-        //             .create(&self.instance, &comment_data, )
-        //             .await;
-        //     }
-        // }
+        self.fetch_paged_object(
+            site_dbo.get_last_comment_page(&self.instance)
+                .await, 
+            site_view.counts.comments.unwrap_or(0) / Fetcher::DEFAULT_LIMIT,
+            comment_dbo,
+            |page| {
+                self.fetcher.fetch_comments(page)
+            },
+            |page| {
+                site_dbo.set_last_comment_page(&self.instance, page)
+            }
+        ).await;
+    }
+
+    async fn fetch_paged_object<T, D, Fetcher, Updater>(
+        &self,
+        last_page : i64,
+        total_pages : i64,
+        object_dao : D,
+        fetcher : impl Fn(i64) -> Fetcher,
+        page_updater : impl Fn(i64) -> Updater
+    ) where 
+        T : Default,
+        Fetcher : Future<Output = Result<Vec<T>, reqwest::Error>>,
+        Updater : Future<Output = bool>,
+        D : DBO<T> + Sized
+    {
+        println!("Fetching {} from '{}'...", object_dao.get_object_name(), self.instance);
+
+        let mut count = 0;
+        let mut failed = false;
+        for page in last_page..total_pages {
+            let objects = match fetcher(page)
+                .await { 
+                    Ok(value) => {
+                        println!("\tfetched another {} {}...", value.len(), object_dao.get_object_name());
+                        value
+                    },
+                    Err(_) => {
+                        println!("\tfailed to fetch another page of {}...", object_dao.get_object_name());
+                        break
+                    }
+                };
+
+            sleep( Duration::from_millis( 100 ) )
+                .await;
+
+            for object in objects {
+                if !object_dao.create(object).await {
+                    println!("\t...failed to insert after fetching {} objects", count);
+                    failed = true;
+                    break;
+                }
+                count += 1;
+            }
+
+            page_updater(last_page + count)
+                .await;
+
+            println!("\tinserted {} {}...", count, object_dao.get_object_name());
+            if failed {
+                break;
+            }
+        }
+        println!("\t...done.");
     }
 }

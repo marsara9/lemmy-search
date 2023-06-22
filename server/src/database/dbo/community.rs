@@ -31,6 +31,10 @@ impl CommunityDBO {
 #[allow(unused_variables)]
 impl DBO<CommunityData> for CommunityDBO {
 
+    fn get_object_name(&self) -> &str {
+        "CommunityData"
+    }
+
     async fn create_table_if_not_exists(
         &self
     ) -> bool {
@@ -63,9 +67,8 @@ impl DBO<CommunityData> for CommunityDBO {
 
     async fn create(
         &self,
-        object : &CommunityData
+        object : CommunityData
     ) -> bool { 
-        let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO comments (ap_id, name, title, laste_updated) 
@@ -111,7 +114,7 @@ impl DBO<CommunityData> for CommunityDBO {
 
     async fn update(
         &self, 
-        ap_id : &str
+        object : CommunityData
     ) -> bool {
         false
     }
