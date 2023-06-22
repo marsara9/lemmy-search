@@ -1,6 +1,15 @@
 pub mod dbo;
 
-use crate::{config::Postgres, database::dbo::{comment::CommentDBO, DBO, site::SiteDBO, post::PostDAO, word::WordDAO}};
+use crate::{
+    config::Postgres, 
+    database::dbo::{
+        comment::CommentDBO, 
+        DBO, site::SiteDBO, 
+        post::PostDBO, 
+        word::WordDAO, 
+        community::CommunityDBO
+    }
+};
 use postgres::{
     NoTls, 
     Config,
@@ -54,8 +63,15 @@ impl Database {
     ) -> Result<(), Error> {
         println!("Creating database...");
 
+        println!("\tCreating COMMUNITIES table...");
+        let communities = CommunityDBO::new(self.pool.clone());
+        communities.drop_table_if_exists()
+            .await;
+        communities.create_table_if_not_exists()
+            .await;
+
         println!("\tCreating POSTS table...");
-        let post = PostDAO::new(self.pool.clone());
+        let post = PostDBO::new(self.pool.clone());
         post.drop_table_if_exists()
             .await;
         post.create_table_if_not_exists()
@@ -82,36 +98,7 @@ impl Database {
         word.create_table_if_not_exists()
             .await;
 
-        println!("\tCreating WORDS_XREF_POSTS table...");
-
-        // let pool = self.pool.clone();
-        // let _ = match thread::spawn(move || {
-        //     let mut client = pool.get().unwrap();
-
-        //     println!("\tCreating WORDS table...");
-        //     client.batch_execute("
-        //         CREATE TABLE IF NOT EXISTS words (
-        //             id              UUID PRIMARY KEY,
-        //             word            VARCHAR NOT NULL
-        //         )
-        //     ").unwrap();
-
-        //     println!("\tCreating WORDS_XREF_POSTS table...");
-        //     client.batch_execute("
-        //         CREATE TABLE IF NOT EXISTS words_xref_posts (
-        //             id              UUID PRIMARY KEY,
-        //             word_id         UUID NOT NULL,
-        //             post_id         UUID NOT NULL
-        //         )
-        //     ").unwrap();
-        // }).join() {
-        //     Ok(_) => {
-        //         println!("Database creation complete...");
-        //     },
-        //     Err(_) => {
-        //         println!("Database creation failed!");
-        //     },
-        // };
+        // println!("\tCreating WORDS_XREF_POSTS table...");
 
         Ok(())
     }

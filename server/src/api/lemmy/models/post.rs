@@ -24,15 +24,21 @@ pub struct PostListResponse {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct  PostData {
     pub post : Post,
+    pub creator : Creator,
     pub community : Community,
     pub counts : Counts
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Post {
-    pub id : i64,
+    pub ap_id : String,
     pub name : String,
     pub body : Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Creator {
+    pub actor_id : String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

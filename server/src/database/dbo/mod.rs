@@ -1,7 +1,9 @@
 pub mod site;
 pub mod comment;
+pub mod community;
 pub mod post;
 pub mod word;
+pub mod search;
 
 use async_trait::async_trait;
 use super::DatabasePool;
@@ -18,6 +20,8 @@ use r2d2_postgres::{
 #[async_trait]
 pub trait DBO<T : Default> {
 
+    fn get_object_name(&self) -> &str;
+
     async fn create_table_if_not_exists(
         &self
     ) -> bool;
@@ -27,27 +31,23 @@ pub trait DBO<T : Default> {
     ) -> bool;
 
     async fn create(
-        &self, 
-        instance : &str,
-        object : &T
+        &self,
+        object : T
     ) -> bool;
 
     async fn retrieve(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> Option<T>;
 
     async fn update(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        object : T
     ) -> bool;
 
     async fn delete(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool;
 }
 

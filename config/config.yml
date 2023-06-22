@@ -1,7 +1,7 @@
 crawler:
   enabled: false
   seed_instance: "voyager.lemmy.ml"
-  log: false
+  log: true
 postgres:
   user: "lemmy"
   password: "password"

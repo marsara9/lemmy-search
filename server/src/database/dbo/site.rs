@@ -49,11 +49,135 @@ impl SiteDBO {
             }
         }).await.unwrap_or(Vec::<SiteView>::new())
     }
+
+    pub async fn set_last_community_page(
+        &self,
+        instance : &str,
+        page : i64
+    ) -> bool {
+        let instance = instance.to_owned();
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                UPDATE sites
+                    SET last_community_page = $2,
+                    WHERE actor_id = $1
+                ",&[
+                    &instance, &page
+                ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    pub async fn set_last_post_page(
+        &self,
+        instance : &str,
+        page : i64
+    ) -> bool {
+        let instance = instance.to_owned();
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                UPDATE sites
+                    SET last_post_page = $2,
+                    WHERE actor_id = $1
+                ",&[
+                    &instance, &page
+                ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    pub async fn set_last_comment_page(
+        &self,
+        instance : &str,
+        page : i64
+    ) -> bool {
+        let instance = instance.to_owned();
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                UPDATE sites
+                    SET last_comment_page = $2,
+                    WHERE actor_id = $1
+                ",&[
+                    &instance, &page
+                ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    pub async fn get_last_community_page(
+        &self,
+        instance : &str
+    ) -> i64 {
+        let instance = instance.to_owned();
+        get_database_client(&self.pool, move |client| {
+            match client.query_one("
+                SELECT last_community_page 
+                    FROM sites
+                    WHERE instance = $1
+                ",
+                &[&instance]
+            ) {
+                Ok(row) => row.get(0),
+                Err(_) => 0
+            }
+        }).await.unwrap_or(0)
+    }
+
+    pub async fn get_last_post_page(
+        &self,
+        instance : &str
+    ) -> i64 {
+        let instance = instance.to_owned();
+        get_database_client(&self.pool, move |client| {
+            match client.query_one("
+                SELECT last_post_page 
+                    FROM sites
+                    WHERE instance = $1
+                ",
+                &[&instance]
+            ) {
+                Ok(row) => row.get(0),
+                Err(_) => 0
+            }
+        }).await.unwrap_or(0)
+    }
+
+    pub async fn get_last_comment_page(
+        &self,
+        instance : &str
+    ) -> i64 {
+        let instance = instance.to_owned();
+        get_database_client(&self.pool, move |client| {
+            match client.query_one("
+                SELECT last_comment_page 
+                    FROM sites
+                    WHERE instance = $1
+                ",
+                &[&instance]
+            ) {
+                Ok(row) => row.get(0),
+                Err(_) => 0
+            }
+        }).await.unwrap_or(0)
+    }
 }
 
 #[async_trait]
 #[allow(unused_variables)]
 impl DBO<SiteView> for SiteDBO {
+
+    fn get_object_name(&self) -> &str {
+        "SiteView"
+    }
 
     async fn create_table_if_not_exists(
         &self
@@ -61,11 +185,13 @@ impl DBO<SiteView> for SiteDBO {
         match get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS sites (
-                    id                UUID PRIMARY KEY,
-                    instance          VARCHAR NOT NULL,
-                    name              VARCHAR NULL,
-                    actor_id          VARCHAR NOT NULL UNIQUE,
-                    last_update       DATE
+                    id                  UUID PRIMARY KEY,
+                    name                VARCHAR NULL,
+                    actor_id            VARCHAR NOT NULL UNIQUE,
+                    last_community_page INTEGER DEFAULT 0,
+                    last_post_page      INTEGER DEFAULT 0,
+                    last_comment_page   INTEGER DEFAULT 0,
+                    last_update         DATE
                 )
             ", &[]
             )
@@ -88,18 +214,14 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn create(
         &self, 
-        instance : &str,
-        object : &SiteView
+        object : SiteView
     ) -> bool {
-        let instance = instance.to_owned();  
-        let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO sites (id, instance, name, actor_id, laste_updated) 
-                    VALUES ($1, $2, $3)",
+                INSERT INTO sites (id, name, actor_id, laste_updated) 
+                    VALUES ($1, $2, $3, $4)",
                     &[
                         &Uuid::new_v4(),
-                        &instance,
                         &object.site.name,
                         &object.site.actor_id,
                         &Utc::now()
@@ -113,18 +235,16 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn retrieve(
         &self,
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> Option<SiteView> {
-        let remote_id = remote_id.to_owned();
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         get_database_client(&self.pool, move |client| {
             match client.query_one("
                 SELECT actor_id, name 
                     FROM sites
                     WHERE instance = $1
                 ",
-                &[&instance] 
+                &[&ap_id] 
             ) {
                 Ok(row) => Some(SiteView {
                     site: Site {
@@ -140,16 +260,14 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn update(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        object : SiteView
     ) -> bool {
         false
     }
 
     async fn delete(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool {
         false
     }
