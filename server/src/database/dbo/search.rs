@@ -15,7 +15,6 @@ pub struct SearchDatabase {
     pub pool : DatabasePool
 }
 
-#[allow(unused)]
 impl SearchDatabase {
 
     pub fn new(pool : DatabasePool) -> Self {
@@ -50,20 +49,6 @@ impl SearchDatabase {
             Ok(_) => true,
             Err(_) => false
         }
-    }
-
-    pub async fn upsert_post(
-        &self,
-        post : &Post
-    ) -> bool {
-        false
-    }
-
-    pub async fn upsert_comment(
-        &self,
-        comment : &Comment
-    ) {
-
     }
 
     pub async fn search(

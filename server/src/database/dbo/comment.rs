@@ -30,7 +30,6 @@ impl CommentDBO {
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl DBO<CommentData> for CommentDBO {
 
     fn get_object_name(&self) -> &str {

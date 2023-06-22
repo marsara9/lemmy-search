@@ -28,7 +28,6 @@ impl CommunityDBO {
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl DBO<CommunityData> for CommunityDBO {
 
     fn get_object_name(&self) -> &str {

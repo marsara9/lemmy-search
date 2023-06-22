@@ -172,7 +172,6 @@ impl SiteDBO {
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl DBO<SiteView> for SiteDBO {
 
     fn get_object_name(&self) -> &str {

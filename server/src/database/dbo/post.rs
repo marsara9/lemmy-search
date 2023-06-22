@@ -28,7 +28,6 @@ impl PostDBO {
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl DBO<PostData> for PostDBO {
 
     fn get_object_name(&self) -> &str {
