@@ -33,9 +33,9 @@ use crate::{
 };
 
 lazy_static! {
-    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>\w+@[\w-\.]+)").unwrap();
-    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\w+@[\w-\.]+)").unwrap();
-    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\w+@[\w-\.]+)").unwrap();
+    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>\w+@[\w\-\.]+)").unwrap();
+    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\w+@[\w\-\.]+)").unwrap();
+    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\w+@[\w\-\.]+)").unwrap();
 }
 
 pub struct SearchHandler {
