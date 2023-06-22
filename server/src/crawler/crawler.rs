@@ -1,11 +1,9 @@
-use super::analyizer::Analyizer;
 use crate::{
     api::lemmy::fetcher::Fetcher, 
     database::{
         Database,        
         dbo::{
             DBO, 
-            comment::CommentDBO, 
             site::SiteDBO
         }
     }
@@ -16,7 +14,6 @@ pub struct Crawler {
     
     database : Database,
     fetcher : Fetcher,
-    analyizer : Analyizer
 }
 
 impl Crawler {
@@ -28,8 +25,7 @@ impl Crawler {
         Self {
             instance: instacne.clone(),
             database,
-            fetcher: Fetcher::new(instacne),
-            analyizer: Analyizer::new()
+            fetcher: Fetcher::new(instacne)
         }
     }
 
@@ -42,7 +38,7 @@ impl Crawler {
             .site_view;
 
         SiteDBO::new(self.database.pool.clone())
-            .create(&self.instance, &site_view)
+            .create(&site_view)
             .await;
 
         let number_of_comments = site_view

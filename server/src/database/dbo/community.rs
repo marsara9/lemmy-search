@@ -1,0 +1,125 @@
+use chrono::Utc;
+use async_trait::async_trait;
+use crate::{
+    database::DatabasePool,
+    api::lemmy::models::{
+        community::{
+            Community, 
+            CommunityData            
+        }
+    }
+};
+use super::{
+    DBO, 
+    get_database_client
+};
+
+
+pub struct CommunityDBO {
+    pool : DatabasePool
+}
+
+impl CommunityDBO {
+    pub fn new(pool : DatabasePool) -> Self {
+        return Self {
+            pool
+        }
+    }
+}
+
+#[async_trait]
+#[allow(unused_variables)]
+impl DBO<CommunityData> for CommunityDBO {
+
+    async fn create_table_if_not_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("
+                CREATE TABLE IF NOT EXISTS communities (
+                    ap_id             VARCHAR PRIMARY KEY,
+                    name              VARCHAR NOT NULL,
+                    title             VARCHAR NULL,
+                    late_update       DATE NOT NULL
+                )
+            ", &[]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    async fn drop_table_if_exists(
+        &self
+    ) -> bool {
+        match get_database_client(&self.pool, |client| {
+            client.execute("DROP TABLE IF EXISTS communities", &[])
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
+    }
+
+    async fn create(
+        &self,
+        object : &CommunityData
+    ) -> bool { 
+        let object = object.to_owned();
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                INSERT INTO comments (ap_id, name, title, laste_updated) 
+                    VALUES ($1, $2, $3, $4)
+                ",
+                    &[
+                        &object.community.actor_id,
+                        &object.community.name,
+                        &object.community.title,                        
+                        &Utc::now()
+                    ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        } 
+    }
+
+    async fn retrieve(
+        &self, 
+        ap_id : &str
+    ) -> Option<CommunityData> {
+        let ap_id = ap_id.to_owned();
+        get_database_client(&self.pool, move |client| {
+            match client.query_one("
+                SELECT name, title FROM communities
+                    WHERE m.ap_id = $1
+                ",
+                &[&ap_id] 
+            ) {
+                Ok(row) => Some(CommunityData { 
+                    community : Community { 
+                        actor_id: ap_id, 
+                        name: row.get(0), 
+                        title: row.get(1) 
+                    },
+                    ..Default::default()
+                }),
+                Err(_) => None
+            }
+        }).await.unwrap_or(None)
+    }
+
+    async fn update(
+        &self, 
+        ap_id : &str
+    ) -> bool {
+        false
+    }
+
+    async fn delete(
+        &self, 
+        ap_id : &str
+    ) -> bool {
+        false
+    }
+}

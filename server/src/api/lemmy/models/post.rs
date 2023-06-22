@@ -31,7 +31,7 @@ pub struct  PostData {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Post {
-    pub id : i64,
+    pub ap_id : String,
     pub name : String,
     pub body : Option<String>
 }

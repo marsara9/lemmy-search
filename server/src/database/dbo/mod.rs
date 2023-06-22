@@ -1,5 +1,6 @@
 pub mod site;
 pub mod comment;
+pub mod community;
 pub mod post;
 pub mod word;
 pub mod search;
@@ -28,27 +29,23 @@ pub trait DBO<T : Default> {
     ) -> bool;
 
     async fn create(
-        &self, 
-        instance : &str,
+        &self,
         object : &T
     ) -> bool;
 
     async fn retrieve(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> Option<T>;
 
     async fn update(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool;
 
     async fn delete(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool;
 }
 

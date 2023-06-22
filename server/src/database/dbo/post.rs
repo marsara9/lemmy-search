@@ -37,14 +37,13 @@ impl DBO<PostData> for PostDAO {
         match get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS posts (
-                    remote_id         INTEGER NOT NULL,
-                    instance          VARCHAR NOT NULL,
-                    name              VARCHAR NOT NULL,
-                    body              VARCHAR NULL,
+                    ap_id             VARCHAR PRIMARY KEY,
+                    name              VARCHAR(100) NOT NULL,
+                    body              VARCHAR(300) NULL,
                     score             INTEGER,
                     author_actor_id   VARCHAR NOT NULL,
-                    last_update       DATE,
-                    PRIMARY KEY(remote_id, instance)
+                    community_ap_id   VARCHAR NOT NULL
+                    last_update       DATE
                 )
             ", &[]
             )
@@ -66,24 +65,22 @@ impl DBO<PostData> for PostDAO {
     }
 
     async fn create(
-        &self, 
-        instance : &str,
+        &self,
         object : &PostData
-    ) -> bool {        
-        let instance = instance.to_owned();  
+    ) -> bool {
         let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO posts (remote_id, instance, name, body, score, author_actor_id, last_update) 
-                    VALUES ($1, $2, $3)
+                INSERT INTO posts (ap_id, name, body, score, author_actor_id, community_ap_id, last_update) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ",
                     &[
-                        &object.post.id,
-                        &instance,
+                        &object.post.ap_id,
                         &object.post.name,
                         &object.post.body,
-                        &object.creator.actor_id,
                         &object.counts.score,
+                        &object.creator.actor_id,
+                        &object.community.actor_id,
                         &Utc::now()
                     ]
             )
@@ -95,43 +92,41 @@ impl DBO<PostData> for PostDAO {
 
     async fn retrieve(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> Option<PostData> {
-        let remote_id = remote_id.to_owned();
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         get_database_client(&self.pool, move |client| {
             match client.query_one("
                 SELECT p.name,
                         p.body,
+                        p.score
                         p.author_actor_id,
-                        c.remote_id,
+                        c.ap_id,
                         c.name,
                         c.title,
-                        p.score
                     FROM posts AS p
-                        JOIN communities AS c on c.id = m.community_id
-                    WHERE p.remote_id = $1 AND p.instance = $2
+                        JOIN communities AS c on c.ap_id = m.community_id
+                    WHERE p.ap_id = $1
                 ",
-                &[&remote_id, &instance] 
+                &[&ap_id] 
             ) {
                 Ok(row) => Some(PostData { 
                     post: Post { 
-                        id: remote_id.clone(), 
+                        ap_id: ap_id.clone(), 
                         name: row.get(0), 
                         body: row.get(1)
+                    },
+                    counts : Counts {
+                        score : row.get(6),
+                        ..Default::default()
                     },
                     creator: Creator {
                         actor_id : row.get(2)
                     },
                     community : Community { 
-                        id: row.get(3), 
+                        actor_id: row.get(3), 
                         name: row.get(4), 
                         title: row.get(5) 
-                    },
-                    counts : Counts {
-                        score : row.get(6),
-                        ..Default::default()
                     }
                 }),
                 Err(_) => None
@@ -141,16 +136,14 @@ impl DBO<PostData> for PostDAO {
 
     async fn update(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool {
         false
     }
 
     async fn delete(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool {
         false
     }

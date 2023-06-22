@@ -62,7 +62,6 @@ impl DBO<SiteView> for SiteDBO {
             client.execute("
                 CREATE TABLE IF NOT EXISTS sites (
                     id                UUID PRIMARY KEY,
-                    instance          VARCHAR NOT NULL,
                     name              VARCHAR NULL,
                     actor_id          VARCHAR NOT NULL UNIQUE,
                     last_update       DATE
@@ -88,18 +87,15 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn create(
         &self, 
-        instance : &str,
         object : &SiteView
-    ) -> bool {
-        let instance = instance.to_owned();  
+    ) -> bool {  
         let object = object.to_owned();
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO sites (id, instance, name, actor_id, laste_updated) 
-                    VALUES ($1, $2, $3)",
+                INSERT INTO sites (id, name, actor_id, laste_updated) 
+                    VALUES ($1, $2, $3, $4)",
                     &[
                         &Uuid::new_v4(),
-                        &instance,
                         &object.site.name,
                         &object.site.actor_id,
                         &Utc::now()
@@ -113,18 +109,16 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn retrieve(
         &self,
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> Option<SiteView> {
-        let remote_id = remote_id.to_owned();
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         get_database_client(&self.pool, move |client| {
             match client.query_one("
                 SELECT actor_id, name 
                     FROM sites
                     WHERE instance = $1
                 ",
-                &[&instance] 
+                &[&ap_id] 
             ) {
                 Ok(row) => Some(SiteView {
                     site: Site {
@@ -140,16 +134,14 @@ impl DBO<SiteView> for SiteDBO {
 
     async fn update(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool {
         false
     }
 
     async fn delete(
         &self, 
-        remote_id : &i64,
-        instance : &str
+        ap_id : &str
     ) -> bool {
         false
     }
