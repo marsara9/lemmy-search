@@ -31,7 +31,7 @@ pub struct Fetcher {
     instance : String
 }
 
-#[warn(unused)]
+#[allow(unused)]
 impl Fetcher {
 
     pub const DEFAULT_LIMIT : i64 = 50;

@@ -3,7 +3,7 @@ use crate::{
         search::models::search::SearchPost, 
         lemmy::models::{
             comment::Comment, 
-            post::Post, community
+            post::Post
         }
     }, database::DatabasePool
 };
@@ -15,6 +15,7 @@ pub struct SearchDatabase {
     pub pool : DatabasePool
 }
 
+#[allow(unused)]
 impl SearchDatabase {
 
     async fn create_table_if_not_exists(
