@@ -30,24 +30,14 @@ pub trait DBO<T : Default> {
         &self
     ) -> bool;
 
-    async fn create(
-        &self,
-        object : T
-    ) -> bool;
-
     async fn retrieve(
         &self, 
         ap_id : &str
     ) -> Option<T>;
 
-    async fn update(
-        &self, 
+    async fn upsert(
+        &self,
         object : T
-    ) -> bool;
-
-    async fn delete(
-        &self, 
-        ap_id : &str
     ) -> bool;
 }
 

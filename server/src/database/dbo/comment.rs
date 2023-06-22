@@ -70,30 +70,6 @@ impl DBO<CommentData> for CommentDBO {
         }
     }
 
-    async fn create(
-        &self,
-        object : CommentData
-    ) -> bool {
-        match get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, laste_updated) 
-                    VALUES ($1, $2, $3, $4, $5, $6)
-                ",
-                    &[
-                        &object.comment.ap_id,
-                        &object.comment.content,
-                        &object.counts.score,
-                        &object.post.ap_id,
-                        &object.community.actor_id,
-                        &Utc::now()
-                    ]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        } 
-    }
-
     async fn retrieve(
         &self, 
         ap_id : &str
@@ -144,17 +120,29 @@ impl DBO<CommentData> for CommentDBO {
         }).await.unwrap_or(None)
     }
 
-    async fn update(
-        &self, 
+    async fn upsert(
+        &self,
         object : CommentData
     ) -> bool {
-        false
-    }
-
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool {
-        false
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, last_updated) 
+                    VALUES ($1, $2, $3, $4, $5, $6)
+                ON CONFLICT (ap_id)
+                DO UPDATE SET (body = $2, score = $3, post_ap_id = $4, community_ap_id = $5, last_updated = $6)
+                ",
+                    &[
+                        &object.comment.ap_id,
+                        &object.comment.content,
+                        &object.counts.score,
+                        &object.post.ap_id,
+                        &object.community.actor_id,
+                        &Utc::now()
+                    ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 }

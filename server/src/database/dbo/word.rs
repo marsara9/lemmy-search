@@ -55,9 +55,16 @@ impl DBO<String> for WordDAO {
             Err(_) => false
         }
     }
-
-    async fn create(
+    
+    async fn retrieve(
         &self, 
+        ap_id : &str
+    ) -> Option<String> {
+        None
+    }
+
+    async fn upsert(
+        &self,
         object : String
     ) -> bool {
         let object = object.to_owned();
@@ -76,27 +83,6 @@ impl DBO<String> for WordDAO {
         }).await {
             Ok(_) => true,
             Err(_) => false
-        } 
-    }
-
-    async fn retrieve(
-        &self, 
-        ap_id : &str
-    ) -> Option<String> {
-        None
-    }
-
-    async fn update(
-        &self, 
-        object : String
-    ) -> bool {
-        false
-    }
-
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool {
-        false
+        }
     }
 }

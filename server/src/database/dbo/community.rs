@@ -65,28 +65,6 @@ impl DBO<CommunityData> for CommunityDBO {
         }
     }
 
-    async fn create(
-        &self,
-        object : CommunityData
-    ) -> bool { 
-        match get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO comments (ap_id, name, title, laste_updated) 
-                    VALUES ($1, $2, $3, $4)
-                ",
-                    &[
-                        &object.community.actor_id,
-                        &object.community.name,
-                        &object.community.title,                        
-                        &Utc::now()
-                    ]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        } 
-    }
-
     async fn retrieve(
         &self, 
         ap_id : &str
@@ -111,18 +89,28 @@ impl DBO<CommunityData> for CommunityDBO {
             }
         }).await.unwrap_or(None)
     }
-
-    async fn update(
-        &self, 
+    
+    async fn upsert(
+        &self,
         object : CommunityData
     ) -> bool {
-        false
-    }
-
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool {
-        false
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                INSERT INTO comments (ap_id, name, title, last_updated) 
+                    VALUES ($1, $2, $3, $4)
+                ON CONFLICT (ap_id)
+                DO UPDATE SET (name = $2, title = $3, last_updated = $4)
+                ",
+                    &[
+                        &object.community.actor_id,
+                        &object.community.name,
+                        &object.community.title,                        
+                        &Utc::now()
+                    ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 }

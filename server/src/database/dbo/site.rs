@@ -212,27 +212,6 @@ impl DBO<SiteView> for SiteDBO {
         }
     }
 
-    async fn create(
-        &self, 
-        object : SiteView
-    ) -> bool {
-        match get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO sites (id, name, actor_id, laste_updated) 
-                    VALUES ($1, $2, $3, $4)",
-                    &[
-                        &Uuid::new_v4(),
-                        &object.site.name,
-                        &object.site.actor_id,
-                        &Utc::now()
-                    ]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
-    }
-
     async fn retrieve(
         &self,
         ap_id : &str
@@ -258,17 +237,27 @@ impl DBO<SiteView> for SiteDBO {
         }).await.unwrap_or(None)
     }
 
-    async fn update(
-        &self, 
+    async fn upsert(
+        &self,
         object : SiteView
     ) -> bool {
-        false
-    }
-
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool {
-        false
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                INSERT INTO sites (id, name, actor_id, laste_updated) 
+                    VALUES ($1, $2, $3, $4)
+                ON CONFLICT (actor_id)
+                DO UPDATE SET (name = $2, laste_updated = $4)
+                ",
+                    &[
+                        &Uuid::new_v4(),
+                        &object.site.name,
+                        &object.site.actor_id,
+                        &Utc::now()
+                    ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 }

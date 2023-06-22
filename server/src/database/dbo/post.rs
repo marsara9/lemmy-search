@@ -68,31 +68,6 @@ impl DBO<PostData> for PostDBO {
         }
     }
 
-    async fn create(
-        &self,
-        object : PostData
-    ) -> bool {
-        match get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO posts (ap_id, name, body, score, author_actor_id, community_ap_id, last_update) 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
-                ",
-                    &[
-                        &object.post.ap_id,
-                        &object.post.name,
-                        &object.post.body,
-                        &object.counts.score,
-                        &object.creator.actor_id,
-                        &object.community.actor_id,
-                        &Utc::now()
-                    ]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        } 
-    }
-
     async fn retrieve(
         &self, 
         ap_id : &str
@@ -137,17 +112,30 @@ impl DBO<PostData> for PostDBO {
         }).await.unwrap_or(None)
     }
 
-    async fn update(
-        &self, 
+    async fn upsert(
+        &self,
         object : PostData
     ) -> bool {
-        false
-    }
-
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool {
-        false
+        match get_database_client(&self.pool, move |client| {
+            client.execute("
+                INSERT INTO posts (ap_id, name, body, score, author_actor_id, community_ap_id, last_update) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ON CONFLICT (ap_id)
+                DO UPDATE SET (name = $2, body = $3, score = $4, author_actor_id = $5, community_ap_id = $6, last_update = $7)
+                ",
+                    &[
+                        &object.post.ap_id,
+                        &object.post.name,
+                        &object.post.body,
+                        &object.counts.score,
+                        &object.creator.actor_id,
+                        &object.community.actor_id,
+                        &Utc::now()
+                    ]
+            )
+        }).await {
+            Ok(_) => true,
+            Err(_) => false
+        }
     }
 }

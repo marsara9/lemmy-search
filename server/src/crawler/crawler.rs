@@ -43,25 +43,27 @@ impl Crawler {
     pub async fn crawl(
         &self
     ) {
-        let site_view = self.fetcher.fetch_site_data()
-            .await
-            .unwrap()
-            .site_view;
+        let site_view = match self.fetcher.fetch_site_data()
+            .await {
+                Ok(value) => value,
+                Err(err) => {
+                    println!("Unable to fetch site data for instance '{}'.", self.instance);
+                    if self.config.log {
+                        println!("{}", err);
+                    }
+                    return;
+                }
+            }.site_view;
 
         let site_dbo = SiteDBO::new(self.database.pool.clone());
         let community_dbo = CommunityDBO::new(self.database.pool.clone());
         let post_dbo = PostDBO::new(self.database.pool.clone());
         let comment_dbo = CommentDBO::new(self.database.pool.clone());
 
-        if site_dbo.retrieve(&self.instance)
-            .await
-            .is_some() {
-            site_dbo.update(site_view.clone())
-                .await;
-        } else {
-            site_dbo.create(site_view.clone())
-                .await;
-        }
+        if !site_dbo.upsert(site_view.clone())
+            .await {
+                println!("Failed to update {} during crawl.", site_dbo.get_object_name());
+            }
 
         self.fetch_paged_object(
             site_dbo.get_last_community_page(&self.instance)
@@ -137,7 +139,7 @@ impl Crawler {
                 .await;
 
             for object in objects {
-                if !object_dao.create(object).await {
+                if !object_dao.upsert(object).await {
                     println!("\t...failed to insert after fetching {} objects", count);
                     failed = true;
                     break;
