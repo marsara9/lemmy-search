@@ -24,15 +24,18 @@ use crate::{
         SearchResult
     }, 
     database::{
-        dbo::{site::SiteDBO, search::SearchDatabase}, 
+        dbo::{
+            site::SiteDBO, 
+            search::SearchDatabase
+        }, 
         DatabasePool
     }
 };
 
 lazy_static! {
-    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>\\W+@[\\W-\.]+)").unwrap();
-    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\\W+@[\\W-\.]+)").unwrap();
-    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\\W+@[\\W-\.]+)").unwrap();
+    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>\w+@[\w-\.]+)").unwrap();
+    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\w+@[\w-\.]+)").unwrap();
+    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\w+@[\w-\.]+)").unwrap();
 }
 
 pub struct SearchHandler {
