@@ -46,7 +46,7 @@ impl DBO<PostData> for PostDBO {
                     body              VARCHAR(300) NULL,
                     score             INTEGER,
                     author_actor_id   VARCHAR NOT NULL,
-                    community_ap_id   VARCHAR NOT NULL
+                    community_ap_id   VARCHAR NOT NULL,
                     last_update       DATE
                 )
             ", &[]

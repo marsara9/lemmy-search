@@ -7,7 +7,7 @@ use crate::{
         DBO, site::SiteDBO, 
         post::PostDBO, 
         word::WordDAO, 
-        community::CommunityDBO
+        community::CommunityDBO, search::SearchDatabase
     }
 };
 use postgres::{
@@ -67,38 +67,55 @@ impl Database {
         let communities = CommunityDBO::new(self.pool.clone());
         communities.drop_table_if_exists()
             .await;
-        communities.create_table_if_not_exists()
-            .await;
+        if !communities.create_table_if_not_exists()
+            .await {
+                println!("\t\t...failed to create table.");
+            }
 
         println!("\tCreating POSTS table...");
         let post = PostDBO::new(self.pool.clone());
         post.drop_table_if_exists()
             .await;
-        post.create_table_if_not_exists()
-            .await;
+        if !post.create_table_if_not_exists()
+            .await {
+                println!("\t\t...failed to create table.");
+            }
 
         println!("\tCreating COMMENTS table...");
         let comment = CommentDBO::new(self.pool.clone());
         comment.drop_table_if_exists()
             .await;
-        comment.create_table_if_not_exists()
-            .await;
+        if !comment.create_table_if_not_exists()
+            .await {
+                println!("\t\t...failed to create table.");
+            }
 
         println!("\tCreating SITES table...");
         let site = SiteDBO::new(self.pool.clone());
         site.drop_table_if_exists()
             .await;
-        site.create_table_if_not_exists()
-            .await;
+        if !site.create_table_if_not_exists()
+            .await {
+                println!("\t\t...failed to create table.");
+            }
 
         println!("\tCreating WORDS table...");
         let word = WordDAO::new(self.pool.clone());
         word.drop_table_if_exists()
             .await;
-        word.create_table_if_not_exists()
-            .await;
+        if !word.create_table_if_not_exists()
+            .await {
+                println!("\t\t...failed to create table.");
+            }
 
-        // println!("\tCreating WORDS_XREF_POSTS table...");
+        println!("\tCreating SEARCH table...");
+        let search = SearchDatabase::new(self.pool.clone());
+        search.drop_table_if_exists()
+            .await;
+        if !search.create_table_if_not_exists()
+            .await {
+                println!("\t\t...failed to create table.");
+            }
 
         Ok(())
     }
