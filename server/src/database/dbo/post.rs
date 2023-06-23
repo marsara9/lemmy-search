@@ -50,7 +50,7 @@ impl DBO<PostData> for PostDBO {
                     last_update       DATE
                 )
             ", &[]
-            )
+            ).unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -62,6 +62,7 @@ impl DBO<PostData> for PostDBO {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS posts", &[])
+                .unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -132,9 +133,9 @@ impl DBO<PostData> for PostDBO {
                         &object.community.actor_id,
                         &Utc::now()
                     ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }

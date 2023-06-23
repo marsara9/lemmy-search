@@ -52,7 +52,7 @@ impl DBO<CommentData> for CommentDBO {
                     late_update       DATE NOT NULL
                 )
             ", &[]
-            )
+            ).unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -64,6 +64,7 @@ impl DBO<CommentData> for CommentDBO {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS comments", &[])
+                .unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -139,9 +140,9 @@ impl DBO<CommentData> for CommentDBO {
                         &object.community.actor_id,
                         &Utc::now()
                     ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }

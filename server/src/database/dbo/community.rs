@@ -46,7 +46,7 @@ impl DBO<CommunityData> for CommunityDBO {
                     late_update       DATE NOT NULL
                 )
             ", &[]
-            )
+            ).unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -58,6 +58,7 @@ impl DBO<CommunityData> for CommunityDBO {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS communities", &[])
+                .unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -106,9 +107,9 @@ impl DBO<CommunityData> for CommunityDBO {
                         &object.community.title,                        
                         &Utc::now()
                     ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }

@@ -65,9 +65,9 @@ impl SiteDBO {
                 ",&[
                     &instance, &page
                 ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }
@@ -86,9 +86,9 @@ impl SiteDBO {
                 ",&[
                     &instance, &page
                 ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }
@@ -107,9 +107,9 @@ impl SiteDBO {
                 ",&[
                     &instance, &page
                 ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }
@@ -194,7 +194,7 @@ impl DBO<SiteView> for SiteDBO {
                     last_update         DATE
                 )
             ", &[]
-            )
+            ).unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -206,6 +206,7 @@ impl DBO<SiteView> for SiteDBO {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS sites", &[])
+                .unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -254,9 +255,9 @@ impl DBO<SiteView> for SiteDBO {
                         &object.site.actor_id,
                         &Utc::now()
                     ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }

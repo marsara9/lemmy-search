@@ -1,5 +1,8 @@
 use std::collections::HashSet;
 
+use postgres::types::ToSql;
+use uuid::Uuid;
+
 use crate::{
     api::{
         search::models::search::SearchPost, 
@@ -36,7 +39,7 @@ impl SearchDatabase {
                     post_ap_id      VARCHAR NOT NULL
                 )
             ", &[]
-            )
+            ).unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -48,6 +51,7 @@ impl SearchDatabase {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS xref", &[])
+                .unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -59,7 +63,34 @@ impl SearchDatabase {
         words : HashSet<String>,
         post : Post
     ) -> bool {
-        false
+        get_database_client::<Result<bool, postgres::Error>, _>(&self.pool, move |client| {
+            let mut transaction = client.transaction()?;
+            transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
+
+            let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
+            for word in &words {
+                params.push(word);
+            }
+            let rows = transaction.query("SELECT id FROM words WHERE word in $1", &params)?;
+            let ids = rows.into_iter().map(|row| {
+                row.get::<&str, Uuid>("id")
+            }).collect::<Vec<Uuid>>();
+
+            let mut query = format!("INSERT INTO xref (word_id, post_ap_id) VALUES ");
+            for index in 0..ids.len() {
+                query += format!("(${} , $1),", index+1).as_str();
+            }
+            query = query.trim_end_matches(",").to_string();
+            params.insert(0, &post.ap_id);
+            transaction.execute(&query, &params)?;
+
+            match transaction.commit() {
+                Ok(_) => Ok(true),
+                Err(_) => Ok(false)
+            }
+        }).await
+            .unwrap_or(Ok(false))
+            .unwrap_or(false)
     }
 
     pub async fn upsert_comment(

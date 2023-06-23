@@ -38,7 +38,7 @@ impl DBO<String> for WordsDBO {
                     word            VARCHAR NOT NULL UNIQUE
                 )
             ", &[]
-            )
+            ).unwrap_or_default()
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -50,6 +50,7 @@ impl DBO<String> for WordsDBO {
     ) -> bool {
         match get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS words", &[])
+                .unwrap_or_default()                
         }).await {
             Ok(_) => true,
             Err(_) => false
@@ -80,9 +81,9 @@ impl DBO<String> for WordsDBO {
                         &Uuid::new_v4(),
                         &object.to_lowercase()
                     ]
-            )
+            ).unwrap_or_default()
         }).await {
-            Ok(_) => true,
+            Ok(value) => value == 1,
             Err(_) => false
         }
     }
