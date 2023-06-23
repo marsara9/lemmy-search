@@ -13,6 +13,7 @@ use super::{
     get_database_client
 };
 
+#[derive(Clone)]
 pub struct SiteDBO {
     pool : DatabasePool
 }

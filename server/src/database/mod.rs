@@ -6,7 +6,7 @@ use crate::{
         comment::CommentDBO, 
         DBO, site::SiteDBO, 
         post::PostDBO, 
-        word::WordDAO, 
+        word::WordsDBO, 
         community::CommunityDBO, search::SearchDatabase
     }
 };
@@ -100,7 +100,7 @@ impl Database {
             }
 
         println!("\tCreating WORDS table...");
-        let word = WordDAO::new(self.pool.clone());
+        let word = WordsDBO::new(self.pool.clone());
         word.drop_table_if_exists()
             .await;
         if !word.create_table_if_not_exists()

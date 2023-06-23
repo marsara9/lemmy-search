@@ -12,10 +12,13 @@ use crate::{
             site::SiteDBO, 
             community::CommunityDBO, 
             post::PostDBO, 
-            comment::CommentDBO
+            comment::CommentDBO, 
+            word::WordsDBO, search::SearchDatabase
         }
     }, config
 };
+
+use super::analyizer::Analyizer;
 
 pub struct Crawler {
     pub instance : String,
@@ -23,6 +26,7 @@ pub struct Crawler {
     config : config::Crawler,
     database : Database,
     fetcher : Fetcher,
+    analyizer : Analyizer
 }
 
 impl Crawler {
@@ -36,7 +40,8 @@ impl Crawler {
             instance: instance.clone(),
             config,
             database,
-            fetcher: Fetcher::new(instance)
+            fetcher: Fetcher::new(instance),
+            analyizer : Analyizer::new()
         }
     }
 
@@ -58,7 +63,7 @@ impl Crawler {
         let site_dbo = SiteDBO::new(self.database.pool.clone());
         let community_dbo = CommunityDBO::new(self.database.pool.clone());
         let post_dbo = PostDBO::new(self.database.pool.clone());
-        let comment_dbo = CommentDBO::new(self.database.pool.clone());
+        let comment_dbo: CommentDBO = CommentDBO::new(self.database.pool.clone());
 
         if !site_dbo.upsert(site_view.clone())
             .await {
@@ -73,6 +78,9 @@ impl Crawler {
             |page| {
                 self.fetcher.fetch_communities(page)
             },
+            |_| async {
+                
+            },
             |page| {
                 site_dbo.set_last_community_page(&self.instance, page)
             }
@@ -85,6 +93,17 @@ impl Crawler {
             post_dbo,
             |page| {
                 self.fetcher.fetch_posts(page)
+            },
+            |post_data| async move {
+                let words_dbo = WordsDBO::new(self.database.pool.clone());
+                let search = SearchDatabase::new(self.database.pool.clone());
+                let words = self.analyizer.get_distinct_words_in_post(&post_data.post);
+                for word in words.clone() {
+                    words_dbo.upsert(word)
+                        .await;
+                }
+                search.upsert_post(words, post_data.post)
+                    .await;
             },
             |page| {
                 site_dbo.set_last_post_page(&self.instance, page)
@@ -99,23 +118,36 @@ impl Crawler {
             |page| {
                 self.fetcher.fetch_comments(page)
             },
+            |comment_data| async move {
+                let words_dbo = WordsDBO::new(self.database.pool.clone());
+                let search = SearchDatabase::new(self.database.pool.clone());
+                let words = self.analyizer.get_distinct_words_in_comment(&comment_data.comment);
+                for word in words.clone() {
+                    words_dbo.upsert(word)
+                        .await;
+                }
+                search.upsert_comment(words, comment_data.comment)
+                    .await;
+            },
             |page| {
                 site_dbo.set_last_comment_page(&self.instance, page)
             }
         ).await;
     }
 
-    async fn fetch_paged_object<T, D, Fetcher, Updater>(
+    async fn fetch_paged_object<T, D, Fetcher, Insert, Updater>(
         &self,
         last_page : i64,
         total_pages : i64,
         object_dao : D,
         fetcher : impl Fn(i64) -> Fetcher,
+        do_on_insert : impl Fn(T) -> Insert,
         page_updater : impl Fn(i64) -> Updater
     ) where 
-        T : Default,
+        T : Clone + Default,
         Fetcher : Future<Output = Result<Vec<T>, reqwest::Error>>,
         Updater : Future<Output = bool>,
+        Insert : Future<Output = ()>,
         D : DBO<T> + Sized
     {
         println!("Fetching {} from '{}'...", object_dao.get_object_name(), self.instance);
@@ -139,10 +171,13 @@ impl Crawler {
                 .await;
 
             for object in objects {
-                if !object_dao.upsert(object).await {
+                if !object_dao.upsert(object.clone()).await {
                     println!("\t...failed to insert after fetching {} objects", count);
                     failed = true;
                     break;
+                } else {
+                    do_on_insert(object.clone())
+                        .await;
                 }
                 count += 1;
             }

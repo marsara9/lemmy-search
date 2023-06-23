@@ -14,7 +14,7 @@ use super::{
     get_database_client
 };
 
-
+#[derive(Clone)]
 pub struct CommunityDBO {
     pool : DatabasePool
 }

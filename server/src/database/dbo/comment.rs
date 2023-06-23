@@ -17,6 +17,7 @@ use super::{
     get_database_client
 };
 
+#[derive(Clone)]
 pub struct CommentDBO {
     pool : DatabasePool
 }

@@ -1,16 +1,19 @@
+use std::collections::HashSet;
+
 use crate::{
     api::{
         search::models::search::SearchPost, 
         lemmy::models::{
-            comment::Comment, 
-            post::Post
-        }
-    }, database::DatabasePool
+            post::Post, 
+            comment::Comment
+        },
+    }, 
+    database::DatabasePool
 };
 
 use super::get_database_client;
 
-
+#[derive(Clone)]
 pub struct SearchDatabase {
     pub pool : DatabasePool
 }
@@ -49,6 +52,22 @@ impl SearchDatabase {
             Ok(_) => true,
             Err(_) => false
         }
+    }
+
+    pub async fn upsert_post(
+        &self,
+        words : HashSet<String>,
+        post : Post
+    ) -> bool {
+        false
+    }
+
+    pub async fn upsert_comment(
+        &self,
+        words : HashSet<String>,
+        comment : Comment
+    ) -> bool {
+        false
     }
 
     pub async fn search(

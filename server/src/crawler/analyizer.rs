@@ -7,7 +7,6 @@ use crate::api::lemmy::models::{
 
 pub struct Analyizer;
 
-#[allow(unused)]
 impl Analyizer {
 
     pub fn new() -> Self {

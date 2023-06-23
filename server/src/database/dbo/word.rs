@@ -8,11 +8,12 @@ use super::{
     get_database_client
 };
 
-pub struct WordDAO {
+#[derive(Clone)]
+pub struct WordsDBO {
     pool : DatabasePool
 }
 
-impl WordDAO {
+impl WordsDBO {
     pub fn new(pool : DatabasePool) -> Self {
         return Self {
             pool
@@ -21,7 +22,7 @@ impl WordDAO {
 }
 
 #[async_trait]
-impl DBO<String> for WordDAO {
+impl DBO<String> for WordsDBO {
 
     fn get_object_name(&self) -> &str {
         "String"
@@ -55,6 +56,7 @@ impl DBO<String> for WordDAO {
         }
     }
     
+    #[allow(unused_variables)] // this function isn't used but is required by the DBO trait.
     async fn retrieve(
         &self, 
         ap_id : &str

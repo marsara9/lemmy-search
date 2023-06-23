@@ -15,6 +15,7 @@ use super::{
     get_database_client
 };
 
+#[derive(Clone)]
 pub struct PostDBO {
     pool : DatabasePool
 }
