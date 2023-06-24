@@ -33,6 +33,10 @@ RUN cargo build --manifest-path=server/Cargo.toml --verbose
 
 FROM ubuntu:latest
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates
+
 WORKDIR /lemmy
 COPY ui/ ui/
 COPY config/ config/

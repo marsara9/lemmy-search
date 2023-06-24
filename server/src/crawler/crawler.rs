@@ -161,8 +161,11 @@ impl Crawler {
                         println!("\tfetched another {} {}...", value.len(), object_dao.get_object_name());
                         value
                     },
-                    Err(_) => {
+                    Err(err) => {
                         println!("\tfailed to fetch another page of {}...", object_dao.get_object_name());
+                        if self.config.log {
+                            println!("{}", err);
+                        }
                         break
                     }
                 };

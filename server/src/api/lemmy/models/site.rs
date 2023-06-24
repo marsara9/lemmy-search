@@ -8,8 +8,7 @@ pub struct SiteRequest;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SiteResponse {
-    pub site_view : SiteView,
-    pub federated_instances : FederatedInstances
+    pub site_view : SiteView
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -17,11 +16,6 @@ pub struct SiteView {
     pub site : Site,
     pub local_site_rate_limit : Option<LocalSiteRateLimit>,
     pub counts : Counts
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct FederatedInstances {
-    pub linked : Vec<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

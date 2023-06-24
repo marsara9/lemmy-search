@@ -40,8 +40,11 @@ impl Runner {
         let config = self.config.clone();
         let database = self.database.clone();
 
-        scheduler.every(1.day())
-            .at("07:00")
+        // scheduler.every(1.day())
+        //     .at("07:00")
+        //     .run(move || Self::run(config.clone(), database.clone()));
+
+        scheduler.every(15.minutes())
             .run(move || Self::run(config.clone(), database.clone()));
 
         self.handle = Some(tokio::spawn(async move {

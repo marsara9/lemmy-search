@@ -123,7 +123,7 @@ impl SiteDBO {
             match client.query_one("
                 SELECT last_community_page 
                     FROM sites
-                    WHERE instance = $1
+                    WHERE actor_id = $1
                 ",
                 &[&instance]
             ) {
@@ -142,7 +142,7 @@ impl SiteDBO {
             match client.query_one("
                 SELECT last_post_page 
                     FROM sites
-                    WHERE instance = $1
+                    WHERE actor_id = $1
                 ",
                 &[&instance]
             ) {
@@ -161,7 +161,7 @@ impl SiteDBO {
             match client.query_one("
                 SELECT last_comment_page 
                     FROM sites
-                    WHERE instance = $1
+                    WHERE actor_id = $1
                 ",
                 &[&instance]
             ) {
@@ -220,15 +220,15 @@ impl DBO<SiteView> for SiteDBO {
         let ap_id = ap_id.to_owned();
         get_database_client(&self.pool, move |client| {
             match client.query_one("
-                SELECT actor_id, name 
+                SELECT name 
                     FROM sites
-                    WHERE instance = $1
+                    WHERE actor_id = $1
                 ",
                 &[&ap_id] 
             ) {
                 Ok(row) => Some(SiteView {
                     site: Site {
-                        actor_id : row.get("actor_id"),
+                        actor_id : ap_id,
                         name: row.get("name")
                     },
                     ..Default::default()
