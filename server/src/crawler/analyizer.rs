@@ -19,11 +19,11 @@ impl Analyizer {
     ) -> HashSet<String> {
         let mut words = HashSet::<String>::new();
         for word in post.name.split_whitespace() {
-            words.insert(word.to_string());
+            words.insert(word.to_lowercase().to_string());
         }
         match &post.body {
             Some(body) => for word in body.split_whitespace() {
-                words.insert(word.to_string());
+                words.insert(word.to_lowercase().to_string());
             },
             None => {}
         }
@@ -35,7 +35,7 @@ impl Analyizer {
         comment : &Comment
     ) -> HashSet<String> {
         HashSet::from_iter(comment.content.split_whitespace().map(|word|
-            word.to_string()
+            word.to_lowercase().to_string()
         ))
     }
 }

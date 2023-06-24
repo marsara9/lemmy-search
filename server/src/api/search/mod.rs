@@ -33,7 +33,7 @@ use crate::{
 };
 
 lazy_static! {
-    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>https://[\w\-\.]+)").unwrap();
+    static ref INSTANCE_MATCH : Regex = Regex::new(r" instance:(?P<instance>(https://)?[\w\-\.]+)").unwrap();
     static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\w+@[\w\-\.]+)").unwrap();
     static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\w+@[\w\-\.]+)").unwrap();
 }
@@ -70,18 +70,22 @@ impl SearchHandler {
 
         let query = search_query.query.to_owned();
         let mut modified_query = query.clone();
-        let instance = match SITE_MATCH.captures(&query) {
+        let instance = match INSTANCE_MATCH.captures(&query) {
             Some(caps) => {
-                let cap = &caps["site"];
+                let cap = &caps["instance"].to_lowercase();
                 modified_query = modified_query.replace(cap, "")
-                    .replace("site:", "");
-                Some(cap.to_string())
+                    .replace("instance:", "");
+                Some(if cap.starts_with("https://") {
+                    cap.to_string()
+                } else {
+                    cap.to_string() + "https://"
+                })
             },
             None => None
         };
         let community = match COMMUNITY_MATCH.captures(&query) {
             Some(caps) => {
-                let cap = &caps["community"];
+                let cap = &caps["community"].to_lowercase();
                 modified_query = modified_query.replace(cap, "")
                     .replace("community:", "");
                 Some(cap.to_string())
@@ -90,18 +94,19 @@ impl SearchHandler {
         };
         let author = match AUTHOR_MATCH.captures(&query) {
             Some(caps) => {
-                let cap = &caps["author"];
+                let cap = &caps["author"].to_lowercase();
                 modified_query = modified_query.replace(cap, "")
                     .replace("author:", "");
                 Some(cap.to_string())
             },
             None => None
         };
+        modified_query = modified_query.to_lowercase();
 
         println!("Searching for '{}'", modified_query);
         match &instance {
             Some(value) => {
-                println!("\tSite: '{}'", value);
+                println!("\tInstance: '{}'", value);
             },
             None => {}
         }
