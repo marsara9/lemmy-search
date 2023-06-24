@@ -66,3 +66,7 @@ input[type=button]:hover, input[type=submit]:hover {
 a, a:visited {
     color: #1ed2ff;
 }
+
+.a:hover {
+    color: white;
+}
