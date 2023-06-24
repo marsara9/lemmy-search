@@ -5,7 +5,7 @@ use lazy_static::lazy_static;
 use self::models::search::SearchPost;
 use std::{
     collections::HashMap, 
-    sync::Mutex
+    sync::Mutex, time::Instant
 };
 use actix_web::{
     web::{
@@ -66,6 +66,8 @@ impl SearchHandler {
         search_query: Query<SearchQuery>
     ) -> Result<impl Responder> {
 
+        let start = Instant::now();
+
         let query = search_query.query.to_owned();
         let mut modified_query = query.clone();
         let instance = match SITE_MATCH.captures(&query) {
@@ -93,10 +95,11 @@ impl SearchHandler {
             None => None
         };
 
-
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
         let search_results = search.search(&modified_query, &instance, &community, &author)
             .await;
+
+        let duration = start.elapsed();
 
         let results: SearchResult = SearchResult {
             original_query : search_query.into_inner(),
@@ -104,7 +107,8 @@ impl SearchHandler {
                 Some(value) => value,
                 None => Vec::<SearchPost>::new(),
             },
-            total_pages : 0
+            total_pages : 0,
+            time_taken: duration
         };
         Ok(Json(results))
     }

@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use serde::{
     Serialize, 
     Deserialize
@@ -13,7 +15,8 @@ pub struct SearchQuery {
 pub struct SearchResult {
     pub original_query : SearchQuery,
     pub search_results : Vec<SearchPost>,
-    pub total_pages : i64
+    pub total_pages : i64,
+    pub time_taken : Duration
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
