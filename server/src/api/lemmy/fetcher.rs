@@ -8,15 +8,15 @@ use super::models::{
     },
     community::{
         CommunityListRequest, 
-        CommunityData
+        CommunityData, CommunityListResponse
     }, 
     post::{
         PostData, 
-        PostListRequest, 
+        PostListRequest, PostListResponse, 
     }, 
     comment::{
         CommentListRequest, 
-        CommentData
+        CommentData, CommentListResponse
     }
 };
 
@@ -64,6 +64,9 @@ impl Fetcher {
 
         fetch_json(&url, params)
             .await
+            .map(|view: CommunityListResponse| {
+                view.communities
+            })
     }
 
     pub async fn fetch_posts(
@@ -81,6 +84,9 @@ impl Fetcher {
 
         fetch_json(&url, params)
             .await
+            .map(|view: PostListResponse| {
+                view.posts
+            })
     }
 
     pub async fn fetch_comments(
@@ -98,5 +104,8 @@ impl Fetcher {
 
         fetch_json(&url, params)
             .await
+            .map(|view:CommentListResponse| {
+                view.comments
+            })
     }
 }

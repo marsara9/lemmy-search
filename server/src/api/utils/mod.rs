@@ -7,7 +7,7 @@ use serde::{
     de::DeserializeOwned
 };
 
-pub async fn fetch_json<T: Serialize + Sized, R: DeserializeOwned>(
+pub async fn fetch_json<T: Serialize + Sized, R: Default + DeserializeOwned>(
     url : &str,
     params : T
 ) -> Result<R, Error> {
@@ -18,8 +18,10 @@ pub async fn fetch_json<T: Serialize + Sized, R: DeserializeOwned>(
         .send()
         .await {
             Ok(response) => {
-                response.json()
-                    .await
+                println!("Got responsse: {}", &response.text().await.unwrap_or_default());
+                Ok(Default::default())
+                // response.json()
+                //     .await
             }
             Err(err) => {
                 Err(err)

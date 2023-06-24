@@ -34,7 +34,10 @@ pub struct Post {
     pub ap_id : String,
     pub url : Option<String>,
     pub name : String,
-    pub body : Option<String>
+    pub body : Option<String>,
+    pub removed : Option<bool>,
+    pub deleted : Option<bool>,
+    pub langauge_id : i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

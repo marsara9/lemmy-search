@@ -244,10 +244,10 @@ impl DBO<SiteView> for SiteDBO {
     ) -> bool {
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO sites (id, name, actor_id, laste_updated) 
+                INSERT INTO sites (id, name, actor_id, last_update) 
                     VALUES ($1, $2, $3, $4)
                 ON CONFLICT (actor_id)
-                DO UPDATE SET (name = $2, laste_updated = $4)
+                DO UPDATE SET name = $2, last_update = $4
                 ",
                     &[
                         &Uuid::new_v4(),

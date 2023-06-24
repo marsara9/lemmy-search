@@ -96,10 +96,10 @@ impl DBO<CommunityData> for CommunityDBO {
     ) -> bool {
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO comments (ap_id, name, title, last_updated) 
+                INSERT INTO comments (ap_id, name, title, last_update) 
                     VALUES ($1, $2, $3, $4)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (name = $2, title = $3, last_updated = $4)
+                DO UPDATE SET (name = $2, title = $3, last_update = $4)
                 ",
                     &[
                         &object.community.actor_id,

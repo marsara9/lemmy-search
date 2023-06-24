@@ -96,7 +96,10 @@ impl DBO<PostData> for PostDBO {
                         ap_id: ap_id.clone(), 
                         url : row.get("p.url"),
                         name: row.get("p.name"), 
-                        body: row.get("p.body")
+                        body: row.get("p.body"),
+                        removed : Some(false),
+                        deleted : Some(false),
+                        langauge_id: 0
                     },
                     counts : Counts {
                         score : row.get("p.score"),

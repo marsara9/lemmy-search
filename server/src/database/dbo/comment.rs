@@ -110,7 +110,10 @@ impl DBO<CommentData> for CommentDBO {
                         ap_id: row.get("p.ap_id"),
                         url : row.get("p.url"),
                         name : row.get("p.name"),
-                        body : row.get("p.body")
+                        body : row.get("p.body"),
+                        removed : Some(false),
+                        deleted : Some(false),
+                        langauge_id: 0
                     },
                     community : Community {
                         actor_id: row.get("c.ap_id"),
@@ -129,10 +132,10 @@ impl DBO<CommentData> for CommentDBO {
     ) -> bool {
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, last_updated) 
+                INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, last_update) 
                     VALUES ($1, $2, $3, $4, $5, $6)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (body = $2, score = $3, post_ap_id = $4, community_ap_id = $5, last_updated = $6)
+                DO UPDATE SET (body = $2, score = $3, post_ap_id = $4, community_ap_id = $5, last_update = $6)
                 ",
                     &[
                         &object.comment.ap_id,
