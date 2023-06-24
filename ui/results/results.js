@@ -12,5 +12,8 @@ function query(queryString) {
 $(document).ready(function() {
     if (!checkQueryParamers()) {
         window.location = "/"
+        return
     }
+
+    query(window.location.search)
 });
