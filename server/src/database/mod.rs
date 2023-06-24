@@ -7,7 +7,8 @@ use crate::{
         DBO, site::SiteDBO, 
         post::PostDBO, 
         word::WordsDBO, 
-        community::CommunityDBO, search::SearchDatabase
+        community::CommunityDBO, 
+        search::SearchDatabase
     }, 
     error::{
         LemmySearchError,
@@ -16,8 +17,7 @@ use crate::{
 };
 use postgres::{
     NoTls, 
-    Config,
-    Error
+    Config
 };
 use r2d2_postgres::{
     PostgresConnectionManager, 
