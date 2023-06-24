@@ -2,7 +2,6 @@ pub mod models;
 
 use regex::Regex;
 use lazy_static::lazy_static;
-use self::models::search::SearchPost;
 use std::{
     collections::HashMap, 
     sync::Mutex, time::Instant
@@ -125,16 +124,15 @@ impl SearchHandler {
 
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
         let search_results = search.search(&modified_query, &instance, &community, &author)
-            .await;
+            .await.map_err(|err| {
+                actix_web::error::ErrorInternalServerError(err)
+            })?;
 
         let duration = start.elapsed();
 
         let results: SearchResult = SearchResult {
             original_query : search_query.into_inner(),
-            search_results : match search_results {
-                Some(value) => value,
-                None => Vec::<SearchPost>::new(),
-            },
+            search_results : search_results,
             total_pages : 0,
             time_taken: duration
         };
@@ -145,10 +143,13 @@ impl SearchHandler {
         pool : Data<Mutex<DatabasePool>>
     ) -> Result<impl Responder> {
         let pool = pool.lock().unwrap();
-        Ok(Json(
-            SiteDBO::new(pool.clone())
-                .retrieve_all()
-                .await
-        )) 
+
+        let sites = SiteDBO::new(pool.clone())
+            .retrieve_all()
+            .await.map_err(|err| {
+                actix_web::error::ErrorInternalServerError(err)
+            })?;
+
+        Ok(Json(sites))
     }
 }

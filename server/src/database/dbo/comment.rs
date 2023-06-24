@@ -1,6 +1,11 @@
 use chrono::Utc;
 use async_trait::async_trait;
+use super::{
+    DBO, 
+    get_database_client, 
+};
 use crate::{
+    error::LemmySearchError,
     database::DatabasePool,
     api::lemmy::models::{
         comment::{
@@ -8,13 +13,12 @@ use crate::{
             CommentData, 
             Counts
         }, 
-        post::{Post, Creator}, 
+        post::{
+            Post, 
+            Creator
+        }, 
         community::Community
-    }
-};
-use super::{
-    DBO, 
-    get_database_client
+    }    
 };
 
 #[derive(Clone)]
@@ -39,8 +43,9 @@ impl DBO<CommentData> for CommentDBO {
 
     async fn create_table_if_not_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+
+        get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS comments (
                     ap_id             VARCHAR PRIMARY KEY,
@@ -52,32 +57,33 @@ impl DBO<CommentData> for CommentDBO {
                     late_update       DATE NOT NULL
                 )
             ", &[]
-            ).unwrap_or_default()
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+            ).map(|_| {
+                ()
+            })
+        })
     }
 
     async fn drop_table_if_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+
+        get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS comments", &[])
-                .unwrap_or_default()
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+                .map(|_| {
+                    ()
+                })
+        })
     }
 
     async fn retrieve(
         &self, 
         ap_id : &str
-    ) -> Option<CommentData> {
+    ) -> Result<CommentData, LemmySearchError> {
+
         let ap_id = ap_id.to_owned();
+
         get_database_client(&self.pool, move |client| {
-            match client.query_one("
+            client.query_one("
                 SELECT m.body, 
                         m.score,
                         m.author_actor_id,
@@ -94,10 +100,10 @@ impl DBO<CommentData> for CommentDBO {
                     WHERE m.ap_id = $1
                 ",
                 &[&ap_id] 
-            ) {
-                Ok(row) => Some(CommentData { 
+            ).map(|row| {
+                CommentData { 
                     comment : Comment {
-                        ap_id: ap_id.clone(),
+                        ap_id: ap_id.to_string(),
                         content: row.get("m.body"),
                     },
                     counts: Counts {
@@ -120,22 +126,22 @@ impl DBO<CommentData> for CommentDBO {
                         name: row.get("c.name"),
                         title: row.get("c.title")
                     }
-                }),
-                Err(_) => None
-            }
-        }).await.unwrap_or(None)
+                }
+            })
+        })
     }
 
     async fn upsert(
         &self,
         object : CommentData
-    ) -> bool {
-        match get_database_client(&self.pool, move |client| {
+    ) ->  Result<bool, LemmySearchError> {
+
+        get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, last_update) 
                     VALUES ($1, $2, $3, $4, $5, $6)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (body = $2, score = $3, post_ap_id = $4, community_ap_id = $5, last_update = $6)
+                DO UPDATE SET (\"body\" = $2, \"score\" = $3, \"post_ap_id\" = $4, \"community_ap_id\" = $5, \"last_update\" = $6)
                 ",
                     &[
                         &object.comment.ap_id,
@@ -145,10 +151,9 @@ impl DBO<CommentData> for CommentDBO {
                         &object.community.actor_id,
                         &Utc::now()
                     ]
-            ).unwrap_or_default()
-        }).await {
-            Ok(value) => value == 1,
-            Err(_) => false
-        }
+            ).map(|count| {
+                count == 1
+            })
+        })
     }
 }

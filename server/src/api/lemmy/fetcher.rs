@@ -1,5 +1,7 @@
-use crate::api::utils::fetch_json;
-use reqwest::Error;
+use crate::{
+    api::utils::fetch_json, 
+    error::LemmySearchError
+};
 use super::models::{
     common::SortType,
     site::{
@@ -43,7 +45,7 @@ impl Fetcher {
 
     pub async fn fetch_site_data(
         &self
-    ) -> Result<SiteResponse, Error> {
+    ) -> Result<SiteResponse, LemmySearchError> {
         let params = SiteRequest;
         let url = self.get_url("/api/v3/site");
         fetch_json::<SiteRequest, SiteResponse>(&url, params)
@@ -53,7 +55,7 @@ impl Fetcher {
     pub async fn fetch_communities(
         &self,
         page : i64
-    ) -> Result<Vec<CommunityData>, Error> {
+    ) -> Result<Vec<CommunityData>, LemmySearchError> {
         let params = CommunityListRequest {
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
@@ -72,7 +74,7 @@ impl Fetcher {
     pub async fn fetch_posts(
         &self,
         page : i64
-    ) -> Result<Vec<PostData>, Error> {
+    ) -> Result<Vec<PostData>, LemmySearchError> {
         let params = PostListRequest {
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
@@ -92,7 +94,7 @@ impl Fetcher {
     pub async fn fetch_comments(
         &self,
         page : i64
-    ) -> Result<Vec<CommentData>, Error> {
+    ) -> Result<Vec<CommentData>, LemmySearchError> {
         let params = CommentListRequest {
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,

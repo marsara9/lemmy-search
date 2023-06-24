@@ -8,6 +8,10 @@ use crate::{
         post::PostDBO, 
         word::WordsDBO, 
         community::CommunityDBO, search::SearchDatabase
+    }, 
+    error::{
+        LemmySearchError,
+        LogError
     }
 };
 use postgres::{
@@ -24,6 +28,7 @@ pub type DatabasePool = Pool<PostgresConnectionManager<NoTls>>;
 
 #[derive(Clone)]
 pub struct Database {
+    pub config : Postgres,
     pub pool : DatabasePool
 }
 
@@ -36,6 +41,7 @@ impl Database {
             .await
             .map(|pool| {
                 Database {
+                    config : config.clone(),
                     pool
                 }
             })
@@ -60,63 +66,48 @@ impl Database {
 
     pub async fn init_database(
         &self,
-    ) -> Result<(), Error> {
+    ) -> Result<(), LemmySearchError> {
         println!("Creating database...");
 
-        println!("\tCreating COMMUNITIES table...");
-        let communities = CommunityDBO::new(self.pool.clone());
-        communities.drop_table_if_exists()
-            .await;
-        if !communities.create_table_if_not_exists()
-            .await {
-                println!("\t\t...failed to create table.");
-            }
-
-        println!("\tCreating POSTS table...");
-        let post = PostDBO::new(self.pool.clone());
-        post.drop_table_if_exists()
-            .await;
-        if !post.create_table_if_not_exists()
-            .await {
-                println!("\t\t...failed to create table.");
-            }
-
-        println!("\tCreating COMMENTS table...");
-        let comment = CommentDBO::new(self.pool.clone());
-        comment.drop_table_if_exists()
-            .await;
-        if !comment.create_table_if_not_exists()
-            .await {
-                println!("\t\t...failed to create table.");
-            }
-
-        println!("\tCreating SITES table...");
-        let site = SiteDBO::new(self.pool.clone());
-        site.drop_table_if_exists()
-            .await;
-        if !site.create_table_if_not_exists()
-            .await {
-                println!("\t\t...failed to create table.");
-            }
-
-        println!("\tCreating WORDS table...");
-        let word = WordsDBO::new(self.pool.clone());
-        word.drop_table_if_exists()
-            .await;
-        if !word.create_table_if_not_exists()
-            .await {
-                println!("\t\t...failed to create table.");
-            }
+        self.create_table(
+            SiteDBO::new(self.pool.clone())
+        ).await?;
+        self.create_table(
+            CommunityDBO::new(self.pool.clone())
+        ).await?;
+        self.create_table(
+            PostDBO::new(self.pool.clone())
+        ).await?;
+        self.create_table(
+            CommentDBO::new(self.pool.clone())
+        ).await?;
+        self.create_table(
+            WordsDBO::new(self.pool.clone())
+        ).await?;
 
         println!("\tCreating SEARCH table...");
         let search = SearchDatabase::new(self.pool.clone());
         search.drop_table_if_exists()
-            .await;
-        if !search.create_table_if_not_exists()
-            .await {
-                println!("\t\t...failed to create table.");
-            }
+            .await?;
+        search.create_table_if_not_exists()
+            .await
+            .log_error("\t\t...failed to create table.", self.config.log)?;
 
         Ok(())
+    }
+
+    async fn create_table<D, T>(
+        &self,
+        dbo : D
+    ) -> Result<(), LemmySearchError>
+    where 
+        D : DBO<T> + Sized,
+        T : Default
+    {
+        println!("\tCreating '{}' table...", dbo.get_object_name());
+        dbo.drop_table_if_exists()
+            .await?;
+        dbo.create_table_if_not_exists()
+            .await.log_error("\t\t...failed to create table.", self.config.log)
     }
 }

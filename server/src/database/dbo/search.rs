@@ -1,20 +1,18 @@
 use std::collections::HashSet;
-
 use postgres::types::ToSql;
 use uuid::Uuid;
-
+use super::get_database_client;
 use crate::{
+    error::LemmySearchError,
+    database::DatabasePool,
     api::{
         search::models::search::SearchPost, 
         lemmy::models::{
             post::Post, 
             comment::Comment
         },
-    }, 
-    database::DatabasePool
+    }
 };
-
-use super::get_database_client;
 
 #[derive(Clone)]
 pub struct SearchDatabase {
@@ -31,39 +29,39 @@ impl SearchDatabase {
 
     pub async fn create_table_if_not_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+        get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS xref (
                     word_id         UUID NOT NULL,
                     post_ap_id      VARCHAR NOT NULL
                 )
             ", &[]
-            ).unwrap_or_default()
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+            ).map(|_| {
+                ()
+            })
+        })
     }
 
     pub async fn drop_table_if_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+        get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS xref", &[])
-                .unwrap_or_default()
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+                .map(|_| {
+                    ()
+                })
+        })
     }
 
     pub async fn upsert_post(
         &self,
         words : HashSet<String>,
         post : Post
-    ) -> bool {
-        get_database_client::<Result<bool, postgres::Error>, _>(&self.pool, move |client| {
+    ) -> Result<(), LemmySearchError> {
+
+        get_database_client(&self.pool, move |client| {
+
             let mut transaction = client.transaction()?;
             transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
 
@@ -84,21 +82,16 @@ impl SearchDatabase {
             params.insert(0, &post.ap_id);
             transaction.execute(&query, &params)?;
 
-            match transaction.commit() {
-                Ok(_) => Ok(true),
-                Err(_) => Ok(false)
-            }
-        }).await
-            .unwrap_or(Ok(false))
-            .unwrap_or(false)
+            transaction.commit()
+        })
     }
 
     pub async fn upsert_comment(
         &self,
         words : HashSet<String>,
         comment : Comment
-    ) -> bool {
-        false
+    ) -> Result<(), LemmySearchError> {
+        Ok(())
     }
 
     pub async fn search(
@@ -107,13 +100,15 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>
-    ) -> Option<Vec<SearchPost>> {        
+    ) -> Result<Vec<SearchPost>, LemmySearchError> {        
+
         let query = query.to_owned();
         let instance = instance.to_owned();
         let community = community.to_owned();
         let author = author.to_owned();
-        match get_database_client(&self.pool, move|client| {
-            
+
+        get_database_client(&self.pool, move |client| {
+
             let temp = query.split_whitespace().map(|s| {
                 s.trim().to_string()
             }).collect::<Vec<String>>();
@@ -149,25 +144,19 @@ impl SearchDatabase {
                 ORDER BY p.score ASC
             ", instance_query, community_query, author_query);
 
-            match client.query(&query_string, &[&temp, &instance, &community, &author]) {
-                Ok(rows) => {
-                    rows.iter().map(|row| {
-                        SearchPost {
-                            url : row.get("p.url"),
-                            name : row.get("p.name"),
-                            body : row.get("p.body"),
-                            score : row.get("p.score"),
-                            actor_id : row.get("p.ap_id"),
-                            community_name : row.get("c.title"),
-                            comments : Vec::new()
-                        }
-                    }).collect()
-                },
-                Err(_) => Vec::<SearchPost>::new()
-            }
-        }).await {
-            Ok(_) => None,
-            Err(_) => None
-        }
+            client.query(&query_string, &[&temp, &instance, &community, &author]).map(|rows| {
+                rows.iter().map(|row| {
+                    SearchPost {
+                        url : row.get("p.url"),
+                        name : row.get("p.name"),
+                        body : row.get("p.body"),
+                        score : row.get("p.score"),
+                        actor_id : row.get("p.ap_id"),
+                        community_name : row.get("c.title"),
+                        comments : Vec::new()
+                    }
+                }).collect()
+            })
+        })
     }
 }

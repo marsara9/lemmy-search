@@ -1,18 +1,21 @@
 use chrono::Utc;
 use async_trait::async_trait;
+use super::{
+    DBO, 
+    get_database_client
+};
 use crate::{
+    error::LemmySearchError,
     database::DatabasePool,
     api::lemmy::models::{
         post::{
             Post, 
-            PostData, Counts, Creator
+            PostData, 
+            Counts, 
+            Creator
         }, 
         community::Community
     }
-};
-use super::{
-    DBO, 
-    get_database_client
 };
 
 #[derive(Clone)]
@@ -37,8 +40,8 @@ impl DBO<PostData> for PostDBO {
 
     async fn create_table_if_not_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+        get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS posts (
                     ap_id             VARCHAR PRIMARY KEY,
@@ -51,32 +54,32 @@ impl DBO<PostData> for PostDBO {
                     last_update       DATE
                 )
             ", &[]
-            ).unwrap_or_default()
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+            ).map(|_| {
+                ()
+            })
+        })
     }
 
     async fn drop_table_if_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+        get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS posts", &[])
-                .unwrap_or_default()
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+                .map(|_| {
+                    ()
+                })
+            })
     }
 
     async fn retrieve(
         &self, 
         ap_id : &str
-    ) -> Option<PostData> {
+    ) -> Result<PostData, LemmySearchError> {
+
         let ap_id = ap_id.to_owned();
+
         get_database_client(&self.pool, move |client| {
-            match client.query_one("
+            client.query_one("
                 SELECT p.url,
                         p.name,
                         p.body,
@@ -90,10 +93,10 @@ impl DBO<PostData> for PostDBO {
                     WHERE p.ap_id = $1
                 ",
                 &[&ap_id] 
-            ) {
-                Ok(row) => Some(PostData { 
+            ).map(|row| {
+                PostData { 
                     post: Post { 
-                        ap_id: ap_id.clone(), 
+                        ap_id: ap_id.to_string(), 
                         url : row.get("p.url"),
                         name: row.get("p.name"), 
                         body: row.get("p.body"),
@@ -113,37 +116,34 @@ impl DBO<PostData> for PostDBO {
                         name: row.get("c.name"), 
                         title: row.get("c.title") 
                     }
-                }),
-                Err(_) => None
-            }
-        }).await.unwrap_or(None)
+                }
+            })
+        })
     }
 
     async fn upsert(
         &self,
         object : PostData
-    ) -> bool {
-        match get_database_client(&self.pool, move |client| {
+    ) -> Result<bool, LemmySearchError> {
+        get_database_client(&self.pool, move |client| {
             client.execute("
                 INSERT INTO posts (ap_id, url, name, body, score, author_actor_id, community_ap_id, last_update) 
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (url = $2, name = $3, body = $4, score = $5, author_actor_id = $6, community_ap_id = $7, last_update = $8)
-                ",
-                    &[
-                        &object.post.ap_id,
-                        &object.post.url,
-                        &object.post.name,
-                        &object.post.body,
-                        &object.counts.score,
-                        &object.creator.actor_id,
-                        &object.community.actor_id,
-                        &Utc::now()
-                    ]
-            ).unwrap_or_default()
-        }).await {
-            Ok(value) => value == 1,
-            Err(_) => false
-        }
+                DO UPDATE SET (\"url\" = $2, \"name\" = $3, \"body\" = $4, \"score\" = $5, \"author_actor_id\" = $6, \"community_ap_id\" = $7, \"last_update\" = $8)
+                ", &[
+                    &object.post.ap_id,
+                    &object.post.url,
+                    &object.post.name,
+                    &object.post.body,
+                    &object.counts.score,
+                    &object.creator.actor_id,
+                    &object.community.actor_id,
+                    &Utc::now()
+                ]
+            ).map(|count| {
+                count == 1
+            })
+        })
     }
 }

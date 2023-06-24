@@ -1,16 +1,15 @@
-use reqwest::{
-    Client,
-    Error
-};
+use reqwest::Client;
 use serde::{
     Serialize, 
     de::DeserializeOwned
 };
 
+use crate::error::LemmySearchError;
+
 pub async fn fetch_json<T: Serialize + Sized, R: Default + DeserializeOwned>(
     url : &str,
     params : T
-) -> Result<R, Error> {
+) -> Result<R, LemmySearchError> {
     let client = Client::new();
     return match client
         .get(url)
@@ -18,13 +17,13 @@ pub async fn fetch_json<T: Serialize + Sized, R: Default + DeserializeOwned>(
         .send()
         .await {
             Ok(response) => {
-                println!("Got responsse: {}", &response.text().await.unwrap_or_default());
-                Ok(Default::default())
-                // response.json()
-                //     .await
+                response.json()
+                    .await.map_err(|err| {
+                        LemmySearchError::Network(err)
+                    })
             }
             Err(err) => {
-                Err(err)
+                Err(LemmySearchError::Network(err))
             }
         }
 }

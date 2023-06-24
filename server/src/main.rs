@@ -2,6 +2,7 @@ mod api;
 mod config;
 mod crawler;
 mod database;
+mod error;
 
 use std::{env, sync::Mutex};
 use actix_files as fs;
