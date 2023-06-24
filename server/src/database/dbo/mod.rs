@@ -53,10 +53,7 @@ where
     let pool = pool.clone();
 
     thread::spawn(move || -> Result<T, LemmySearchError> {
-        let mut client = pool.get()
-            .map_err(|err| {
-                LemmySearchError::DatabaseConnection(err)
-            })?;
+        let mut client = pool.get()?;
 
         callback(&mut client).map_err(|err| {
             LemmySearchError::Database(err)

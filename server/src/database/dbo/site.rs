@@ -205,7 +205,7 @@ impl DBO<SiteView> for SiteDBO {
                     last_community_page INTEGER DEFAULT 0,
                     last_post_page      INTEGER DEFAULT 0,
                     last_comment_page   INTEGER DEFAULT 0,
-                    last_update         DATE
+                    last_update         TIMESTAMP WITH TIME ZONE NOT NULL
                 )
             ", &[]
             ).map(|_| {
@@ -265,7 +265,7 @@ impl DBO<SiteView> for SiteDBO {
                 INSERT INTO sites (id, name, actor_id, last_update) 
                     VALUES ($1, $2, $3, $4)
                 ON CONFLICT (actor_id)
-                DO UPDATE SET name = $2, last_update = $4
+                DO UPDATE SET \"name\" = $2, \"last_update\" = $4
                 ",
                     &[
                         &Uuid::new_v4(),

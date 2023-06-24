@@ -51,7 +51,7 @@ impl DBO<PostData> for PostDBO {
                     score             INTEGER,
                     author_actor_id   VARCHAR NOT NULL,
                     community_ap_id   VARCHAR NOT NULL,
-                    last_update       DATE
+                    last_update       TIMESTAMP NOT NULL
                 )
             ", &[]
             ).map(|_| {

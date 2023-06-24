@@ -54,7 +54,7 @@ impl DBO<CommentData> for CommentDBO {
                     author_actor_id   VARCHAR NOT NULL,
                     post_ap_id        VARCHAR NOT NULL,
                     community_ap_id   VARCHAR NOT NULL,
-                    late_update       DATE NOT NULL
+                    late_update       TIMESTAMP NOT NULL
                 )
             ", &[]
             ).map(|_| {
