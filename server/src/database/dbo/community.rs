@@ -80,8 +80,8 @@ impl DBO<CommunityData> for CommunityDBO {
                 Ok(row) => Some(CommunityData { 
                     community : Community { 
                         actor_id: ap_id, 
-                        name: row.get(0), 
-                        title: row.get(1) 
+                        name: row.get("name"), 
+                        title: row.get("title") 
                     },
                     ..Default::default()
                 }),

@@ -115,7 +115,7 @@ impl SearchDatabase {
         match get_database_client(&self.pool, move|client| {
             
             let temp = query.split_whitespace().map(|s| {
-                s.to_string()
+                s.trim().to_string()
             }).collect::<Vec<String>>();
 
             let instance_query = match instance {
@@ -132,8 +132,8 @@ impl SearchDatabase {
             };
 
             let query_string = format!("
-                SELECT p.name, p.body, p.url FROM (
-                    SELECT DISTINCT ON (p.ap_id) p.ap_id, p.name, p.body, p.url FROM xref AS x
+                SELECT p.name, p.body, p.url, p.score, p.ap_id, c.title FROM (
+                    SELECT DISTINCT ON (p.ap_id) p.ap_id FROM xref AS x
                         JOIN words AS w ON w.id = x.word_id 
                         JOIN posts AS p ON p.ap_id = x.post_ap_id
                         JOIN communities AS c ON c.ap_id = p.community_ap_id
@@ -143,7 +143,9 @@ impl SearchDatabase {
                         {}
                         {}
                     ORDER BY p.ap_id
-                ) t
+                ) AS t
+                    JOIN posts AS p ON p.ap_id = t.ap_id
+                    JOIN communities AS c ON c.ap_id = p.community_ap_id
                 ORDER BY p.score ASC
             ", instance_query, community_query, author_query);
 
@@ -151,9 +153,12 @@ impl SearchDatabase {
                 Ok(rows) => {
                     rows.iter().map(|row| {
                         SearchPost {
+                            url : row.get("p.url"),
                             name : row.get("p.name"),
                             body : row.get("p.body"),
-                            score : 0,
+                            score : row.get("p.score"),
+                            actor_id : row.get("p.ap_id"),
+                            community_name : row.get("c.title"),
                             comments : Vec::new()
                         }
                     }).collect()

@@ -98,24 +98,24 @@ impl DBO<CommentData> for CommentDBO {
                 Ok(row) => Some(CommentData { 
                     comment : Comment {
                         ap_id: ap_id.clone(),
-                        content: row.get(0),
+                        content: row.get("m.body"),
                     },
                     counts: Counts {
-                        score : Some(row.get(1))
+                        score : Some(row.get("m.score"))
                     },
                     creator : Creator {
-                        actor_id : row.get(2)
+                        actor_id : row.get("m.author_actor_id")
                     },
                     post : Post {
-                        ap_id: row.get(3),
-                        url : row.get(4),
-                        name : row.get(5),
-                        body : row.get(6)
+                        ap_id: row.get("p.ap_id"),
+                        url : row.get("p.url"),
+                        name : row.get("p.name"),
+                        body : row.get("p.body")
                     },
                     community : Community {
-                        actor_id: row.get(7),
-                        name: row.get(8),
-                        title: row.get(9)
+                        actor_id: row.get("c.ap_id"),
+                        name: row.get("c.name"),
+                        title: row.get("c.title")
                     }
                 }),
                 Err(_) => None

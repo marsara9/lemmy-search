@@ -94,21 +94,21 @@ impl DBO<PostData> for PostDBO {
                 Ok(row) => Some(PostData { 
                     post: Post { 
                         ap_id: ap_id.clone(), 
-                        url : row.get(0),
-                        name: row.get(1), 
-                        body: row.get(2)
+                        url : row.get("p.url"),
+                        name: row.get("p.name"), 
+                        body: row.get("p.body")
                     },
                     counts : Counts {
-                        score : row.get(3),
+                        score : row.get("p.score"),
                         ..Default::default()
                     },
                     creator: Creator {
-                        actor_id : row.get(4)
+                        actor_id : row.get("p.author_actor_id")
                     },
                     community : Community { 
-                        actor_id: row.get(5), 
-                        name: row.get(6), 
-                        title: row.get(7) 
+                        actor_id: row.get("c.ap_id"), 
+                        name: row.get("c.name"), 
+                        title: row.get("c.title") 
                     }
                 }),
                 Err(_) => None

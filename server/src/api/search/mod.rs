@@ -98,7 +98,7 @@ impl SearchHandler {
             None => None
         };
 
-        println!("Searching for {}", modified_query);
+        println!("Searching for '{}'", modified_query);
         match &instance {
             Some(value) => {
                 println!("\tSite: '{}'", value);

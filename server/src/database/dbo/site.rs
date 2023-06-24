@@ -228,8 +228,8 @@ impl DBO<SiteView> for SiteDBO {
             ) {
                 Ok(row) => Some(SiteView {
                     site: Site {
-                        actor_id : row.get(0),
-                        name: row.get(1)
+                        actor_id : row.get("actor_id"),
+                        name: row.get("name")
                     },
                     ..Default::default()
                 }),

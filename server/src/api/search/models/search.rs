@@ -21,9 +21,12 @@ pub struct SearchResult {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchPost {
+    pub url : Option<String>,
     pub name : String,
     pub body : Option<String>,
     pub score : i64,
+    pub actor_id : String,
+    pub community_name : String,
     pub comments : Vec<SearchComment>
 }
 
