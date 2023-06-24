@@ -114,11 +114,15 @@ impl SearchDatabase {
         let author = author.to_owned();
         match get_database_client(&self.pool, move|client| {
             
+            let temp = query.split_whitespace().map(|s| {
+                s.to_string()
+            }).collect::<Vec<String>>();
+
             let instance_query = match instance {
-                Some(_) => "AND s.actor_id = #2",
+                Some(_) => "AND s.actor_id = $2",
                 None => ""
             };
-            let community_query = match instance {
+            let community_query = match community {
                 Some(_) => "AND c.ap_id = $3",
                 None => ""
             };
@@ -128,21 +132,27 @@ impl SearchDatabase {
             };
 
             let query_string = format!("
-                SELECT p.name, p.body FROM words AS w
-                    JOIN posts AS p ON p.ap_ip = w.post_ap_id
-                    JOIN communities AS c ON c.ap_id = p.community_ap_id
-                WHERE w.word IN $1
-                    {}
-                    {}
-                    {}
+                SELECT p.name, p.body, p.url FROM (
+                    SELECT DISTINCT ON (p.ap_id) p.ap_id, p.name, p.body, p.url FROM xref AS x
+                        JOIN words AS w ON w.id = x.word_id 
+                        JOIN posts AS p ON p.ap_id = x.post_ap_id
+                        JOIN communities AS c ON c.ap_id = p.community_ap_id
+                        JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
+                    WHERE w.word = any($1)
+                        {}
+                        {}
+                        {}
+                    ORDER BY p.ap_id
+                ) t
+                ORDER BY p.score ASC
             ", instance_query, community_query, author_query);
 
-            match client.query(&query_string, &[&query, &instance, &community, &author]) {
+            match client.query(&query_string, &[&temp, &instance, &community, &author]) {
                 Ok(rows) => {
                     rows.iter().map(|row| {
                         SearchPost {
-                            name : row.get(0),
-                            body : row.get(0),
+                            name : row.get("p.name"),
+                            body : row.get("p.body"),
                             score : 0,
                             comments : Vec::new()
                         }

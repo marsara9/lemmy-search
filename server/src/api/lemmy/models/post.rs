@@ -32,6 +32,7 @@ pub struct  PostData {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Post {
     pub ap_id : String,
+    pub url : Option<String>,
     pub name : String,
     pub body : Option<String>
 }

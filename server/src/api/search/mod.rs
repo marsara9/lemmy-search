@@ -33,7 +33,7 @@ use crate::{
 };
 
 lazy_static! {
-    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>\w+@[\w\-\.]+)").unwrap();
+    static ref SITE_MATCH : Regex = Regex::new(r" site:(?P<site>https://[\w\-\.]+)").unwrap();
     static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>\w+@[\w\-\.]+)").unwrap();
     static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>\w+@[\w\-\.]+)").unwrap();
 }
@@ -73,7 +73,8 @@ impl SearchHandler {
         let instance = match SITE_MATCH.captures(&query) {
             Some(caps) => {
                 let cap = &caps["site"];
-                modified_query = modified_query.replace(cap, "");
+                modified_query = modified_query.replace(cap, "")
+                    .replace("site:", "");
                 Some(cap.to_string())
             },
             None => None
@@ -81,7 +82,8 @@ impl SearchHandler {
         let community = match COMMUNITY_MATCH.captures(&query) {
             Some(caps) => {
                 let cap = &caps["community"];
-                modified_query = modified_query.replace(cap, "");
+                modified_query = modified_query.replace(cap, "")
+                    .replace("community:", "");
                 Some(cap.to_string())
             },
             None => None
@@ -89,11 +91,32 @@ impl SearchHandler {
         let author = match AUTHOR_MATCH.captures(&query) {
             Some(caps) => {
                 let cap = &caps["author"];
-                modified_query = modified_query.replace(cap, "");
+                modified_query = modified_query.replace(cap, "")
+                    .replace("author:", "");
                 Some(cap.to_string())
             },
             None => None
         };
+
+        println!("Searching for {}", modified_query);
+        match &instance {
+            Some(value) => {
+                println!("\tSite: '{}'", value);
+            },
+            None => {}
+        }
+        match &community {
+            Some(value) => {
+                println!("\tCommunity: '{}'", value);
+            },
+            None => {}
+        }
+        match &author {
+            Some(value) => {
+                println!("\tAuthor: '{}'", value);
+            },
+            None => {}
+        }
 
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
         let search_results = search.search(&modified_query, &instance, &community, &author)

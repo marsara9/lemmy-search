@@ -42,8 +42,9 @@ impl DBO<PostData> for PostDBO {
             client.execute("
                 CREATE TABLE IF NOT EXISTS posts (
                     ap_id             VARCHAR PRIMARY KEY,
-                    name              VARCHAR(100) NOT NULL,
-                    body              VARCHAR(300) NULL,
+                    url               VARCHAR NULL,
+                    name              VARCHAR NOT NULL,
+                    body              VARCHAR NULL,
                     score             INTEGER,
                     author_actor_id   VARCHAR NOT NULL,
                     community_ap_id   VARCHAR NOT NULL,
@@ -76,7 +77,8 @@ impl DBO<PostData> for PostDBO {
         let ap_id = ap_id.to_owned();
         get_database_client(&self.pool, move |client| {
             match client.query_one("
-                SELECT p.name,
+                SELECT p.url,
+                        p.name,
                         p.body,
                         p.score
                         p.author_actor_id,
@@ -92,20 +94,21 @@ impl DBO<PostData> for PostDBO {
                 Ok(row) => Some(PostData { 
                     post: Post { 
                         ap_id: ap_id.clone(), 
-                        name: row.get(0), 
-                        body: row.get(1)
+                        url : row.get(0),
+                        name: row.get(1), 
+                        body: row.get(2)
                     },
                     counts : Counts {
-                        score : row.get(6),
+                        score : row.get(3),
                         ..Default::default()
                     },
                     creator: Creator {
-                        actor_id : row.get(2)
+                        actor_id : row.get(4)
                     },
                     community : Community { 
-                        actor_id: row.get(3), 
-                        name: row.get(4), 
-                        title: row.get(5) 
+                        actor_id: row.get(5), 
+                        name: row.get(6), 
+                        title: row.get(7) 
                     }
                 }),
                 Err(_) => None
@@ -119,13 +122,14 @@ impl DBO<PostData> for PostDBO {
     ) -> bool {
         match get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO posts (ap_id, name, body, score, author_actor_id, community_ap_id, last_update) 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                INSERT INTO posts (ap_id, url, name, body, score, author_actor_id, community_ap_id, last_update) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (name = $2, body = $3, score = $4, author_actor_id = $5, community_ap_id = $6, last_update = $7)
+                DO UPDATE SET (url = $2, name = $3, body = $4, score = $5, author_actor_id = $6, community_ap_id = $7, last_update = $8)
                 ",
                     &[
                         &object.post.ap_id,
+                        &object.post.url,
                         &object.post.name,
                         &object.post.body,
                         &object.counts.score,

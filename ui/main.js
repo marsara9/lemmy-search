@@ -11,7 +11,7 @@ function populateInstances() {
 
 $(document).ready(function() {
     $("#submit").click(function() {
-        let query = $("#input").text()
+        let query = $("#input").val()
         window.location = "/results?query="+encodeURIComponent(query)+"&page=1"
     })
 

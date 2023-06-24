@@ -82,7 +82,8 @@ impl DBO<CommentData> for CommentDBO {
                         m.score,
                         m.author_actor_id,
                         p.ap_id,
-                        p.title, 
+                        p.url,
+                        p.name, 
                         p.body,
                         c.ap_id,
                         c.name,
@@ -107,13 +108,14 @@ impl DBO<CommentData> for CommentDBO {
                     },
                     post : Post {
                         ap_id: row.get(3),
-                        name : row.get(4),
-                        body : row.get(5)
+                        url : row.get(4),
+                        name : row.get(5),
+                        body : row.get(6)
                     },
                     community : Community {
-                        actor_id: row.get(6),
-                        name: row.get(7),
-                        title: row.get(8)
+                        actor_id: row.get(7),
+                        name: row.get(8),
+                        title: row.get(9)
                     }
                 }),
                 Err(_) => None
