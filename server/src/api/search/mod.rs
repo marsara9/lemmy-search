@@ -19,10 +19,7 @@ use actix_web::{
     Route
 };
 use crate::{
-    error::{
-        LemmySearchError,
-        LogError
-    },
+    error::LogError,
     api::search::models::search::{
         SearchQuery,
         SearchResult
