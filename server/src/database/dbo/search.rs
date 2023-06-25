@@ -139,9 +139,14 @@ impl SearchDatabase {
             let community = community.unwrap_or("".to_string());
             let author = author.unwrap_or("".to_string());
 
+            // Finds all words that match the search critera, then filter those results
+            // by any additional critera that the user may have, such as instance, 
+            // community, or author.  Next, count the number of matches each post has
+            // and sort first by the number of matches and then if there's a conflict
+            // by the total number of upvotes that the post has.
             let query_string = format!("
                 SELECT p.url, p.name, p.body, p.score, p.ap_id, c.title FROM (
-                    SELECT DISTINCT ON (p.ap_id) p.ap_id FROM xref AS x
+                    SELECT COUNT (p.ap_id) as matches, p.ap_id FROM xref AS x
                         JOIN words AS w ON w.id = x.word_id 
                         JOIN posts AS p ON p.ap_id = x.post_ap_id
                         JOIN communities AS c ON c.ap_id = p.community_ap_id
@@ -153,11 +158,13 @@ impl SearchDatabase {
                         {}
                         {}
                         {}
-                    ORDER BY p.ap_id
+                    GROUP BY p.ap_id
                 ) AS t
                     JOIN posts AS p ON p.ap_id = t.ap_id
                     JOIN communities AS c ON c.ap_id = p.community_ap_id
-                ORDER BY p.score DESC
+                ORDER BY 
+                    matches DESC,
+                    p.score DESC
             ", instance_query, community_query, author_query);
 
             client.query(&query_string, &[&temp, &instance, &community, &author])
@@ -169,8 +176,7 @@ impl SearchDatabase {
                             body : row.get(2),
                             score : row.get(3),
                             actor_id : row.get(4),
-                            community_name : row.get(5),
-                            comments : Vec::new()
+                            community_name : row.get(5)
                         }
                     }).collect()
                 })

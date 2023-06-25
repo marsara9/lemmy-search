@@ -26,8 +26,7 @@ pub struct SearchPost {
     pub body : Option<String>,
     pub score : i32,
     pub actor_id : String,
-    pub community_name : String,
-    pub comments : Vec<SearchComment>
+    pub community_name : String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
