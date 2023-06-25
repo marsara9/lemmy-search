@@ -11,7 +11,7 @@ function query(queryString) {
         result.posts.forEach(post => {
             let item = $("<li/>")
                 .addClass("search-result");
-            if (post.url) {
+            if (post.ur && isImage(post.url)) {
                 let url = $("<img/>");
                 url.addClass("post-url");
                 url.attr("src", post.url);
@@ -27,7 +27,7 @@ function query(queryString) {
             let post_citation = $("<div/>")
                 .addClass("post-citation");
 
-            if(post.author.avatar) {
+            if(post.author.avatar && isImage(post.author.avatar)) {
                 let post_author_avatar = $("<img />")
                     .attr("src", post.author.avatar);
                 post_citation.append(post_author_avatar);
@@ -42,7 +42,7 @@ function query(queryString) {
             divider.text(" | ");
             post_citation.append(divider);
 
-            if(post.community.icon) {
+            if(post.community.icon && isImage(post.community.icon)) {
                 let post_community_icon = $("<img />")
                     .attr("src", post.community.icon);
                 post_citation.append(post_community_icon);
@@ -98,6 +98,10 @@ function getPostQueryBody(queryTerms, body) {
         spans.push(more);
     }
     return spans;
+}
+
+function isImage(url) {
+    return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
 }
 
 $(document).ready(function() {
