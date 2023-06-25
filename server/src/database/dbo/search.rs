@@ -6,7 +6,7 @@ use crate::{
     error::LemmySearchError,
     database::DatabasePool,
     api::{
-        search::models::search::SearchPost, 
+        search::models::search::{SearchPost, SearchAuthor, SearchCommunity}, 
         lemmy::models::{
             post::Post, 
             comment::Comment
@@ -138,7 +138,7 @@ impl SearchDatabase {
             let author = author.unwrap_or("".to_string());
 
             let query_string = format!("
-                SELECT p.url, p.name, p.body, p.score, p.ap_id, c.title FROM (
+                SELECT p.url, p.name, p.body, c.name, c.title FROM (
                     SELECT DISTINCT ON (p.ap_id) p.ap_id FROM xref AS x
                         JOIN words AS w ON w.id = x.word_id 
                         JOIN posts AS p ON p.ap_id = x.post_ap_id
@@ -165,10 +165,17 @@ impl SearchDatabase {
                             url : row.get(0),
                             name : row.get(1),
                             body : row.get(2),
-                            score : row.get(3),
-                            actor_id : row.get(4),
-                            community_name : row.get(5),
-                            comments : Vec::new()
+                            remote_id : "".to_string(), // TODO
+                            author : SearchAuthor {
+                                avatar : None, // TODO
+                                name : "".to_string(), // TODO
+                                display_name : None, // TODO
+                            },
+                            community : SearchCommunity {
+                                icon : None, // TODO
+                                name : row.get(3),
+                                title : row.get(4)
+                            }
                         }
                     }).collect()
                 })

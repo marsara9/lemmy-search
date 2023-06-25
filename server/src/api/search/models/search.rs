@@ -14,9 +14,9 @@ pub struct SearchQuery {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SearchResult {
     pub original_query_terms : HashSet<String>,
-    pub search_results : Vec<SearchPost>,
     pub total_pages : i64,
-    pub time_taken : Duration
+    pub time_taken : Duration,
+    pub posts : Vec<SearchPost>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -24,21 +24,28 @@ pub struct SearchPost {
     pub url : Option<String>,
     pub name : String,
     pub body : Option<String>,
-    pub score : i32,
-    pub actor_id : String,
-    pub community_name : String,
-    pub comments : Vec<SearchComment>
+    pub remote_id : String,
+    pub author : SearchAuthor,
+    pub community: SearchCommunity,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchComment {
-    pub content : String,
-    pub score : i32
+pub struct SearchAuthor {
+    pub avatar : Option<String>,
+    pub name : String,
+    pub display_name : Option<String>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SearchCommunity {
+    pub icon : Option<String>,
+    pub name : String,
+    pub title : Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchInstance {
+    pub actor_id : String,
     pub instance : String,
     pub name : String,
-    pub actor_id : String
 }

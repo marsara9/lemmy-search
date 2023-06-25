@@ -142,7 +142,7 @@ impl SearchHandler {
 
         let results: SearchResult = SearchResult {
             original_query_terms : query_terms,
-            search_results : search_results,
+            posts : search_results,
             total_pages : 0,
             time_taken: duration
         };

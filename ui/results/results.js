@@ -8,7 +8,7 @@ function checkQueryParamers() {
 function query(queryString) {
     fetchJson("/search" + queryString, result => {
         let list = $("<ol/>");
-        result.search_results.forEach(post => {
+        result.posts.forEach(post => {
             let item = $("<li/>")
                 .addClass("search-result");
             if (post.url) {
@@ -28,15 +28,15 @@ function query(queryString) {
                 .addClass("post-citation");
 
             let post_author = $("<a/>")
-                .attr("href", preferred_instance + "u/" + post.author_actor_id);
+                .attr("href", preferred_instance + "u/" + post.author.actor_id);
             post_author.text(post.author_name);
 
             let divider = $("<span/>");
             divider.text(" | ");
 
             let post_community = $("<a/>")
-                .attr("href", preferred_instance + "c/" + post.community_actor_id);
-            post_community.text(post.community_name);
+                .attr("href", preferred_instance + "c/" + post.community.name);
+            post_community.text(post.community.title);
 
             post_citation
                 .append(post_author)
