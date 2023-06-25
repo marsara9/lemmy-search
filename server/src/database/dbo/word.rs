@@ -26,7 +26,7 @@ impl WordsDBO {
 impl DBO<String> for WordsDBO {
 
     fn get_object_name(&self) -> &str {
-        "String"
+        "Words"
     }
 
     async fn create_table_if_not_exists(

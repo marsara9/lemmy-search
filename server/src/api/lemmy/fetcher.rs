@@ -28,7 +28,7 @@ pub struct Fetcher {
 
 impl Fetcher {
 
-    pub const DEFAULT_LIMIT : i64 = 50;
+    pub const DEFAULT_LIMIT : i32 = 50;
 
     pub fn new(instance : String) -> Self {
         Self {
@@ -54,7 +54,7 @@ impl Fetcher {
 
     pub async fn fetch_communities(
         &self,
-        page : i64
+        page : i32
     ) -> Result<Vec<CommunityData>, LemmySearchError> {
         let params = CommunityListRequest {
             sort: Some(SortType::Old),
@@ -73,7 +73,7 @@ impl Fetcher {
 
     pub async fn fetch_posts(
         &self,
-        page : i64
+        page : i32
     ) -> Result<Vec<PostData>, LemmySearchError> {
         let params = PostListRequest {
             sort: Some(SortType::Old),
@@ -93,7 +93,7 @@ impl Fetcher {
 
     pub async fn fetch_comments(
         &self,
-        page : i64
+        page : i32
     ) -> Result<Vec<CommentData>, LemmySearchError> {
         let params = CommentListRequest {
             sort: Some(SortType::Old),

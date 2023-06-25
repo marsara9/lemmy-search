@@ -12,8 +12,8 @@ use super::{
 pub struct PostListRequest {
     pub community_id : Option<i64>,
     pub sort : Option<SortType>,
-    pub limit : i64,
-    pub page : i64
+    pub limit : i32,
+    pub page : i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -37,7 +37,7 @@ pub struct Post {
     pub body : Option<String>,
     pub removed : Option<bool>,
     pub deleted : Option<bool>,
-    pub langauge_id : i32
+    pub language_id : i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

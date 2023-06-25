@@ -53,11 +53,11 @@ impl SiteDBO {
 
     pub async fn set_last_community_page(
         &self,
-        instance : &str,
-        page : i64
+        ap_id : &str,
+        page : i32
     ) -> Result<bool, LemmySearchError> {
 
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         
         get_database_client(&self.pool, move |client| {
 
@@ -66,7 +66,7 @@ impl SiteDBO {
                     SET last_community_page = $2
                     WHERE actor_id = $1
                 ",&[
-                    &instance, &page
+                    &ap_id, &page
                 ]
             ).map(|count| {
                 count == 1
@@ -76,11 +76,11 @@ impl SiteDBO {
 
     pub async fn set_last_post_page(
         &self,
-        instance : &str,
-        page : i64
+        ap_id : &str,
+        page : i32
     ) -> Result<bool, LemmySearchError> {
 
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         
         get_database_client(&self.pool, move |client| {
 
@@ -89,7 +89,7 @@ impl SiteDBO {
                     SET last_post_page = $2
                     WHERE actor_id = $1
                 ",&[
-                    &instance, &page
+                    &ap_id, &page
                 ]
             ).map(|count| {
                 count == 1
@@ -99,11 +99,11 @@ impl SiteDBO {
 
     pub async fn set_last_comment_page(
         &self,
-        instance : &str,
-        page : i64
+        ap_id : &str,
+        page : i32
     ) -> Result<bool, LemmySearchError> {
 
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         
         get_database_client(&self.pool, move |client| {
 
@@ -112,7 +112,7 @@ impl SiteDBO {
                     SET last_comment_page = $2
                     WHERE actor_id = $1
                 ",&[
-                    &instance, &page
+                    &ap_id, &page
                 ]
             ).map(|count| {
                 count == 1
@@ -122,10 +122,10 @@ impl SiteDBO {
 
     pub async fn get_last_community_page(
         &self,
-        instance : &str
-    ) -> Result<i64, LemmySearchError> {
+        ap_id : &str
+    ) -> Result<i32, LemmySearchError> {
 
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         
         get_database_client(&self.pool, move |client| {
 
@@ -134,7 +134,7 @@ impl SiteDBO {
                     FROM sites
                     WHERE actor_id = $1
                 ",
-                &[&instance]
+                &[&ap_id]
             ).map(|row| {
                 row.get("last_community_page")
             })
@@ -143,10 +143,10 @@ impl SiteDBO {
 
     pub async fn get_last_post_page(
         &self,
-        instance : &str
-    ) -> Result<i64, LemmySearchError> {
+        ap_id : &str
+    ) -> Result<i32, LemmySearchError> {
 
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -155,7 +155,7 @@ impl SiteDBO {
                     FROM sites
                     WHERE actor_id = $1
                 ",
-                &[&instance]
+                &[&ap_id]
             ).map(|row| {
                 row.get("last_post_page")
             })
@@ -164,10 +164,10 @@ impl SiteDBO {
 
     pub async fn get_last_comment_page(
         &self,
-        instance : &str
-    ) -> Result<i64, LemmySearchError> {
+        ap_id : &str
+    ) -> Result<i32, LemmySearchError> {
 
-        let instance = instance.to_owned();
+        let ap_id = ap_id.to_owned();
         
         get_database_client(&self.pool, move |client| {
 
@@ -176,7 +176,7 @@ impl SiteDBO {
                     FROM sites
                     WHERE actor_id = $1
                 ",
-                &[&instance]
+                &[&ap_id]
             ).map(|row| {
                 row.get("last_comment_page")
             })
@@ -237,7 +237,7 @@ impl DBO<SiteView> for SiteDBO {
         get_database_client(&self.pool, move |client| {
 
             client.query_one("
-                SELECT name 
+                SELECT \"name\" 
                     FROM sites
                     WHERE actor_id = $1
                 ",
@@ -262,7 +262,7 @@ impl DBO<SiteView> for SiteDBO {
         get_database_client(&self.pool, move |client| {
 
             client.execute("
-                INSERT INTO sites (id, name, actor_id, last_update) 
+                INSERT INTO sites (\"id\", \"name\", \"actor_id\", \"last_update\") 
                     VALUES ($1, $2, $3, $4)
                 ON CONFLICT (actor_id)
                 DO UPDATE SET \"name\" = $2, \"last_update\" = $4

@@ -65,18 +65,20 @@ impl SearchDatabase {
             let mut transaction = client.transaction()?;
             transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
 
-            let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
-            for word in &words {
-                params.push(word);
-            }
-            let rows = transaction.query("SELECT id FROM words WHERE word in $1", &params)?;
+            let words = words.into_iter().collect::<Vec<String>>();
+            let rows = transaction.query("SELECT id FROM words WHERE word = any($1)", &[&words])?;
             let ids = rows.into_iter().map(|row| {
                 row.get::<&str, Uuid>("id")
             }).collect::<Vec<Uuid>>();
 
+            let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
+            for id in &ids {
+                params.push(id);
+            }
+
             let mut query = format!("INSERT INTO xref (word_id, post_ap_id) VALUES ");
             for index in 0..ids.len() {
-                query += format!("(${} , $1),", index+1).as_str();
+                query += format!("(${} , $1),", index+2).as_str();
             }
             query = query.trim_end_matches(",").to_string();
             params.insert(0, &post.ap_id);

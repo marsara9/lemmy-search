@@ -31,7 +31,7 @@ pub struct LocalSiteRateLimit {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Counts {
-    pub posts : Option<i64>,
-    pub comments : Option<i64>,
-    pub communities : Option<i64>
+    pub posts : Option<i32>,
+    pub comments : Option<i32>,
+    pub communities : Option<i32>
 }

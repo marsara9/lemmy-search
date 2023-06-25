@@ -51,7 +51,7 @@ impl DBO<PostData> for PostDBO {
                     score             INTEGER,
                     author_actor_id   VARCHAR NOT NULL,
                     community_ap_id   VARCHAR NOT NULL,
-                    last_update       TIMESTAMP NOT NULL
+                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
                 )
             ", &[]
             ).map(|_| {
@@ -102,7 +102,7 @@ impl DBO<PostData> for PostDBO {
                         body: row.get("p.body"),
                         removed : Some(false),
                         deleted : Some(false),
-                        langauge_id: 0
+                        language_id: 0
                     },
                     counts : Counts {
                         score : row.get("p.score"),
@@ -127,10 +127,10 @@ impl DBO<PostData> for PostDBO {
     ) -> Result<bool, LemmySearchError> {
         get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO posts (ap_id, url, name, body, score, author_actor_id, community_ap_id, last_update) 
+                INSERT INTO posts (\"ap_id\", \"url\", \"name\", \"body\", \"score\", \"author_actor_id\", \"community_ap_id\", \"last_update\") 
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (\"url\" = $2, \"name\" = $3, \"body\" = $4, \"score\" = $5, \"author_actor_id\" = $6, \"community_ap_id\" = $7, \"last_update\" = $8)
+                DO UPDATE SET \"url\" = $2, \"name\" = $3, \"body\" = $4, \"score\" = $5, \"author_actor_id\" = $6, \"community_ap_id\" = $7, \"last_update\" = $8
                 ", &[
                     &object.post.ap_id,
                     &object.post.url,

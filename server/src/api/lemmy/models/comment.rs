@@ -13,8 +13,8 @@ use super::{
 pub struct CommentListRequest {
     pub post_id : Option<i64>,
     pub sort : Option<SortType>,
-    pub limit : i64,
-    pub page : i64
+    pub limit : i32,
+    pub page : i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

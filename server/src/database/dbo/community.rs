@@ -44,7 +44,7 @@ impl DBO<CommunityData> for CommunityDBO {
                     ap_id             VARCHAR PRIMARY KEY,
                     name              VARCHAR NOT NULL,
                     title             VARCHAR NULL,
-                    late_update       DATE NOT NULL
+                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
                 )
             ", &[]
             ).map(|_| {
@@ -96,10 +96,10 @@ impl DBO<CommunityData> for CommunityDBO {
     ) -> Result<bool, LemmySearchError> {
         get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO comments (ap_id, name, title, last_update) 
+                INSERT INTO communities (\"ap_id\", \"name\", \"title\", \"last_update\") 
                     VALUES ($1, $2, $3, $4)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET (\"name\" = $2, \"title\" = $3, \"last_update\" = $4)
+                DO UPDATE SET \"name\" = $2, \"title\" = $3, \"last_update\" = $4
                 ",
                     &[
                         &object.community.actor_id,
