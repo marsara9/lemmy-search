@@ -158,9 +158,9 @@ impl SearchDatabase {
                         {}
                     GROUP BY p.ap_id
                 ) AS t
-                    LEFT JOIN posts AS p ON p.ap_id = t.ap_id
-                    LEFT JOIN communities AS c ON c.ap_id = p.community_ap_id
-                    LEFT JOIN authors AS a ON a.ap_id = p.author_actor_id
+                    INNER JOIN posts AS p ON p.ap_id = t.ap_id
+                    INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
+                    INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                 ORDER BY 
                     matches DESC,
                     p.score DESC
@@ -176,8 +176,8 @@ impl SearchDatabase {
                             remote_id : "".to_string(), // TODO
                             author : SearchAuthor {
                                 avatar : row.get(3),
-                                display_name : row.get(4),
-                                name : row.get(5),
+                                name : row.get(4),
+                                display_name : row.get(5),
                             },
                             community : SearchCommunity {
                                 icon : row.get(6),

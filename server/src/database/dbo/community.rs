@@ -7,9 +7,7 @@ use super::{
 use crate::{
     error::LemmySearchError,
     database::DatabasePool,
-    api::lemmy::models::{
-        community::CommunityData            
-    }
+    api::lemmy::models::community::CommunityData
 };
 
 #[derive(Clone)]
