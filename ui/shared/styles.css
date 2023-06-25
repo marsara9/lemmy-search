@@ -56,9 +56,10 @@ input[type=button]:hover, input[type=submit]:hover {
 .footer {
     background-color: #222;
     position: fixed;
-    left: 24px;
-    right: 24px;
-    bottom: 24px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px;
     display: flex;
     justify-content: center;
     font-size: 1.2rem;
@@ -84,8 +85,6 @@ li.search-result {
 .search-result {
     margin: 12px;
     padding: 12px;
-    border: 1px solid #777;
-    border-radius: 8px;
 }
 
 .search-result > * {

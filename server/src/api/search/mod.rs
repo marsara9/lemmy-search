@@ -102,7 +102,9 @@ impl SearchHandler {
             },
             None => None
         };
-        modified_query = modified_query.to_lowercase();
+        modified_query = modified_query.to_lowercase()
+            .trim()
+            .to_string();
 
         println!("Searching for '{}'", modified_query);
         match &instance {

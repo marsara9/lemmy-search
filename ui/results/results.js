@@ -1,5 +1,4 @@
-var preferred_instance
-
+var preferred_instance = "https://lemmy.world/"
 
 function checkQueryParamers() {
     const urlParameters = new URLSearchParams(window.location.search);
@@ -8,34 +7,34 @@ function checkQueryParamers() {
 
 function query(queryString) {
     fetchJson("/search" + queryString, result => {
-        let list = $("<ol></ol>");
+        let list = $("<ol/>");
         result.search_results.forEach(post => {
-            let item = $("<li></li>")
+            let item = $("<li/>")
                 .addClass("search-result");
             if (post.url) {
-                let url = $("<img></img>");
+                let url = $("<img/>");
                 url.addClass("post-url");
                 url.attr("src", post.url);
                 item.append(url);
             }
 
-            let post_name = $("<a></a>")
+            let post_name = $("<a/>")
                 .addClass("post-name")
                 .attr("href", preferred_instance + "post/" + post.remote_id);
             post_name.text(post.name);
             item.append(post_name);
 
-            let post_citation = $("<div></div>")
+            let post_citation = $("<div/>")
                 .addClass("post-citation");
 
-            let post_author = $("<a></a>")
+            let post_author = $("<a/>")
                 .attr("href", preferred_instance + "u/" + post.author_actor_id);
             post_author.text(post.author_name);
 
-            let divider = $("<span></span>");
+            let divider = $("<span/>");
             divider.text(" | ");
 
-            let post_community = $("<a></a>")
+            let post_community = $("<a/>")
                 .attr("href", preferred_instance + "c/" + post.community_actor_id);
             post_community.text(post.community_name);
 
@@ -46,9 +45,11 @@ function query(queryString) {
 
             item.append(post_citation);
 
-            let post_body = $("<p></p>")
+            let post_body = $("<p>/")
                 .addClass("post-body");
-            post_body.append(getPostQueryBody(result.original_query_terms, post.body));
+            if(post.body != null) {
+                post_body.append(getPostQueryBody(result.original_query_terms, post.body));
+            }
             item.append(post_body);
 
             list.append(item);
@@ -60,21 +61,33 @@ function query(queryString) {
 
 function getPostQueryBody(queryTerms, body) {
     let regex = "(" + queryTerms.join(")|(") + ")";
-    let split_body = body.split(new RegExp(regex, "ig"));
+    let split_body = body.split(new RegExp(regex, "ig"))
+        .filter(token => token != null);
     var length = 0;
-    return split_body.map(token => {
+    let spans = split_body.map(token => {
+
+        if (length >= 200) {
+            return null;
+        }
+
         let span = $("<span />");
-        if (queryTerms.contains(token)) {
+        if (queryTerms.includes(token)) {
             span.addClass("search-term");
         }
-        span.text(token);
 
-        var result = null;
-        if(length < 200) {
-            result = span;
-        }
-        length += token.length;
-    });
+        let sub = Math.min(200 - length, token.length);
+        span.text(token.substring(0, sub));
+        length += sub;
+
+        return span;
+    }).filter(span => span != null);
+
+    if(spans.length < split_body.length) {
+        let more = $("<span />");
+        more.text("...");
+        spans.push(more);
+    }
+    return spans;
 }
 
 $(document).ready(function() {
