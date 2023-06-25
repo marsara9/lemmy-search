@@ -6,12 +6,13 @@ pub mod word;
 pub mod search;
 
 use async_trait::async_trait;
+use crate::error::LemmySearchError;
+
 use super::DatabasePool;
-use postgres::NoTls;
-use std::{
-    thread, 
-    any::Any, borrow::BorrowMut
+use postgres::{
+    NoTls
 };
+use std::thread;
 use r2d2_postgres::{
     r2d2::PooledConnection, 
     PostgresConnectionManager
@@ -24,46 +25,41 @@ pub trait DBO<T : Default> {
 
     async fn create_table_if_not_exists(
         &self
-    ) -> bool;
+    ) -> Result<(), LemmySearchError>;
 
     async fn drop_table_if_exists(
         &self
-    ) -> bool;
-
-    async fn create(
-        &self,
-        object : T
-    ) -> bool;
+    ) -> Result<(), LemmySearchError>;
 
     async fn retrieve(
         &self, 
         ap_id : &str
-    ) -> Option<T>;
+    ) -> Result<T, LemmySearchError>;
 
-    async fn update(
-        &self, 
+    async fn upsert(
+        &self,
         object : T
-    ) -> bool;
-
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool;
+    ) -> Result<bool, LemmySearchError>;
 }
 
-async fn get_database_client<T, F>(
+fn get_database_client<T, F>(
     pool : &DatabasePool,
     callback : F
-) -> Result<T, Box<(dyn Any + Send + 'static)>> 
-where 
-    F : FnOnce(&mut PooledConnection<PostgresConnectionManager<NoTls>>) -> T,
-    F : Send + 'static,
-    T : Send + 'static
+) -> Result<T, LemmySearchError> 
+where
+    F : FnOnce(&mut PooledConnection<PostgresConnectionManager<NoTls>>) -> Result<T, postgres::Error> + Send + 'static,
+    T : Default + Send + 'static
 {
     let pool = pool.clone();
-    thread::spawn(move || {
-        let mut client = pool.get().unwrap();
 
-        callback(client.borrow_mut())
-    }).join()
+    thread::spawn(move || -> Result<T, LemmySearchError> {
+        let mut client = pool.get()?;
+
+        callback(&mut client).map_err(|err| {
+            LemmySearchError::Database(err)
+        })
+    }).join().map_err(|err| {
+        println!("Unknown error {:#?}", err);
+        LemmySearchError::Unknown
+    })?
 }

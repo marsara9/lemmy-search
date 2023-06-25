@@ -2,6 +2,7 @@ mod api;
 mod config;
 mod crawler;
 mod database;
+mod error;
 
 use std::{env, sync::Mutex};
 use actix_files as fs;
@@ -10,10 +11,7 @@ use actix_web::{
     HttpServer,
     web::Data
 };
-use api::{
-    apub::ApubActivityHandler,
-    search::SearchHandler
-};
+use api::search::SearchHandler;
 use crawler::Runner;
 use database::Database;
 
@@ -58,13 +56,9 @@ async fn main() -> std::io::Result<()> {
 
     let factory = move || {
         let search_handler = SearchHandler::new();
-        let apub_activity_handler = ApubActivityHandler::new();
         let mut app = App::new()
             .app_data(pool.clone());
         for (path, route) in search_handler.routes {
-            app = app.route(path.as_str(), route);
-        }
-        for (path, route) in apub_activity_handler.routes {
             app = app.route(path.as_str(), route);
         }
         app.service(

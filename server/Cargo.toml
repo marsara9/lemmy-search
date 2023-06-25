@@ -14,7 +14,6 @@ reqwest = { version = "0.11.*", features = ["json"] }
 tokio = { version = "1.28.*", features = ["rt-multi-thread"] }
 actix-web = { version = "4.3.*", features = ["macros", "compress-gzip", "cookies"] }
 actix-files = "0.6.*"
-activitypub_federation = { version = "0.4.*", default-features = false, features = ["actix-web"] }
 async-std = { version = "1.12.*", features = ["std"] }
 futures = { version = "0.3.*", features = ["std", "async-await", "executor"] }
 clokwerk = "0.4.*"

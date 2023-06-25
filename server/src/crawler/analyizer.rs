@@ -7,7 +7,6 @@ use crate::api::lemmy::models::{
 
 pub struct Analyizer;
 
-#[allow(unused)]
 impl Analyizer {
 
     pub fn new() -> Self {
@@ -19,12 +18,20 @@ impl Analyizer {
         post : &Post
     ) -> HashSet<String> {
         let mut words = HashSet::<String>::new();
-        for word in post.name.split_whitespace() {
-            words.insert(word.to_string());
+        let name_trimed = post.name.replace(|c : char| {
+            !c.is_ascii_alphanumeric() && !c.is_whitespace()
+        }, " ").to_lowercase();
+        for word in name_trimed.split_whitespace() {
+            words.insert(word.to_lowercase().trim().to_string());
         }
         match &post.body {
-            Some(body) => for word in body.split_whitespace() {
-                words.insert(word.to_string());
+            Some(body) => {
+                let body_trimed = body.replace(|c : char| {
+                    !c.is_ascii_alphanumeric() && !c.is_whitespace()
+                }, " ").to_lowercase();
+                for word in body_trimed.split_whitespace() {
+                    words.insert(word.to_lowercase().trim().to_string());
+                }
             },
             None => {}
         }
@@ -35,8 +42,10 @@ impl Analyizer {
         &self,
         comment : &Comment
     ) -> HashSet<String> {
-        HashSet::from_iter(comment.content.split_whitespace().map(|word|
-            word.to_string()
+        HashSet::from_iter(comment.content.replace(|c : char| {
+            !c.is_ascii_alphanumeric() && !c.is_whitespace()
+        }, " ").to_lowercase().split_whitespace().map(|word|
+            word.to_lowercase().trim().to_string()
         ))
     }
 }

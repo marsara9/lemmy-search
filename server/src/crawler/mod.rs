@@ -6,12 +6,13 @@ use std::time::Duration;
 use tokio::task::JoinHandle;
 use crate::{
     config, 
-    database::Database
+    database::Database,
+    error::LogError
 };
 use clokwerk::{
     TimeUnits, 
-    Job, 
-    AsyncScheduler
+    AsyncScheduler,
+    Job
 };
 
 pub struct Runner {
@@ -44,6 +45,9 @@ impl Runner {
             .at("07:00")
             .run(move || Self::run(config.clone(), database.clone()));
 
+        // scheduler.every(5.minutes())
+        //     .run(move || Self::run(config.clone(), database.clone()));
+
         self.handle = Some(tokio::spawn(async move {
             loop {
                 scheduler.run_pending().await;
@@ -66,9 +70,9 @@ impl Runner {
     ) {
         if config.enabled {
             println!("Crawler is starting to index '{}'...", config.seed_instance);
-            Crawler::new(config.seed_instance.clone(), config.clone(), database)
+            let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database)
                     .crawl()
-                    .await;
+                    .await.log_error(format!("The crawler for '{}' incountered an error.", config.seed_instance).as_str(), config.log);
         } else {
             println!("Crawler is currently disabled; skipping...");
         }

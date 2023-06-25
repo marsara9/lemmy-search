@@ -1,6 +1,11 @@
 use chrono::Utc;
 use async_trait::async_trait;
+use super::{
+    DBO, 
+    get_database_client, 
+};
 use crate::{
+    error::LemmySearchError,
     database::DatabasePool,
     api::lemmy::models::{
         comment::{
@@ -8,15 +13,15 @@ use crate::{
             CommentData, 
             Counts
         }, 
-        post::{Post, Creator}, 
+        post::{
+            Post, 
+            Creator
+        }, 
         community::Community
-    }
-};
-use super::{
-    DBO, 
-    get_database_client
+    }    
 };
 
+#[derive(Clone)]
 pub struct CommentDBO {
     pool : DatabasePool
 }
@@ -30,7 +35,6 @@ impl CommentDBO {
 }
 
 #[async_trait]
-#[allow(unused_variables)]
 impl DBO<CommentData> for CommentDBO {
 
     fn get_object_name(&self) -> &str {
@@ -39,8 +43,9 @@ impl DBO<CommentData> for CommentDBO {
 
     async fn create_table_if_not_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+
+        get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS comments (
                     ap_id             VARCHAR PRIMARY KEY,
@@ -48,64 +53,43 @@ impl DBO<CommentData> for CommentDBO {
                     score             INTEGER,
                     author_actor_id   VARCHAR NOT NULL,
                     post_ap_id        VARCHAR NOT NULL,
-                    community_ap_id   VARCHAR NOT NULL
-                    late_update       DATE NOT NULL
+                    community_ap_id   VARCHAR NOT NULL,
+                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
                 )
             ", &[]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+            ).map(|_| {
+                ()
+            })
+        })
     }
 
     async fn drop_table_if_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
-            client.execute("DROP TABLE IF EXISTS comments", &[])
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
-    }
+    ) -> Result<(), LemmySearchError> {
 
-    async fn create(
-        &self,
-        object : CommentData
-    ) -> bool {
-        match get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO comments (ap_id, body, score, post_ap_id, community_ap_id, laste_updated) 
-                    VALUES ($1, $2, $3, $4, $5, $6)
-                ",
-                    &[
-                        &object.comment.ap_id,
-                        &object.comment.content,
-                        &object.counts.score,
-                        &object.post.ap_id,
-                        &object.community.actor_id,
-                        &Utc::now()
-                    ]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        } 
+        get_database_client(&self.pool, |client| {
+            client.execute("DROP TABLE IF EXISTS comments", &[])
+                .map(|_| {
+                    ()
+                })
+        })
     }
 
     async fn retrieve(
         &self, 
         ap_id : &str
-    ) -> Option<CommentData> {
+    ) -> Result<CommentData, LemmySearchError> {
+
         let ap_id = ap_id.to_owned();
+
         get_database_client(&self.pool, move |client| {
-            match client.query_one("
+            client.query_one("
                 SELECT m.body, 
                         m.score,
                         m.author_actor_id,
                         p.ap_id,
-                        p.title, 
+                        p.url,
+                        p.name, 
                         p.body,
                         c.ap_id,
                         c.name,
@@ -116,10 +100,10 @@ impl DBO<CommentData> for CommentDBO {
                     WHERE m.ap_id = $1
                 ",
                 &[&ap_id] 
-            ) {
-                Ok(row) => Some(CommentData { 
+            ).map(|row| {
+                CommentData { 
                     comment : Comment {
-                        ap_id: ap_id.clone(),
+                        ap_id: ap_id.to_string(),
                         content: row.get(0),
                     },
                     counts: Counts {
@@ -130,31 +114,46 @@ impl DBO<CommentData> for CommentDBO {
                     },
                     post : Post {
                         ap_id: row.get(3),
-                        name : row.get(4),
-                        body : row.get(5)
+                        url : row.get(4),
+                        name : row.get(5),
+                        body : row.get(6),
+                        removed : Some(false),
+                        deleted : Some(false),
+                        language_id: 0
                     },
                     community : Community {
-                        actor_id: row.get(6),
-                        name: row.get(7),
-                        title: row.get(8)
+                        actor_id: row.get(7),
+                        name: row.get(8),
+                        title: row.get(9)
                     }
-                }),
-                Err(_) => None
-            }
-        }).await.unwrap_or(None)
+                }
+            })
+        })
     }
 
-    async fn update(
-        &self, 
+    async fn upsert(
+        &self,
         object : CommentData
-    ) -> bool {
-        false
-    }
+    ) ->  Result<bool, LemmySearchError> {
 
-    async fn delete(
-        &self, 
-        ap_id : &str
-    ) -> bool {
-        false
+        get_database_client(&self.pool, move |client| {
+            client.execute("
+                INSERT INTO comments (\"ap_id\", \"content\", \"score\", \"author_actor_id\", \"post_ap_id\", \"community_ap_id\", \"last_update\")
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ON CONFLICT (ap_id)
+                DO UPDATE SET \"content\" = $2, \"score\" = $3, \"author_actor_id\" = $4, \"post_ap_id\" = $5, \"community_ap_id\" = $6, \"last_update\" = $7
+                ", &[
+                    &object.comment.ap_id,
+                    &object.comment.content,
+                    &object.counts.score,
+                    &object.creator.actor_id,
+                    &object.post.ap_id,
+                    &object.community.actor_id,
+                    &Utc::now()
+                ]
+            ).map(|count| {
+                count == 1
+            })
+        })
     }
 }

@@ -8,8 +8,8 @@ use super::common::SortType;
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CommunityListRequest {
   pub sort: Option<SortType>,
-  pub limit: i64,
-  pub page : i64
+  pub limit: i32,
+  pub page : i32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

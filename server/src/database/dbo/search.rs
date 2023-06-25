@@ -1,21 +1,24 @@
+use std::collections::HashSet;
+use postgres::types::ToSql;
+use uuid::Uuid;
+use super::get_database_client;
 use crate::{
+    error::LemmySearchError,
+    database::DatabasePool,
     api::{
         search::models::search::SearchPost, 
         lemmy::models::{
-            comment::Comment, 
-            post::Post
-        }
-    }, database::DatabasePool
+            post::Post, 
+            comment::Comment
+        },
+    }
 };
 
-use super::get_database_client;
-
-
+#[derive(Clone)]
 pub struct SearchDatabase {
     pub pool : DatabasePool
 }
 
-#[allow(unused)]
 impl SearchDatabase {
 
     pub fn new(pool : DatabasePool) -> Self {
@@ -26,44 +29,72 @@ impl SearchDatabase {
 
     pub async fn create_table_if_not_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+        get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS xref (
                     word_id         UUID NOT NULL,
                     post_ap_id      VARCHAR NOT NULL
                 )
             ", &[]
-            )
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+            ).map(|_| {
+                ()
+            })
+        })
     }
 
+    #[allow(unused)]
     pub async fn drop_table_if_exists(
         &self
-    ) -> bool {
-        match get_database_client(&self.pool, |client| {
+    ) -> Result<(), LemmySearchError> {
+        get_database_client(&self.pool, |client| {
             client.execute("DROP TABLE IF EXISTS xref", &[])
-        }).await {
-            Ok(_) => true,
-            Err(_) => false
-        }
+                .map(|_| {
+                    ()
+                })
+        })
     }
 
     pub async fn upsert_post(
         &self,
-        post : &Post
-    ) -> bool {
-        false
+        words : HashSet<String>,
+        post : Post
+    ) -> Result<(), LemmySearchError> {
+
+        get_database_client(&self.pool, move |client| {
+
+            let mut transaction = client.transaction()?;
+            transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
+
+            let words = words.into_iter().collect::<Vec<String>>();
+            let rows = transaction.query("SELECT id FROM words WHERE word = any($1)", &[&words])?;
+            let ids = rows.into_iter().map(|row| {
+                row.get::<&str, Uuid>("id")
+            }).collect::<Vec<Uuid>>();
+
+            let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
+            for id in &ids {
+                params.push(id);
+            }
+
+            let mut query = format!("INSERT INTO xref (word_id, post_ap_id) VALUES ");
+            for index in 0..ids.len() {
+                query += format!("(${} , $1),", index+2).as_str();
+            }
+            query = query.trim_end_matches(",").to_string();
+            params.insert(0, &post.ap_id);
+            transaction.execute(&query, &params)?;
+
+            transaction.commit()
+        })
     }
 
     pub async fn upsert_comment(
         &self,
-        comment : &Comment
-    ) {
-
+        words : HashSet<String>,
+        comment : Comment
+    ) -> Result<(), LemmySearchError> {
+        Ok(())
     }
 
     pub async fn search(
@@ -72,18 +103,24 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>
-    ) -> Option<Vec<SearchPost>> {        
+    ) -> Result<Vec<SearchPost>, LemmySearchError> {        
+
         let query = query.to_owned();
         let instance = instance.to_owned();
         let community = community.to_owned();
         let author = author.to_owned();
-        match get_database_client(&self.pool, move|client| {
-            
+
+        get_database_client(&self.pool, move |client| {
+
+            let temp = query.split_whitespace().map(|s| {
+                s.trim().to_string()
+            }).collect::<Vec<String>>();
+
             let instance_query = match instance {
-                Some(_) => "AND s.actor_id = #2",
+                Some(_) => "AND s.actor_id = $2",
                 None => ""
             };
-            let community_query = match instance {
+            let community_query = match community {
                 Some(_) => "AND c.ap_id = $3",
                 None => ""
             };
@@ -92,32 +129,45 @@ impl SearchDatabase {
                 None => ""
             };
 
+            let instance = instance.unwrap_or("".to_string());
+            let community = community.unwrap_or("".to_string());
+            let author = author.unwrap_or("".to_string());
+
             let query_string = format!("
-                SELECT p.name, p.body FROM words AS w
-                    JOIN posts AS p ON p.ap_ip = w.post_ap_id
+                SELECT p.url, p.name, p.body, p.score, p.ap_id, c.title FROM (
+                    SELECT DISTINCT ON (p.ap_id) p.ap_id FROM xref AS x
+                        JOIN words AS w ON w.id = x.word_id 
+                        JOIN posts AS p ON p.ap_id = x.post_ap_id
+                        JOIN communities AS c ON c.ap_id = p.community_ap_id
+                        JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
+                    WHERE w.word = any($1)
+                        AND $2 = $2
+                        AND $3 = $3
+                        AND $4 = $4
+                        {}
+                        {}
+                        {}
+                    ORDER BY p.ap_id
+                ) AS t
+                    JOIN posts AS p ON p.ap_id = t.ap_id
                     JOIN communities AS c ON c.ap_id = p.community_ap_id
-                WHERE w.word IN $1
-                    {}
-                    {}
-                    {}
+                ORDER BY p.score DESC
             ", instance_query, community_query, author_query);
 
-            match client.query(&query_string, &[&query, &instance, &community, &author]) {
-                Ok(rows) => {
+            client.query(&query_string, &[&temp, &instance, &community, &author])
+                .map(|rows| {
                     rows.iter().map(|row| {
                         SearchPost {
-                            name : row.get(0),
-                            body : row.get(0),
-                            score : 0,
+                            url : row.get(0),
+                            name : row.get(1),
+                            body : row.get(2),
+                            score : row.get(3),
+                            actor_id : row.get(4),
+                            community_name : row.get(5),
                             comments : Vec::new()
                         }
                     }).collect()
-                },
-                Err(_) => Vec::<SearchPost>::new()
-            }
-        }).await {
-            Ok(_) => None,
-            Err(_) => None
-        }
+                })
+        })
     }
 }
