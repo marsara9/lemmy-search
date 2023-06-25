@@ -87,8 +87,8 @@ impl Database {
 
         println!("\tCreating SEARCH table...");
         let search = SearchDatabase::new(self.pool.clone());
-        search.drop_table_if_exists()
-            .await?;
+        // search.drop_table_if_exists()
+            // .await?;
         search.create_table_if_not_exists()
             .await
             .log_error("\t\t...failed to create table.", self.config.log)?;
@@ -105,8 +105,8 @@ impl Database {
         T : Default
     {
         println!("\tCreating '{}' table...", dbo.get_object_name());
-        dbo.drop_table_if_exists()
-            .await?;
+        // dbo.drop_table_if_exists()
+            // .await?;
         dbo.create_table_if_not_exists()
             .await.log_error("\t\t...failed to create table.", self.config.log)
     }

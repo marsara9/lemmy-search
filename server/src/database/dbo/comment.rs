@@ -104,27 +104,27 @@ impl DBO<CommentData> for CommentDBO {
                 CommentData { 
                     comment : Comment {
                         ap_id: ap_id.to_string(),
-                        content: row.get("m.body"),
+                        content: row.get(0),
                     },
                     counts: Counts {
-                        score : Some(row.get("m.score"))
+                        score : Some(row.get(1))
                     },
                     creator : Creator {
-                        actor_id : row.get("m.author_actor_id")
+                        actor_id : row.get(2)
                     },
                     post : Post {
-                        ap_id: row.get("p.ap_id"),
-                        url : row.get("p.url"),
-                        name : row.get("p.name"),
-                        body : row.get("p.body"),
+                        ap_id: row.get(3),
+                        url : row.get(4),
+                        name : row.get(5),
+                        body : row.get(6),
                         removed : Some(false),
                         deleted : Some(false),
                         language_id: 0
                     },
                     community : Community {
-                        actor_id: row.get("c.ap_id"),
-                        name: row.get("c.name"),
-                        title: row.get("c.title")
+                        actor_id: row.get(7),
+                        name: row.get(8),
+                        title: row.get(9)
                     }
                 }
             })
@@ -138,19 +138,19 @@ impl DBO<CommentData> for CommentDBO {
 
         get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO comments (\"ap_id\", \"content\", \"score\", \"post_ap_id\", \"community_ap_id\", \"last_update\")
-                    VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO comments (\"ap_id\", \"content\", \"score\", \"author_actor_id\", \"post_ap_id\", \"community_ap_id\", \"last_update\")
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET \"content\" = $2, \"score\" = $3, \"post_ap_id\" = $4, \"community_ap_id\" = $5, \"last_update\" = $6
-                ",
-                    &[
-                        &object.comment.ap_id,
-                        &object.comment.content,
-                        &object.counts.score,
-                        &object.post.ap_id,
-                        &object.community.actor_id,
-                        &Utc::now()
-                    ]
+                DO UPDATE SET \"content\" = $2, \"score\" = $3, \"author_actor_id\" = $4, \"post_ap_id\" = $5, \"community_ap_id\" = $6, \"last_update\" = $7
+                ", &[
+                    &object.comment.ap_id,
+                    &object.comment.content,
+                    &object.counts.score,
+                    &object.creator.actor_id,
+                    &object.post.ap_id,
+                    &object.community.actor_id,
+                    &Utc::now()
+                ]
             ).map(|count| {
                 count == 1
             })

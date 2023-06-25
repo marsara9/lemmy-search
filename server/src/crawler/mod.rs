@@ -11,7 +11,8 @@ use crate::{
 };
 use clokwerk::{
     TimeUnits, 
-    AsyncScheduler
+    AsyncScheduler,
+    Job
 };
 
 pub struct Runner {
@@ -40,12 +41,12 @@ impl Runner {
         let config = self.config.clone();
         let database = self.database.clone();
 
-        // scheduler.every(1.day())
-        //     .at("07:00")
-        //     .run(move || Self::run(config.clone(), database.clone()));
-
-        scheduler.every(5.minutes())
+        scheduler.every(1.day())
+            .at("07:00")
             .run(move || Self::run(config.clone(), database.clone()));
+
+        // scheduler.every(5.minutes())
+        //     .run(move || Self::run(config.clone(), database.clone()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {

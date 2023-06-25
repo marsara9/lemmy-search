@@ -43,6 +43,7 @@ impl SearchDatabase {
         })
     }
 
+    #[allow(unused)]
     pub async fn drop_table_if_exists(
         &self
     ) -> Result<(), LemmySearchError> {
@@ -128,14 +129,21 @@ impl SearchDatabase {
                 None => ""
             };
 
+            let instance = instance.unwrap_or("".to_string());
+            let community = community.unwrap_or("".to_string());
+            let author = author.unwrap_or("".to_string());
+
             let query_string = format!("
-                SELECT p.name, p.body, p.url, p.score, p.ap_id, c.title FROM (
+                SELECT p.url, p.name, p.body, p.score, p.ap_id, c.title FROM (
                     SELECT DISTINCT ON (p.ap_id) p.ap_id FROM xref AS x
                         JOIN words AS w ON w.id = x.word_id 
                         JOIN posts AS p ON p.ap_id = x.post_ap_id
                         JOIN communities AS c ON c.ap_id = p.community_ap_id
                         JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
                     WHERE w.word = any($1)
+                        AND $2 = $2
+                        AND $3 = $3
+                        AND $4 = $4
                         {}
                         {}
                         {}
@@ -143,22 +151,23 @@ impl SearchDatabase {
                 ) AS t
                     JOIN posts AS p ON p.ap_id = t.ap_id
                     JOIN communities AS c ON c.ap_id = p.community_ap_id
-                ORDER BY p.score ASC
+                ORDER BY p.score DESC
             ", instance_query, community_query, author_query);
 
-            client.query(&query_string, &[&temp, &instance, &community, &author]).map(|rows| {
-                rows.iter().map(|row| {
-                    SearchPost {
-                        url : row.get("p.url"),
-                        name : row.get("p.name"),
-                        body : row.get("p.body"),
-                        score : row.get("p.score"),
-                        actor_id : row.get("p.ap_id"),
-                        community_name : row.get("c.title"),
-                        comments : Vec::new()
-                    }
-                }).collect()
-            })
+            client.query(&query_string, &[&temp, &instance, &community, &author])
+                .map(|rows| {
+                    rows.iter().map(|row| {
+                        SearchPost {
+                            url : row.get(0),
+                            name : row.get(1),
+                            body : row.get(2),
+                            score : row.get(3),
+                            actor_id : row.get(4),
+                            community_name : row.get(5),
+                            comments : Vec::new()
+                        }
+                    }).collect()
+                })
         })
     }
 }

@@ -246,7 +246,7 @@ impl DBO<SiteView> for SiteDBO {
                 SiteView {
                     site: Site {
                         actor_id : ap_id.to_string(),
-                        name: row.get("name")
+                        name: row.get(0)
                     },
                     ..Default::default()
                 }

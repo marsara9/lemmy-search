@@ -4,7 +4,8 @@ use regex::Regex;
 use lazy_static::lazy_static;
 use std::{
     collections::HashMap, 
-    sync::Mutex, time::Instant
+    sync::Mutex, 
+    time::Instant
 };
 use actix_web::{
     web::{
@@ -18,6 +19,10 @@ use actix_web::{
     Route
 };
 use crate::{
+    error::{
+        LemmySearchError,
+        LogError
+    },
     api::search::models::search::{
         SearchQuery,
         SearchResult
@@ -124,7 +129,9 @@ impl SearchHandler {
 
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
         let search_results = search.search(&modified_query, &instance, &community, &author)
-            .await.map_err(|err| {
+            .await
+            .log_error("Error during search.", true)
+            .map_err(|err| {
                 actix_web::error::ErrorInternalServerError(err)
             })?;
 

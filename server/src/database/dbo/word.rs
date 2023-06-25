@@ -84,8 +84,8 @@ impl DBO<String> for WordsDBO {
                     &Uuid::new_v4(),
                     &object.to_lowercase()
                 ]
-            ).map(|count| {
-                count == 1
+            ).map(|_| {
+                true
             })
         })
     }

@@ -58,7 +58,8 @@ where
         callback(&mut client).map_err(|err| {
             LemmySearchError::Database(err)
         })
-    }).join().map_err(|_| {
+    }).join().map_err(|err| {
+        println!("Unknown error {:#?}", err);
         LemmySearchError::Unknown
     })?
 }

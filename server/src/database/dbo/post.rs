@@ -97,24 +97,24 @@ impl DBO<PostData> for PostDBO {
                 PostData { 
                     post: Post { 
                         ap_id: ap_id.to_string(), 
-                        url : row.get("p.url"),
-                        name: row.get("p.name"), 
-                        body: row.get("p.body"),
+                        url : row.get(0),
+                        name: row.get(1), 
+                        body: row.get(2),
                         removed : Some(false),
                         deleted : Some(false),
                         language_id: 0
                     },
                     counts : Counts {
-                        score : row.get("p.score"),
+                        score : row.get(3),
                         ..Default::default()
                     },
                     creator: Creator {
-                        actor_id : row.get("p.author_actor_id")
+                        actor_id : row.get(4)
                     },
                     community : Community { 
-                        actor_id: row.get("c.ap_id"), 
-                        name: row.get("c.name"), 
-                        title: row.get("c.title") 
+                        actor_id: row.get(5), 
+                        name: row.get(6), 
+                        title: row.get(7) 
                     }
                 }
             })

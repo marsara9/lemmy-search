@@ -81,8 +81,8 @@ impl DBO<CommunityData> for CommunityDBO {
                 CommunityData { 
                     community : Community { 
                         actor_id: ap_id.to_string(), 
-                        name: row.get("name"), 
-                        title: row.get("title") 
+                        name: row.get(0), 
+                        title: row.get(1) 
                     },
                     ..Default::default()
                 }
@@ -100,13 +100,12 @@ impl DBO<CommunityData> for CommunityDBO {
                     VALUES ($1, $2, $3, $4)
                 ON CONFLICT (ap_id)
                 DO UPDATE SET \"name\" = $2, \"title\" = $3, \"last_update\" = $4
-                ",
-                    &[
-                        &object.community.actor_id,
-                        &object.community.name,
-                        &object.community.title,                        
-                        &Utc::now()
-                    ]
+                ", &[
+                    &object.community.actor_id,
+                    &object.community.name,
+                    &object.community.title,                        
+                    &Utc::now()
+                ]
             ).map(|count| {
                 count == 1
             })
