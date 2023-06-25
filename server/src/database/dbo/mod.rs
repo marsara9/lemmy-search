@@ -59,7 +59,6 @@ where
             LemmySearchError::Database(err)
         })
     }).join().map_err(|err| {
-        println!("Unknown error {:#?}", err);
-        LemmySearchError::Unknown
+        LemmySearchError::Unknown(format!("{:#?}", err))
     })?
 }

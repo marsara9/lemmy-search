@@ -64,7 +64,7 @@ impl SearchDatabase {
         get_database_client(&self.pool, move |client| {
 
             let mut transaction = client.transaction()?;
-            transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
+            let deleted = transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
 
             let words = words.into_iter().collect::<Vec<String>>();
             let rows = transaction.query("SELECT id FROM words WHERE word = any($1)", &[&words])?;
@@ -78,12 +78,17 @@ impl SearchDatabase {
             }
 
             let mut query = format!("INSERT INTO xref (word_id, post_ap_id) VALUES ");
-            for index in 0..ids.len() {
-                query += format!("(${} , $1),", index+2).as_str();
+            if ids.len() != 0 {
+                for index in 0..ids.len() {
+                    query += format!("(${} , $1),", index+2).as_str();
+                }
+                query = query.trim_end_matches(",").to_string();
+                params.insert(0, &post.ap_id);
+                transaction.execute(&query, &params)?;
+            } else {
+                println!("WARNING: post was inserted but had 0 words? {} associations were deleted however.", deleted);
+                println!("{:#?}", post);
             }
-            query = query.trim_end_matches(",").to_string();
-            params.insert(0, &post.ap_id);
-            transaction.execute(&query, &params)?;
 
             transaction.commit()
         })
@@ -94,6 +99,7 @@ impl SearchDatabase {
         words : HashSet<String>,
         comment : Comment
     ) -> Result<(), LemmySearchError> {
+        // TODO
         Ok(())
     }
 

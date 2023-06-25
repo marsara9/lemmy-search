@@ -73,7 +73,6 @@ impl Crawler {
             &site_actor_id,
             site_dbo.get_last_community_page(&site_actor_id)
                 .await?, 
-            site_view.counts.communities.unwrap_or(0) / Fetcher::DEFAULT_LIMIT + 1,
             community_dbo,
             |page| {
                 self.fetcher.fetch_communities(page)
@@ -90,7 +89,6 @@ impl Crawler {
             &site_actor_id,
             site_dbo.get_last_post_page(&site_actor_id)
                 .await?, 
-            site_view.counts.posts.unwrap_or(0) / Fetcher::DEFAULT_LIMIT + 1,
             post_dbo,
             |page| {
                 self.fetcher.fetch_posts(page)
@@ -102,13 +100,12 @@ impl Crawler {
                 for word in words.clone() {
                     if !words_dbo.upsert(word)
                         .await
-                        .log_error("\t...words insertion failed.", self.config.log)? {
-                            println!("\t...failed to insert search content.")
+                        .log_error("\t...an error occured during insertion of search words.", self.config.log)? {
+                            println!("\t...failed to insert search words.")
                         }
                 }
                 search.upsert_post(words, post_data.post)
                     .await
-                    .log_error("\t...search insertion failed.", self.config.log)
             },
             |page| {
                 site_dbo.set_last_post_page(&site_actor_id, page)
@@ -119,7 +116,6 @@ impl Crawler {
             &site_actor_id,
             site_dbo.get_last_comment_page(&site_actor_id)
                 .await?, 
-            site_view.counts.comments.unwrap_or(0) / Fetcher::DEFAULT_LIMIT + 1,
             comment_dbo,
             |page| {
                 self.fetcher.fetch_comments(page)
@@ -131,13 +127,12 @@ impl Crawler {
                 for word in words.clone() {
                     if !words_dbo.upsert(word)
                         .await
-                        .log_error("\t...words insertion failed.", self.config.log)? {
-                            println!("\t...failed to insert search content.")
+                        .log_error("\t...an error occured during insertion of search words.", self.config.log)? {
+                            println!("\t...failed to insert search words.")
                         }
                 }
                 search.upsert_comment(words, comment_data.comment)
                     .await
-                    .log_error("\t...search insertion failed.", self.config.log)
             },
             |page| {
                 site_dbo.set_last_comment_page(&site_actor_id, page)
@@ -149,11 +144,15 @@ impl Crawler {
         Ok(())
     }
 
+    /**
+     * Begin fetching objects from the target instance starting with the provided `last_page`.  This 
+     * method will keep fetching objects in chunks of 50 (DEFAULT_FETCH_LIMIT) until an empty response
+     * is returned.
+     */
     async fn fetch_paged_object<T, D, Fetcher, Insert, Updater>(
         &self,
         site_actor_id : &str,
         last_page : i32,
-        total_pages : i32,
         object_dbo : D,
         fetcher : impl Fn(i32) -> Fetcher,
         do_on_insert : impl Fn(T) -> Insert,
@@ -167,11 +166,17 @@ impl Crawler {
     {
         println!("Fetching {} from '{}'...", object_dbo.get_object_name(), site_actor_id);
 
-        let mut count = 0;        
-        for page in last_page..total_pages {
+        // The total number of objects interacted with
+        let mut count = 0;
+        // The current page number to query
+        let mut page = last_page;
+        loop {
             let objects = fetcher(page+1)
                 .await
                 .log_error(format!("\tfailed to fetch another page of {}...", object_dbo.get_object_name()).as_str(), self.config.log)?;
+            if objects.len() == 0 {
+                break;
+            }
             println!("\tfetched another {} {}...", objects.len(), object_dbo.get_object_name());
 
             sleep( Duration::from_millis( 100 ) )
@@ -194,6 +199,7 @@ impl Crawler {
                 .log_error("\t...update last page failed.", self.config.log)?;
 
             println!("\tinserted {} {}...", count, object_dbo.get_object_name());
+            page += 1;
         }
 
         Ok(())
