@@ -27,21 +27,31 @@ function query(queryString) {
             let post_citation = $("<div/>")
                 .addClass("post-citation");
 
+            if(post.author.avatar) {
+                let post_author_avatar = $("<img />")
+                    .attr("src", post.author.avatar);
+                post_citation.append(post_author_avatar);
+            }
+
             let post_author = $("<a/>")
-                .attr("href", preferred_instance + "u/" + post.author.actor_id);
-            post_author.text(post.author_name);
+                .attr("href", preferred_instance + "u/" + post.author.name);
+            post_author.text(post.author.display_name ?? post.author.name);
+            post_citation.append(post_author);
 
             let divider = $("<span/>");
             divider.text(" | ");
+            post_citation.append(divider);
+
+            if(post.community.icon) {
+                let post_community_icon = $("<img />")
+                    .attr("src", post.community.icon);
+                post_citation.append(post_community_icon);
+            }
 
             let post_community = $("<a/>")
                 .attr("href", preferred_instance + "c/" + post.community.name);
-            post_community.text(post.community.title);
-
-            post_citation
-                .append(post_author)
-                .append(divider)
-                .append(post_community);
+            post_community.text(post.community.title ?? post.community.name);
+            post_citation.append(post_community);
 
             item.append(post_citation);
 
