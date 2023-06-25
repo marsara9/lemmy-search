@@ -200,7 +200,7 @@ impl Crawler {
                 count += 1;
             }
 
-            page_updater(last_page + count)
+            page_updater(page)
                 .await
                 .log_error("\t...update last page failed.", self.config.log)?;
 
