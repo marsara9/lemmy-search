@@ -143,12 +143,12 @@ impl SearchDatabase {
             // and sort first by the number of matches and then if there's a conflict
             // by the total number of upvotes that the post has.
             let query_string = format!("
-                SELECT p.url, p.name, p.body, c.name, c.title FROM (
+                SELECT p.url, p.name, p.body, a.avatar, a.name, a.display_name, c.icon, c.name, c.title FROM (
                     SELECT COUNT (p.ap_id) as matches, p.ap_id FROM xref AS x
-                        JOIN words AS w ON w.id = x.word_id 
-                        JOIN posts AS p ON p.ap_id = x.post_ap_id
-                        JOIN communities AS c ON c.ap_id = p.community_ap_id
-                        JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
+                        LEFT JOIN words AS w ON w.id = x.word_id 
+                        LEFT JOIN posts AS p ON p.ap_id = x.post_ap_id
+                        LEFT JOIN communities AS c ON c.ap_id = p.community_ap_id
+                        LEFT JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
                     WHERE w.word = any($1)
                         AND $2 = $2
                         AND $3 = $3
@@ -158,8 +158,9 @@ impl SearchDatabase {
                         {}
                     GROUP BY p.ap_id
                 ) AS t
-                    JOIN posts AS p ON p.ap_id = t.ap_id
-                    JOIN communities AS c ON c.ap_id = p.community_ap_id
+                    LEFT JOIN posts AS p ON p.ap_id = t.ap_id
+                    LEFT JOIN communities AS c ON c.ap_id = p.community_ap_id
+                    LEFT JOIN authors AS a ON a.ap_id = p.author_actor_id
                 ORDER BY 
                     matches DESC,
                     p.score DESC
@@ -174,14 +175,14 @@ impl SearchDatabase {
                             body : row.get(2),
                             remote_id : "".to_string(), // TODO
                             author : SearchAuthor {
-                                avatar : None, // TODO
-                                display_name : None, // TODO
-                                name : "".to_string(), // TODO
+                                avatar : row.get(3),
+                                display_name : row.get(4),
+                                name : row.get(5),
                             },
                             community : SearchCommunity {
-                                name : row.get(3),
-                                icon : None, // TODO
-                                title : row.get(4)
+                                icon : row.get(6),
+                                name : row.get(7),
+                                title : row.get(8)
                             }
                         }
                     }).collect()

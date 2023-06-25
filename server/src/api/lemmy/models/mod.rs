@@ -1,3 +1,4 @@
+pub mod author;
 pub mod common;
 pub mod comment;
 pub mod community;

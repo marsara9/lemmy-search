@@ -227,33 +227,6 @@ impl DBO<SiteView> for SiteDBO {
         })
     }
 
-    async fn retrieve(
-        &self,
-        ap_id : &str
-    ) -> Result<SiteView, LemmySearchError> {
-
-        let ap_id = ap_id.to_owned();
-        
-        get_database_client(&self.pool, move |client| {
-
-            client.query_one("
-                SELECT \"name\" 
-                    FROM sites
-                    WHERE actor_id = $1
-                ",
-                &[&ap_id] 
-            ).map(|row| {
-                SiteView {
-                    site: Site {
-                        actor_id : ap_id.to_string(),
-                        name: row.get(0)
-                    },
-                    ..Default::default()
-                }
-            })
-        })
-    }
-
     async fn upsert(
         &self,
         object : SiteView

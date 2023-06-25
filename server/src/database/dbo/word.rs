@@ -59,14 +59,6 @@ impl DBO<String> for WordsDBO {
                 })
         })
     }
-    
-    #[allow(unused_variables)] // this function isn't used but is required by the DBO trait.
-    async fn retrieve(
-        &self, 
-        ap_id : &str
-    ) -> Result<String, LemmySearchError> {
-        panic!("NOT IMPLEMENTED!")
-    }
 
     async fn upsert(
         &self,

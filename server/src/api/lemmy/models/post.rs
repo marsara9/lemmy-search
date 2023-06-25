@@ -5,7 +5,7 @@ use serde::{
 
 use super::{
     common::SortType, 
-    community::Community
+    community::Community, author::Author
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
@@ -24,7 +24,7 @@ pub struct PostListResponse {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct  PostData {
     pub post : Post,
-    pub creator : Creator,
+    pub creator : Author,
     pub community : Community,
     pub counts : Counts
 }
@@ -38,11 +38,6 @@ pub struct Post {
     pub removed : Option<bool>,
     pub deleted : Option<bool>,
     pub language_id : i32
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct Creator {
-    pub actor_id : String
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

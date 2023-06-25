@@ -16,7 +16,7 @@ use crate::{
             post::PostDBO, 
             comment::CommentDBO, 
             word::WordsDBO, 
-            search::SearchDatabase
+            search::SearchDatabase, author::AuthorDBO
         }
     }, config
 };
@@ -96,6 +96,11 @@ impl Crawler {
             |post_data| async move {
                 let words_dbo = WordsDBO::new(self.database.pool.clone());
                 let search = SearchDatabase::new(self.database.pool.clone());
+                let author_dbo = AuthorDBO::new(self.database.pool.clone());
+
+                author_dbo.upsert(post_data.creator)
+                    .await?;
+
                 let words = self.analyizer.get_distinct_words_in_post(&post_data.post);
                 for word in words.clone() {
                     if !words_dbo.upsert(word)
@@ -123,6 +128,7 @@ impl Crawler {
             |comment_data| async move {
                 let words_dbo = WordsDBO::new(self.database.pool.clone());
                 let search = SearchDatabase::new(self.database.pool.clone());
+
                 let words = self.analyizer.get_distinct_words_in_comment(&comment_data.comment);
                 for word in words.clone() {
                     if !words_dbo.upsert(word)

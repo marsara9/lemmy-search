@@ -8,7 +8,7 @@ use crate::{
         post::PostDBO, 
         word::WordsDBO, 
         community::CommunityDBO, 
-        search::SearchDatabase
+        search::SearchDatabase, author::AuthorDBO
     }, 
     error::{
         LemmySearchError,
@@ -71,6 +71,9 @@ impl Database {
 
         self.create_table(
             SiteDBO::new(self.pool.clone())
+        ).await?;
+        self.create_table(
+            AuthorDBO::new(self.pool.clone())
         ).await?;
         self.create_table(
             CommunityDBO::new(self.pool.clone())
