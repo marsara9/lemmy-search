@@ -105,7 +105,7 @@ impl SearchDatabase {
 
     pub async fn search(
         &self,
-        query : &str,
+        query : &HashSet<String>,
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>
@@ -118,9 +118,7 @@ impl SearchDatabase {
 
         get_database_client(&self.pool, move |client| {
 
-            let temp = query.split_whitespace().map(|s| {
-                s.trim().to_string()
-            }).collect::<Vec<String>>();
+            let temp = Vec::<String>::from_iter(query.into_iter());
 
             let instance_query = match instance {
                 Some(_) => "AND s.actor_id = $2",

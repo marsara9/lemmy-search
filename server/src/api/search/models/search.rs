@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{time::Duration, collections::HashSet};
 
 use serde::{
     Serialize, 
@@ -13,7 +13,7 @@ pub struct SearchQuery {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SearchResult {
-    pub original_query : SearchQuery,
+    pub original_query_terms : HashSet<String>,
     pub search_results : Vec<SearchPost>,
     pub total_pages : i64,
     pub time_taken : Duration

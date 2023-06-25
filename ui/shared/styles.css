@@ -38,6 +38,7 @@ body {
 
 #content > * {
     padding: 12px;
+    width: 100%;
 }
 
 input, select {
@@ -53,6 +54,7 @@ input[type=button]:hover, input[type=submit]:hover {
 }
 
 .footer {
+    background-color: #222;
     position: fixed;
     left: 24px;
     right: 24px;
@@ -69,4 +71,43 @@ a, a:visited {
 
 .a:hover {
     color: white;
+}
+
+#results {
+    max-width: 768px;
+}
+
+li.search-result {
+    list-style-type: none;
+}
+
+.search-result {
+    margin: 12px;
+    padding: 12px;
+    border: 1px solid #777;
+    border-radius: 8px;
+}
+
+.search-result > * {
+    margin: 8px;
+}
+
+.post-url {
+    float: right;
+    background: white;
+    width: 100px;
+    height: 100px;
+}
+
+.post-citation {
+    
+}
+
+.post-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.post-body > .search-term {
+    font-weight: bold;
 }

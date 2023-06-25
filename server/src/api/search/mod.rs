@@ -3,7 +3,7 @@ pub mod models;
 use regex::Regex;
 use lazy_static::lazy_static;
 use std::{
-    collections::HashMap, 
+    collections::{HashMap, HashSet}, 
     sync::Mutex, 
     time::Instant
 };
@@ -124,8 +124,12 @@ impl SearchHandler {
             None => {}
         }
 
+        let query_terms = modified_query.split_whitespace().map(|s| {
+            s.trim().to_string()
+        }).collect::<HashSet<String>>();
+
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
-        let search_results = search.search(&modified_query, &instance, &community, &author)
+        let search_results = search.search(&query_terms, &instance, &community, &author)
             .await
             .log_error("Error during search.", true)
             .map_err(|err| {
@@ -135,7 +139,7 @@ impl SearchHandler {
         let duration = start.elapsed();
 
         let results: SearchResult = SearchResult {
-            original_query : search_query.into_inner(),
+            original_query_terms : query_terms,
             search_results : search_results,
             total_pages : 0,
             time_taken: duration
