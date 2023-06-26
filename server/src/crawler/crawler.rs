@@ -128,12 +128,25 @@ impl Crawler {
 
                 let words_dbo = WordsDBO::new(self.database.pool.clone());
                 let search = SearchDatabase::new(self.database.pool.clone());
+                let lemmy_id_dbo = IdDBO::new(self.database.pool.clone());
 
                 author_dbo.upsert(post_data.creator)
-                    .await?;
+                    .await
+                    .log_error("\t...failed to add author data", self.config.log)?;
 
                 community_dbo.upsert(post_data.community)
-                    .await?;
+                    .await
+                    .log_error("\t...failed to add community data", self.config.log)?;
+
+                let lemmy_id = LemmyId {
+                    post_remote_id: post_data.post.id.clone(),
+                    post_actor_id: post_data.post.ap_id.clone(),
+                    instance_actor_id: site_actor_id.to_owned()
+                };
+
+                lemmy_id_dbo.upsert(lemmy_id)
+                    .await
+                    .log_error("\t...failed to insert remote ids.", self.config.log)?;
 
                 let words = self.analyizer.get_distinct_words_in_post(&post_data.post);
                 for word in words.clone() {
@@ -210,7 +223,8 @@ impl Crawler {
                 };
 
                 lemmy_id_dbo.upsert(lemmy_id)
-                    .await?;
+                    .await
+                    .log_error("\t...failed to insert remote ids.", self.config.log)?;
             }
 
             page += 1;
