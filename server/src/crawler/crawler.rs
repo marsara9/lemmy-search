@@ -8,7 +8,10 @@ use crate::{
         LemmySearchError,
         LogError
     },
-    api::lemmy::{fetcher::Fetcher, models::id::LemmyId}, 
+    api::lemmy::{
+        fetcher::Fetcher, 
+        models::id::LemmyId
+    }, 
     database::{
         Database,        
         dbo::{
@@ -19,7 +22,8 @@ use crate::{
             comment::CommentDBO, 
             word::WordsDBO, 
             search::SearchDatabase, 
-            author::AuthorDBO, id::IdDBO
+            author::AuthorDBO, 
+            id::IdDBO
         }
     }
 };
@@ -110,25 +114,37 @@ impl Crawler {
         site_actor_id : &str
     ) -> Result<(), LemmySearchError> {
 
+        let words_dbo = WordsDBO::new(self.database.pool.clone());
+        let search = SearchDatabase::new(self.database.pool.clone());
+        let lemmy_id_dbo = IdDBO::new(self.database.pool.clone());
+
         let site_dbo = SiteDBO::new(self.database.pool.clone());
         let post_dbo = PostDBO::new(self.database.pool.clone());
-        let comment_dbo: CommentDBO = CommentDBO::new(self.database.pool.clone());
+        let author_dbo = AuthorDBO::new(self.database.pool.clone());
+        let community_dbo = CommunityDBO::new(self.database.pool.clone());
 
-        self.fetch_paged_object(
-            &site_actor_id,
-            site_dbo.get_last_post_page(&site_actor_id)
-                .await?, 
-            post_dbo,
-            |page| {
-                self.fetcher.fetch_posts(page)
-            },
-            |post_data| async move {
-                let author_dbo = AuthorDBO::new(self.database.pool.clone());
-                let community_dbo = CommunityDBO::new(self.database.pool.clone());
+        let last_page = site_dbo.get_last_post_page(site_actor_id)
+            .await?;
 
-                let words_dbo = WordsDBO::new(self.database.pool.clone());
-                let search = SearchDatabase::new(self.database.pool.clone());
-                let lemmy_id_dbo = IdDBO::new(self.database.pool.clone());
+        let mut page = last_page;
+        loop {
+            let posts = self.fetcher.fetch_posts(page)
+                .await
+                .log_error(format!("\tfailed to fetch another page of {}...", post_dbo.get_object_name()).as_str(), self.config.log)?;
+
+            if posts.is_empty() {
+                break;
+            }
+            let count = posts.len();
+            println!("\tfetched another {} {}...", count, post_dbo.get_object_name());
+
+            for post_data in posts {
+
+                let clone_post = post_data.post.clone();
+
+                post_dbo.upsert(post_data.clone())
+                    .await
+                    .log_error(format!("\t...failed to insert after fetching {} objects", count).as_str(), self.config.log)?;
 
                 author_dbo.upsert(post_data.creator)
                     .await
@@ -139,8 +155,8 @@ impl Crawler {
                     .log_error("\t...failed to add community data", self.config.log)?;
 
                 let lemmy_id = LemmyId {
-                    post_remote_id: post_data.post.id.clone(),
-                    post_actor_id: post_data.post.ap_id.clone(),
+                    post_remote_id: post_data.post.id,
+                    post_actor_id: post_data.post.ap_id,
                     instance_actor_id: site_actor_id.to_owned()
                 };
 
@@ -148,7 +164,7 @@ impl Crawler {
                     .await
                     .log_error("\t...failed to insert remote ids.", self.config.log)?;
 
-                let words = self.analyizer.get_distinct_words_in_post(&post_data.post);
+                let words = self.analyizer.get_distinct_words_in_post(&clone_post);
                 for word in words.clone() {
                     if !words_dbo.upsert(word)
                         .await
@@ -156,41 +172,95 @@ impl Crawler {
                             println!("\t...failed to insert search words.")
                         }
                 }
-                search.upsert_post(words, post_data.post)
+                search.upsert_post(words, &clone_post)
                     .await
-            },
-            |page| {
-                site_dbo.set_last_post_page(&site_actor_id, page)
+                    .log_error("\t...building search queries failed.", self.config.log)?;
             }
-        ).await?;
 
-        self.fetch_paged_object(
-            &site_actor_id,
-            site_dbo.get_last_comment_page(&site_actor_id)
-                .await?, 
-            comment_dbo,
-            |page| {
-                self.fetcher.fetch_comments(page)
-            },
-            |comment_data| async move {
-                let words_dbo = WordsDBO::new(self.database.pool.clone());
-                let search = SearchDatabase::new(self.database.pool.clone());
+            println!("\tinserted {} {}...", count, post_dbo.get_object_name());
 
-                let words = self.analyizer.get_distinct_words_in_comment(&comment_data.comment);
-                for word in words.clone() {
-                    if !words_dbo.upsert(word)
-                        .await
-                        .log_error("\t...an error occured during insertion of search words.", self.config.log)? {
-                            println!("\t...failed to insert search words.")
-                        }
-                }
-                search.upsert_comment(words, comment_data.comment)
-                    .await
-            },
-            |page| {
-                site_dbo.set_last_comment_page(&site_actor_id, page)
-            }
-        ).await?;
+            site_dbo.set_last_post_page(&site_actor_id, page)
+                .await?;
+            page += 1;
+        }
+
+        // self.fetch_paged_object(
+        //     &site_actor_id,
+        //     site_dbo.get_last_post_page(&site_actor_id)
+        //         .await?, 
+        //     post_dbo,
+        //     |page| {
+        //         self.fetcher.fetch_posts(page)
+        //     },
+        //     |post_data| async move {
+        //         let author_dbo = AuthorDBO::new(self.database.pool.clone());
+        //         let community_dbo = CommunityDBO::new(self.database.pool.clone());
+
+        //         let words_dbo = WordsDBO::new(self.database.pool.clone());
+        //         let search = SearchDatabase::new(self.database.pool.clone());
+        //         let lemmy_id_dbo = IdDBO::new(self.database.pool.clone());
+
+        //         author_dbo.upsert(post_data.creator)
+        //             .await
+        //             .log_error("\t...failed to add author data", self.config.log)?;
+
+        //         community_dbo.upsert(post_data.community)
+        //             .await
+        //             .log_error("\t...failed to add community data", self.config.log)?;
+
+        //         let lemmy_id = LemmyId {
+        //             post_remote_id: post_data.post.id.clone(),
+        //             post_actor_id: post_data.post.ap_id.clone(),
+        //             instance_actor_id: site_actor_id.to_owned()
+        //         };
+
+        //         lemmy_id_dbo.upsert(lemmy_id)
+        //             .await
+        //             .log_error("\t...failed to insert remote ids.", self.config.log)?;
+
+        //         let words = self.analyizer.get_distinct_words_in_post(&post_data.post);
+        //         for word in words.clone() {
+        //             if !words_dbo.upsert(word)
+        //                 .await
+        //                 .log_error("\t...an error occured during insertion of search words.", self.config.log)? {
+        //                     println!("\t...failed to insert search words.")
+        //                 }
+        //         }
+        //         search.upsert_post(words, post_data.post)
+        //             .await
+        //     },
+        //     |page| {
+        //         site_dbo.set_last_post_page(&site_actor_id, page)
+        //     }
+        // ).await?;
+
+        // self.fetch_paged_object(
+        //     &site_actor_id,
+        //     site_dbo.get_last_comment_page(&site_actor_id)
+        //         .await?, 
+        //     comment_dbo,
+        //     |page| {
+        //         self.fetcher.fetch_comments(page)
+        //     },
+        //     |comment_data| async move {
+        //         let words_dbo = WordsDBO::new(self.database.pool.clone());
+        //         let search = SearchDatabase::new(self.database.pool.clone());
+
+        //         let words = self.analyizer.get_distinct_words_in_comment(&comment_data.comment);
+        //         for word in words.clone() {
+        //             if !words_dbo.upsert(word)
+        //                 .await
+        //                 .log_error("\t...an error occured during insertion of search words.", self.config.log)? {
+        //                     println!("\t...failed to insert search words.")
+        //                 }
+        //         }
+        //         search.upsert_comment(words, comment_data.comment)
+        //             .await
+        //     },
+        //     |page| {
+        //         site_dbo.set_last_comment_page(&site_actor_id, page)
+        //     }
+        // ).await?;
 
         Ok(())
     }
@@ -210,6 +280,7 @@ impl Crawler {
         loop {
             let posts = self.fetcher.fetch_posts(page)
                 .await?;
+                //.log_error(format!("\tfailed to fetch another page of {}...", object_dbo.get_object_name()).as_str(), self.config.log)?;
 
             if posts.is_empty() {
                 break;
@@ -227,10 +298,9 @@ impl Crawler {
                     .log_error("\t...failed to insert remote ids.", self.config.log)?;
             }
 
-            page += 1;
-
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;
+            page += 1;
         }
 
         Ok(())
@@ -270,9 +340,6 @@ impl Crawler {
                 break;
             }
             println!("\tfetched another {} {}...", objects.len(), object_dbo.get_object_name());
-
-            sleep( Duration::from_millis( 100 ) )
-                .await;
 
             for object in objects {
                 object_dbo.upsert(object.clone())
