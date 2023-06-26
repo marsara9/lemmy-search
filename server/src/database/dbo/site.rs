@@ -51,29 +51,6 @@ impl SiteDBO {
         })
     }
 
-    pub async fn set_last_community_page(
-        &self,
-        ap_id : &str,
-        page : i32
-    ) -> Result<bool, LemmySearchError> {
-
-        let ap_id = ap_id.to_owned();
-        
-        get_database_client(&self.pool, move |client| {
-
-            client.execute("
-                UPDATE sites
-                    SET last_community_page = $2
-                    WHERE actor_id = $1
-                ",&[
-                    &ap_id, &page
-                ]
-            ).map(|count| {
-                count == 1
-            })
-        })
-    }
-
     pub async fn set_last_post_page(
         &self,
         ap_id : &str,
@@ -116,27 +93,6 @@ impl SiteDBO {
                 ]
             ).map(|count| {
                 count == 1
-            })
-        })
-    }
-
-    pub async fn get_last_community_page(
-        &self,
-        ap_id : &str
-    ) -> Result<i32, LemmySearchError> {
-
-        let ap_id = ap_id.to_owned();
-        
-        get_database_client(&self.pool, move |client| {
-
-            client.query_one("
-                SELECT last_community_page 
-                    FROM sites
-                    WHERE actor_id = $1
-                ",
-                &[&ap_id]
-            ).map(|row| {
-                row.get("last_community_page")
             })
         })
     }
@@ -224,33 +180,6 @@ impl DBO<SiteView> for SiteDBO {
                 .map(|_| {
                     ()
                 })
-        })
-    }
-
-    async fn retrieve(
-        &self,
-        ap_id : &str
-    ) -> Result<SiteView, LemmySearchError> {
-
-        let ap_id = ap_id.to_owned();
-        
-        get_database_client(&self.pool, move |client| {
-
-            client.query_one("
-                SELECT \"name\" 
-                    FROM sites
-                    WHERE actor_id = $1
-                ",
-                &[&ap_id] 
-            ).map(|row| {
-                SiteView {
-                    site: Site {
-                        actor_id : ap_id.to_string(),
-                        name: row.get(0)
-                    },
-                    ..Default::default()
-                }
-            })
         })
     }
 

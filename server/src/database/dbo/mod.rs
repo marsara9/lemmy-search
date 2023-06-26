@@ -1,6 +1,8 @@
+pub mod author;
 pub mod site;
 pub mod comment;
 pub mod community;
+pub mod id;
 pub mod post;
 pub mod word;
 pub mod search;
@@ -30,11 +32,6 @@ pub trait DBO<T : Default> {
     async fn drop_table_if_exists(
         &self
     ) -> Result<(), LemmySearchError>;
-
-    async fn retrieve(
-        &self, 
-        ap_id : &str
-    ) -> Result<T, LemmySearchError>;
 
     async fn upsert(
         &self,

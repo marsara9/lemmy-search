@@ -35,3 +35,16 @@ pub struct Counts {
     pub comments : Option<i32>,
     pub communities : Option<i32>
 }
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct FederatedInstancesRequest;
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct FederatedInstancesResponse {
+    pub linked : Vec<Instance>
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct Instance {
+    pub domain : String
+}

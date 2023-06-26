@@ -5,7 +5,8 @@ use serde::{
 
 use super::{
     common::SortType, 
-    post::{Post, Creator}, 
+    post::Post, 
+    author::Author,
     community::Community
 };
 
@@ -25,7 +26,7 @@ pub struct CommentListResponse {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CommentData {
     pub comment : Comment,
-    pub creator : Creator,
+    pub creator : Author,
     pub post : Post,
     pub community : Community,
     pub counts : Counts

@@ -1,45 +1,46 @@
-use chrono::Utc;
 use async_trait::async_trait;
+use chrono::Utc;
+use crate::{
+    api::lemmy::models::author::Author, 
+    database::DatabasePool, 
+    error::LemmySearchError
+};
 use super::{
     DBO, 
     get_database_client
 };
-use crate::{
-    error::LemmySearchError,
-    database::DatabasePool,
-    api::lemmy::models::community::Community
-};
 
-#[derive(Clone)]
-pub struct CommunityDBO {
+
+pub struct AuthorDBO {
     pool : DatabasePool
 }
 
-impl CommunityDBO {
+impl AuthorDBO {
     pub fn new(pool : DatabasePool) -> Self {
-        return Self {
+        Self {
             pool
         }
     }
 }
 
 #[async_trait]
-impl DBO<Community> for CommunityDBO {
+impl DBO<Author> for AuthorDBO {
 
-    fn get_object_name(&self) -> &str {
-        "CommunityData"
+    fn get_object_name(&self) ->  &str {
+        return "Author"
     }
 
     async fn create_table_if_not_exists(
         &self
-    ) -> Result<(), LemmySearchError> {
+    ) ->  Result<(),LemmySearchError> {
+
         get_database_client(&self.pool, |client| {
             client.execute("
-                CREATE TABLE IF NOT EXISTS communities (
+                CREATE TABLE IF NOT EXISTS authors (
                     ap_id             VARCHAR PRIMARY KEY,
-                    icon              VARCHAR NULL,
+                    avatar            VARCHAR NULL,
                     name              VARCHAR NOT NULL,
-                    title             VARCHAR NULL,
+                    display_name      VARCHAR NULL,
                     last_update       TIMESTAMP WITH TIME ZONE NOT NULL
                 )
             ", &[]
@@ -51,30 +52,32 @@ impl DBO<Community> for CommunityDBO {
 
     async fn drop_table_if_exists(
         &self
-    ) -> Result<(), LemmySearchError> {
+    ) ->  Result<(),LemmySearchError> {
+
         get_database_client(&self.pool, |client| {
-            client.execute("DROP TABLE IF EXISTS communities", &[])
+            client.execute("DROP TABLE IF EXISTS authors", &[])
                 .map(|_| {
                     ()
                 })
         })
     }
-    
+
     async fn upsert(
-        &self,
-        object : Community
-    ) -> Result<bool, LemmySearchError> {
+        &self, 
+        object : Author
+    ) ->  Result<bool,LemmySearchError> {
+
         get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO communities (\"ap_id\", \"icon\", \"name\", \"title\", \"last_update\") 
+                INSERT INTO authors (\"ap_id\", \"avatar\", \"name\", \"display_name\", \"last_update\")
                     VALUES ($1, $2, $3, $4, $5)
                 ON CONFLICT (ap_id)
-                DO UPDATE SET \"icon\" = $2, \"name\" = $3, \"title\" = $4, \"last_update\" = $5
+                DO UPDATE SET \"avatar\" = $2, \"name\" = $3, \"display_name\" = $4, \"last_update\" = $5
                 ", &[
                     &object.actor_id,
-                    &object.icon,
+                    &object.avatar,
                     &object.name,
-                    &object.title,                        
+                    &object.display_name,
                     &Utc::now()
                 ]
             ).map(|count| {

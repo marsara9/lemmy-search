@@ -7,15 +7,7 @@ use super::{
 use crate::{
     error::LemmySearchError,
     database::DatabasePool,
-    api::lemmy::models::{
-        post::{
-            Post, 
-            PostData, 
-            Counts, 
-            Creator
-        }, 
-        community::Community
-    }
+    api::lemmy::models::post::PostData
 };
 
 #[derive(Clone)]
@@ -69,56 +61,6 @@ impl DBO<PostData> for PostDBO {
                     ()
                 })
             })
-    }
-
-    async fn retrieve(
-        &self, 
-        ap_id : &str
-    ) -> Result<PostData, LemmySearchError> {
-
-        let ap_id = ap_id.to_owned();
-
-        get_database_client(&self.pool, move |client| {
-            client.query_one("
-                SELECT p.url,
-                        p.name,
-                        p.body,
-                        p.score
-                        p.author_actor_id,
-                        c.ap_id,
-                        c.name,
-                        c.title,
-                    FROM posts AS p
-                        JOIN communities AS c on c.ap_id = m.community_id
-                    WHERE p.ap_id = $1
-                ",
-                &[&ap_id] 
-            ).map(|row| {
-                PostData { 
-                    post: Post { 
-                        ap_id: ap_id.to_string(), 
-                        url : row.get(0),
-                        name: row.get(1), 
-                        body: row.get(2),
-                        removed : Some(false),
-                        deleted : Some(false),
-                        language_id: 0
-                    },
-                    counts : Counts {
-                        score : row.get(3),
-                        ..Default::default()
-                    },
-                    creator: Creator {
-                        actor_id : row.get(4)
-                    },
-                    community : Community { 
-                        actor_id: row.get(5), 
-                        name: row.get(6), 
-                        title: row.get(7) 
-                    }
-                }
-            })
-        })
     }
 
     async fn upsert(
