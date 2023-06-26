@@ -36,20 +36,14 @@ impl DBO<PostData> for PostDBO {
         get_database_client(&self.pool, |client| {
             client.execute("
                 CREATE TABLE IF NOT EXISTS posts (
-                    ap_id               VARCHAR PRIMARY KEY,
-                    url                 VARCHAR NULL,
-                    name                VARCHAR NOT NULL,
-                    body                VARCHAR NULL,
-                    score               INTEGER,
-                    author_actor_id     VARCHAR NOT NULL,
-                    author_avatar       VARCHAR NULL,
-                    author_name         VARCHAR NOT NULL,
-                    author_display_name VARCHAR NULL,
-                    community_ap_id     VARCHAR NOT NULL,
-                    community_icon      VARCHAR NULL,
-                    community_name      VARCHAR NOT NULL,
-                    community_title     VARCHAR NULL,
-                    last_update         TIMESTAMP WITH TIME ZONE NOT NULL
+                    ap_id             VARCHAR PRIMARY KEY,
+                    url               VARCHAR NULL,
+                    name              VARCHAR NOT NULL,
+                    body              VARCHAR NULL,
+                    score             INTEGER,
+                    author_actor_id   VARCHAR NOT NULL,
+                    community_ap_id   VARCHAR NOT NULL,
+                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
                 )
             ", &[]
             ).map(|_| {
