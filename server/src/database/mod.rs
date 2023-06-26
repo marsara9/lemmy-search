@@ -3,12 +3,15 @@ pub mod dbo;
 use crate::{
     config::Postgres, 
     database::dbo::{
+        DBO, 
+        author::AuthorDBO, 
         comment::CommentDBO, 
-        DBO, site::SiteDBO, 
-        post::PostDBO, 
-        word::WordsDBO, 
         community::CommunityDBO, 
-        search::SearchDatabase, author::AuthorDBO
+        id::IdDBO,
+        post::PostDBO, 
+        search::SearchDatabase, 
+        site::SiteDBO, 
+        word::WordsDBO
     }, 
     error::{
         LemmySearchError,
@@ -83,6 +86,9 @@ impl Database {
         ).await?;
         self.create_table(
             CommentDBO::new(self.pool.clone())
+        ).await?;
+        self.create_table(
+            IdDBO::new(self.pool.clone())
         ).await?;
         self.create_table(
             WordsDBO::new(self.pool.clone())

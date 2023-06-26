@@ -130,9 +130,16 @@ impl SearchHandler {
             s.trim().to_string()
         }).collect::<HashSet<String>>();
 
+        let preferred_instance_actor_id = format!("https://{}/", search_query.preferred_instance);
+
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
-        let search_results = search.search(&query_terms, &instance, &community, &author)
-            .await
+        let search_results = search.search(
+            &query_terms, 
+            &instance, 
+            &community, 
+            &author, 
+            &preferred_instance_actor_id
+        ).await
             .log_error("Error during search.", true)
             .map_err(|err| {
                 actix_web::error::ErrorInternalServerError(err)
