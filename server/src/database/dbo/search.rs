@@ -163,7 +163,7 @@ impl SearchDatabase {
                     INNER JOIN posts AS p ON p.ap_id = t.ap_id
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
-                    INNER JOIN lemmy_ids AS l ON l.post_actor_id == p.ap_id
+                    INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                 WHERE l.instance_actor_id = $5
                 ORDER BY 
                     matches DESC,
