@@ -143,7 +143,7 @@ impl SearchDatabase {
             // and sort first by the number of matches and then if there's a conflict
             // by the total number of upvotes that the post has.
             let query_string = format!("
-                SELECT p.url, p.name, p.body, a.avatar, a.name, a.display_name, c.icon, c.name, c.title FROM (
+                SELECT p.url, p.name, p.body, l.post_remote_id, a.avatar, a.name, a.display_name, c.icon, c.name, c.title FROM (
                     SELECT COUNT (p.ap_id) as matches, p.ap_id FROM xref AS x
                         LEFT JOIN words AS w ON w.id = x.word_id 
                         LEFT JOIN posts AS p ON p.ap_id = x.post_ap_id
@@ -161,6 +161,7 @@ impl SearchDatabase {
                     INNER JOIN posts AS p ON p.ap_id = t.ap_id
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
+                    INNER JOIN lemmy_ids AS l ON l.post_actor_id == p.actor_id
                 ORDER BY 
                     matches DESC,
                     p.score DESC
@@ -173,16 +174,16 @@ impl SearchDatabase {
                             url : row.get(0),
                             name : row.get(1),
                             body : row.get(2),
-                            remote_id : "".to_string(), // TODO
+                            remote_id : row.get(3),
                             author : SearchAuthor {
-                                avatar : row.get(3),
-                                name : row.get(4),
-                                display_name : row.get(5),
+                                avatar : row.get(4),
+                                name : row.get(5),
+                                display_name : row.get(6),
                             },
                             community : SearchCommunity {
-                                icon : row.get(6),
-                                name : row.get(7),
-                                title : row.get(8)
+                                icon : row.get(7),
+                                name : row.get(8),
+                                title : row.get(9)
                             }
                         }
                     }).collect()

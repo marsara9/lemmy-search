@@ -2,6 +2,7 @@ pub mod author;
 pub mod site;
 pub mod comment;
 pub mod community;
+pub mod id;
 pub mod post;
 pub mod word;
 pub mod search;

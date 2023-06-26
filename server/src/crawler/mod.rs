@@ -70,9 +70,10 @@ impl Runner {
     ) {
         if config.enabled {
             println!("Crawler is starting to index '{}'...", config.seed_instance);
-            let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database)
+            let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database, false)
                     .crawl()
-                    .await.log_error(format!("The crawler for '{}' incountered an error.", config.seed_instance).as_str(), config.log);
+                    .await
+                    .log_error(format!("The crawler for '{}' incountered an error.", config.seed_instance).as_str(), config.log);
         } else {
             println!("Crawler is currently disabled; skipping...");
         }

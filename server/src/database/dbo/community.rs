@@ -7,7 +7,7 @@ use super::{
 use crate::{
     error::LemmySearchError,
     database::DatabasePool,
-    api::lemmy::models::community::CommunityData
+    api::lemmy::models::community::Community
 };
 
 #[derive(Clone)]
@@ -24,7 +24,7 @@ impl CommunityDBO {
 }
 
 #[async_trait]
-impl DBO<CommunityData> for CommunityDBO {
+impl DBO<Community> for CommunityDBO {
 
     fn get_object_name(&self) -> &str {
         "CommunityData"
@@ -62,7 +62,7 @@ impl DBO<CommunityData> for CommunityDBO {
     
     async fn upsert(
         &self,
-        object : CommunityData
+        object : Community
     ) -> Result<bool, LemmySearchError> {
         get_database_client(&self.pool, move |client| {
             client.execute("
@@ -71,10 +71,10 @@ impl DBO<CommunityData> for CommunityDBO {
                 ON CONFLICT (ap_id)
                 DO UPDATE SET \"icon\" = $2, \"name\" = $3, \"title\" = $4, \"last_update\" = $5
                 ", &[
-                    &object.community.actor_id,
-                    &object.community.icon,
-                    &object.community.name,
-                    &object.community.title,                        
+                    &object.actor_id,
+                    &object.icon,
+                    &object.name,
+                    &object.title,                        
                     &Utc::now()
                 ]
             ).map(|count| {
