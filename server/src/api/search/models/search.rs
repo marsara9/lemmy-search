@@ -8,6 +8,7 @@ use serde::{
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SearchQuery {
     pub query : String,
+    pub preferred_instance : String,
     pub page : Option<i64>
 }
 

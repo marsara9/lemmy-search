@@ -108,13 +108,15 @@ impl SearchDatabase {
         query : &HashSet<String>,
         instance : &Option<String>,
         community : &Option<String>,
-        author : &Option<String>
+        author : &Option<String>,
+        preferred_instance : &str,
     ) -> Result<Vec<SearchPost>, LemmySearchError> {        
 
         let query = query.to_owned();
         let instance = instance.to_owned();
         let community = community.to_owned();
         let author = author.to_owned();
+        let preferred_instance = preferred_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -162,12 +164,13 @@ impl SearchDatabase {
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                     INNER JOIN lemmy_ids AS l ON l.post_actor_id == p.actor_id
+                WHERE l.instance_actor_id = $5
                 ORDER BY 
                     matches DESC,
                     p.score DESC
             ", instance_query, community_query, author_query);
 
-            client.query(&query_string, &[&temp, &instance, &community, &author])
+            client.query(&query_string, &[&temp, &instance, &community, &author, &preferred_instance])
                 .map(|rows| {
                     rows.iter().map(|row| {
                         SearchPost {

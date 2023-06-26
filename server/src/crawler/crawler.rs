@@ -215,7 +215,8 @@ impl Crawler {
 
             page += 1;
 
-            site_dbo.set_last_post_page(&site_actor_id, page);
+            site_dbo.set_last_post_page(&site_actor_id, page)
+                .await?;
         }
 
         Ok(())
