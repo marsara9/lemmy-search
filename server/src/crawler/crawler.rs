@@ -126,6 +126,7 @@ impl Crawler {
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
 
+        let mut total_found = 0;
         let mut page = last_page;
         loop {
             let posts = self.fetcher.fetch_posts(page)
@@ -175,9 +176,11 @@ impl Crawler {
                 search.upsert_post(words, &clone_post)
                     .await
                     .log_error("\t...building search queries failed.", self.config.log)?;
+
+                total_found += 1;
             }
 
-            println!("\tinserted {} {}...", count, post_dbo.get_object_name());
+            println!("\tinserted {} {}...", total_found, post_dbo.get_object_name());
 
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;
