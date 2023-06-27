@@ -38,6 +38,7 @@ impl Analyizer {
         words
     }
 
+    #[allow(unused)]
     pub fn get_distinct_words_in_comment(
         &self,
         comment : &Comment

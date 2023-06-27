@@ -58,8 +58,10 @@ impl SearchDatabase {
     pub async fn upsert_post(
         &self,
         words : HashSet<String>,
-        post : Post
+        post : &Post
     ) -> Result<(), LemmySearchError> {
+
+        let post = post.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -94,6 +96,7 @@ impl SearchDatabase {
         })
     }
 
+    #[allow(unused)]
     pub async fn upsert_comment(
         &self,
         words : HashSet<String>,

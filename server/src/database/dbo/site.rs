@@ -74,6 +74,7 @@ impl SiteDBO {
         })
     }
 
+    #[allow(unused)]
     pub async fn set_last_comment_page(
         &self,
         ap_id : &str,
@@ -118,6 +119,7 @@ impl SiteDBO {
         })
     }
 
+    #[allow(unused)]
     pub async fn get_last_comment_page(
         &self,
         ap_id : &str
@@ -158,7 +160,6 @@ impl DBO<SiteView> for SiteDBO {
                     id                  UUID PRIMARY KEY,
                     name                VARCHAR NULL,
                     actor_id            VARCHAR NOT NULL UNIQUE,
-                    last_community_page INTEGER DEFAULT 0,
                     last_post_page      INTEGER DEFAULT 0,
                     last_comment_page   INTEGER DEFAULT 0,
                     last_update         TIMESTAMP WITH TIME ZONE NOT NULL

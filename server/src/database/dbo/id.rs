@@ -35,7 +35,8 @@ impl DBO<LemmyId> for IdDBO {
                 CREATE TABLE IF NOT EXISTS lemmy_ids (
                     post_remote_id      INT8 NOT NULL,
                     post_actor_id       VARCHAR NOT NULL,
-                    instance_actor_id   VARCHAR NOT NULL
+                    instance_actor_id   VARCHAR NOT NULL,
+                    UNIQUE (post_actor_id, instance_actor_id)
                 )
             ", &[]
             ).map(|_| {
@@ -61,7 +62,7 @@ impl DBO<LemmyId> for IdDBO {
     ) -> Result<bool, LemmySearchError> {
         get_database_client(&self.pool, move |client| {
             client.execute("
-                INSERT INTO communities (\"post_remote_id\", \"post_actor_id\" \"instance_actor_id\") 
+                INSERT INTO lemmy_ids (\"post_remote_id\", \"post_actor_id\", \"instance_actor_id\") 
                     VALUES ($1, $2, $3)
                 ON CONFLICT (post_actor_id, instance_actor_id)
                 DO UPDATE SET post_remote_id = $1

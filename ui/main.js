@@ -2,12 +2,14 @@ var preferred_instance = "lemmy.world"
 
 function populateInstances() {
     fetchJson("/instances", result => {
-        for(instance in result) {
-            $("#instance-select").append($("<option>", {
-                value : instance.url,
-                text : instance.name
-            }))
-        }
+        let select = $("#instance-select");
+        result.forEach(instance => {
+            let option = $("<option />")
+                .attr("value", instance.site.actor_id);
+            option.text(instance.site.name);
+
+            select.append(option);
+        })
     })
 }
 

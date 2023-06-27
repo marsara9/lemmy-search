@@ -59,25 +59,6 @@ impl Fetcher {
             .await
     }
 
-    // pub async fn fetch_communities(
-    //     &self,
-    //     page : i32
-    // ) -> Result<Vec<CommunityData>, LemmySearchError> {
-    //     let params = CommunityListRequest {
-    //         sort: Some(SortType::Old),
-    //         limit: Self::DEFAULT_LIMIT,
-    //         page: page
-    //     };
-
-    //     let url = self.get_url("/api/v3/community/list");
-
-    //     fetch_json(&url, params)
-    //         .await
-    //         .map(|view: CommunityListResponse| {
-    //             view.communities
-    //         })
-    // }
-
     pub async fn fetch_posts(
         &self,
         page : i32
@@ -98,6 +79,7 @@ impl Fetcher {
             })
     }
 
+    #[allow(unused)]
     pub async fn fetch_comments(
         &self,
         page : i32

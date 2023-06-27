@@ -49,6 +49,11 @@ input, select {
     font-size: 1.3rem;
 }
 
+select {
+    padding: 12px;
+    border-right: 16px solid transparent;
+}
+
 input[type=button]:hover, input[type=submit]:hover {
     background-color: #313131;
 }

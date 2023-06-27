@@ -25,7 +25,7 @@ pub struct SearchPost {
     pub url : Option<String>,
     pub name : String,
     pub body : Option<String>,
-    pub remote_id : String,
+    pub remote_id : i64,
     pub author : SearchAuthor,
     pub community: SearchCommunity,
 }

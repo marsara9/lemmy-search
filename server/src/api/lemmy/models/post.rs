@@ -5,7 +5,8 @@ use serde::{
 
 use super::{
     common::SortType, 
-    community::Community, author::Author
+    community::Community, 
+    author::Author
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
