@@ -1,11 +1,28 @@
 crawler:
+  # Turns ON or OFF the crawler.  Useful if you want to do testing and don't
+  # want to worry about it indexing the seed instance randomly.
   enabled: false
+  # Which instance to gather actual Posts from.  Any other lemmy instances
+  # that are federated with this instance will also be crawled, but only to
+  # cross reference Posts found on the seed instance.
   seed_instance: "voyager.lemmy.ml"
+  # Turn ON or OFF stack-traces.  Logging will still occur, but details
+  # on any crashes will be suppressed if this is turned off.
   log: true
+# Details about the postgres database.  See the docker-compose.yml for details.
 postgres:
+  # The root user that should be used to connect to the database.
   user: "lemmy"
+  # That user's password.
   password: "password"
+  # The hostname as defined in the docker-compose.yml for the postgres service.
   hostname: "lemmy-search-db"
+  # The post as defined in the docker-compose.yml.  Default port for postgres is 5432.
   port: 5432
+  # The default database that is created by postgres on bootup.  Check your 
+  # docker-compose.yml for details.
   database: "lemmy-search-db"
+  # Same as the cralwer's logging.  This just turns ON or OFF stack-trace reporting.
+  # Logs will still be sent to the console but they won't contain any stack-traces
+  # should a crash or panic occur.
   log: false
