@@ -1,4 +1,4 @@
-var preferred_instance = "lemmy.world"
+var preferred_instance = null;
 
 function populateInstances() {
     fetchJson("/instances", result => {
@@ -17,13 +17,17 @@ function populateInstances() {
     })
 }
 
+function dropSchema(instance_actor_id) {
+    return instance_actor_id.substring(8, instance_actor_id.length-1);
+}
+
 $(document).ready(function() {
     $("#submit").click(function() {
         let query = $("#search").val();
 
         let params = {
             "query" : query,
-            "preferred_instance" : preferred_instance,
+            "preferred_instance" : dropSchema(preferred_instance),
             "page" : 1
         };
         
