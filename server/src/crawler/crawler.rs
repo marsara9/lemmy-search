@@ -1,6 +1,3 @@
-use std::time::Duration;
-use async_std::task::sleep;
-use futures::Future;
 use async_recursion::async_recursion;
 use crate::{
     config,
@@ -18,8 +15,7 @@ use crate::{
             DBO, 
             site::SiteDBO, 
             community::CommunityDBO, 
-            post::PostDBO, 
-            comment::CommentDBO, 
+            post::PostDBO,
             word::WordsDBO, 
             search::SearchDatabase, 
             author::AuthorDBO, 
@@ -190,6 +186,8 @@ impl Crawler {
                 .await?;
             page += 1;
         }
+
+        // TODO: Need to fetch comments and index their content.
 
         Ok(())
     }

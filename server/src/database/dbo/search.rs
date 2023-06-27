@@ -96,6 +96,7 @@ impl SearchDatabase {
         })
     }
 
+    #[allow(unused)]
     pub async fn upsert_comment(
         &self,
         words : HashSet<String>,
