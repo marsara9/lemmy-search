@@ -1,16 +1,20 @@
-var preferred_instance = "https://lemmy.world/"
+var preferred_instance = null;
 
-function checkQueryParamers() {
+function checkQueryParameters() {
     const urlParameters = new URLSearchParams(window.location.search);
     return urlParameters.has("query");
 }
 
 function populateInstances() {
     fetchJson("/instances", result => {
+
+        preferred_instance = getCookie("preferred-instance") ?? result[0].site.actor_id;
+
         let select = $("#instance-select");
         result.forEach(instance => {
             let option = $("<option />")
-                .attr("value", instance.site.actor_id);
+                .attr("value", instance.site.actor_id)
+                .prop("selected", instance.site.actor_id == preferred_instance);
             option.text(instance.site.name);
 
             select.append(option);
@@ -129,10 +133,15 @@ $(document).ready(function() {
     let contentPlacement = header.position().top + header.outerHeight();
     $('#results').css('margin-top',contentPlacement);
 
-    if (!checkQueryParamers()) {
+    if (!checkQueryParameters()) {
         window.location = "/";
         return;
     }
+
+    $("instance-select").on("change", function() {
+        preferred_instance = this.value;
+        setCookie("preferred-instance", instance-select);
+    });
 
     populateInstances();
 
