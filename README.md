@@ -4,8 +4,6 @@
 ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/marsara9/lemmy-search)
 ![GitHub](https://img.shields.io/github/license/marsara9/lemmy-search)
 
-![Discord](https://discord.gg/TW332maubQ)
-
 # Lemmy-Search
 
 The fediverse creates some unique problems when it comes to searching.  Mostly that existing search engines can't deal with the concept that multiple servers may exist that are ultimately hosting the same content.  These same search engines also aren't awawre that you only have an account on one, or maybe a select few of these instances.
