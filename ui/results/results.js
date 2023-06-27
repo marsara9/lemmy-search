@@ -135,6 +135,10 @@ function isImage(url) {
     return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
 }
 
+function dropSchema(instance_actor_id) {
+    return instance_actor_id.substring(8, instance_actor_id.length-1);
+}
+
 $(document).ready(function() {
     let header = $(".header");
     let contentPlacement = header.position().top + header.outerHeight();
