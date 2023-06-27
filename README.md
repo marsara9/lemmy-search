@@ -4,6 +4,10 @@
 ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/marsara9/lemmy-search)
 ![GitHub](https://img.shields.io/github/license/marsara9/lemmy-search)
 
+# Please Read
+
+If anyone wants to help contribute to this, please feel free to reach out to me.  You can obviously find me on Lemmy, mainly https://lemmy.world/u/marsara9 or you can find me on Discord.  If you can't contribute but still want to help, feel free to raise feature requests for things you'd like to see.
+
 # Lemmy-Search
 
 The fediverse creates some unique problems when it comes to searching.  Mostly that existing search engines can't deal with the concept that multiple servers may exist that are ultimately hosting the same content.  These same search engines also aren't aware that you only have an account on one, or maybe a select few of these instances.
