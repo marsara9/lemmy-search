@@ -36,7 +36,7 @@ RUN cd /tmp && \
     apt-get update && \
     apt-get download $(apt-cache depends --recurse --no-recommends --no-suggests \
         --no-conflicts --no-breaks --no-replaces --no-enhances --no-pre-depends \
-        network-manager grep dnsmasq libzstd1 | \
+        ca-certificates | \
         grep "^\w") && \
     mkdir /dpkg && \
     for deb in *.deb; do dpkg --extract $deb /dpkg || exit 10; done
