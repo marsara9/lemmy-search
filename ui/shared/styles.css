@@ -38,6 +38,8 @@ body {
 
 #content > * {
     padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 input, select {
@@ -48,19 +50,65 @@ input, select {
     font-size: 1.3rem;
 }
 
+select {
+    padding: 12px;
+    border-right: 16px solid transparent;
+}
+
 input[type=button]:hover, input[type=submit]:hover {
     background-color: #313131;
 }
 
-.footer {
+.header {
+    background-color: #222;
     position: fixed;
-    left: 24px;
-    right: 24px;
-    bottom: 24px;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+}
+
+.header > div {
+    margin: 12px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+}
+
+.header > div > * {
+    margin: 12px;
+}
+
+.header #instance-select {
+    margin-left: auto;
+    width: 120px;
+}
+
+.header #submit {
+    width: 200px;
+}
+
+.footer {
+    background-color: #222;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 24px;
     display: flex;
     justify-content: center;
     font-size: 1.2rem;
     gap: 12px;
+}
+
+#search {
+    max-width: 768px;
+    padding: 12px;
+}
+
+.header #search {
+    width: 80%;
 }
 
 a, a:visited {
@@ -69,4 +117,50 @@ a, a:visited {
 
 .a:hover {
     color: white;
+}
+
+#results {
+    max-width: 768px;
+}
+
+ol {
+    padding: 0;
+}
+
+li.search-result {
+    list-style-type: none;
+}
+
+.search-result {
+    margin: 12px;
+    padding: 12px;
+}
+
+.search-result > * {
+    margin: 8px;
+}
+
+.post-url {
+    float: right;
+    background: white;
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+}
+
+.post-citation > img {
+    width: 16px;
+    height: 16px;
+    margin: 4px;
+    vertical-align: middle;
+    border-radius: 8px;
+}
+
+.post-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.post-body > .search-term {
+    font-weight: bold;
 }

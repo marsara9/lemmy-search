@@ -5,9 +5,9 @@ use crate::api::lemmy::models::{
     comment::Comment
 };
 
-pub struct Analyizer;
+pub struct Analyzer;
 
-impl Analyizer {
+impl Analyzer {
 
     pub fn new() -> Self {
         Self {}
@@ -38,6 +38,7 @@ impl Analyizer {
         words
     }
 
+    #[allow(unused)]
     pub fn get_distinct_words_in_comment(
         &self,
         comment : &Comment

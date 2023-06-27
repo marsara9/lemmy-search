@@ -6,7 +6,11 @@ use crate::{
     error::LemmySearchError,
     database::DatabasePool,
     api::{
-        search::models::search::SearchPost, 
+        search::models::search::{
+            SearchPost, 
+            SearchAuthor, 
+            SearchCommunity
+        }, 
         lemmy::models::{
             post::Post, 
             comment::Comment
@@ -58,13 +62,15 @@ impl SearchDatabase {
     pub async fn upsert_post(
         &self,
         words : HashSet<String>,
-        post : Post
+        post : &Post
     ) -> Result<(), LemmySearchError> {
+
+        let post = post.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
             let mut transaction = client.transaction()?;
-            transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
+            let deleted = transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
 
             let words = words.into_iter().collect::<Vec<String>>();
             let rows = transaction.query("SELECT id FROM words WHERE word = any($1)", &[&words])?;
@@ -78,43 +84,50 @@ impl SearchDatabase {
             }
 
             let mut query = format!("INSERT INTO xref (word_id, post_ap_id) VALUES ");
-            for index in 0..ids.len() {
-                query += format!("(${} , $1),", index+2).as_str();
+            if ids.len() != 0 {
+                for index in 0..ids.len() {
+                    query += format!("(${} , $1),", index+2).as_str();
+                }
+                query = query.trim_end_matches(",").to_string();
+                params.insert(0, &post.ap_id);
+                transaction.execute(&query, &params)?;
+            } else {
+                println!("WARNING: post was inserted but had 0 words? {} associations were deleted however.", deleted);
+                println!("{:#?}", post);
             }
-            query = query.trim_end_matches(",").to_string();
-            params.insert(0, &post.ap_id);
-            transaction.execute(&query, &params)?;
 
             transaction.commit()
         })
     }
 
+    #[allow(unused)]
     pub async fn upsert_comment(
         &self,
         words : HashSet<String>,
         comment : Comment
     ) -> Result<(), LemmySearchError> {
+        // TODO
         Ok(())
     }
 
     pub async fn search(
         &self,
-        query : &str,
+        query : &HashSet<String>,
         instance : &Option<String>,
         community : &Option<String>,
-        author : &Option<String>
+        author : &Option<String>,
+        preferred_instance : &str,
     ) -> Result<Vec<SearchPost>, LemmySearchError> {        
 
         let query = query.to_owned();
         let instance = instance.to_owned();
         let community = community.to_owned();
         let author = author.to_owned();
+        let preferred_instance = preferred_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
-            let temp = query.split_whitespace().map(|s| {
-                s.trim().to_string()
-            }).collect::<Vec<String>>();
+            let temp = Vec::<String>::from_iter(query.into_iter());
 
             let instance_query = match instance {
                 Some(_) => "AND s.actor_id = $2",
@@ -133,13 +146,18 @@ impl SearchDatabase {
             let community = community.unwrap_or("".to_string());
             let author = author.unwrap_or("".to_string());
 
+            // Finds all words that match the search critera, then filter those results
+            // by any additional critera that the user may have, such as instance, 
+            // community, or author.  Next, count the number of matches each post has
+            // and sort first by the number of matches and then if there's a conflict
+            // by the total number of upvotes that the post has.
             let query_string = format!("
-                SELECT p.url, p.name, p.body, p.score, p.ap_id, c.title FROM (
-                    SELECT DISTINCT ON (p.ap_id) p.ap_id FROM xref AS x
-                        JOIN words AS w ON w.id = x.word_id 
-                        JOIN posts AS p ON p.ap_id = x.post_ap_id
-                        JOIN communities AS c ON c.ap_id = p.community_ap_id
-                        JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
+                SELECT p.url, p.name, p.body, l.post_remote_id, a.avatar, a.name, a.display_name, c.icon, c.name, c.title FROM (
+                    SELECT COUNT (p.ap_id) as matches, p.ap_id FROM xref AS x
+                        LEFT JOIN words AS w ON w.id = x.word_id 
+                        LEFT JOIN posts AS p ON p.ap_id = x.post_ap_id
+                        LEFT JOIN communities AS c ON c.ap_id = p.community_ap_id
+                        LEFT JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
                     WHERE w.word = any($1)
                         AND $2 = $2
                         AND $3 = $3
@@ -147,24 +165,36 @@ impl SearchDatabase {
                         {}
                         {}
                         {}
-                    ORDER BY p.ap_id
+                    GROUP BY p.ap_id
                 ) AS t
-                    JOIN posts AS p ON p.ap_id = t.ap_id
-                    JOIN communities AS c ON c.ap_id = p.community_ap_id
-                ORDER BY p.score DESC
+                    INNER JOIN posts AS p ON p.ap_id = t.ap_id
+                    INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
+                    INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
+                    INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
+                WHERE l.instance_actor_id = $5
+                ORDER BY 
+                    matches DESC,
+                    p.score DESC
             ", instance_query, community_query, author_query);
 
-            client.query(&query_string, &[&temp, &instance, &community, &author])
+            client.query(&query_string, &[&temp, &instance, &community, &author, &preferred_instance])
                 .map(|rows| {
                     rows.iter().map(|row| {
                         SearchPost {
                             url : row.get(0),
                             name : row.get(1),
                             body : row.get(2),
-                            score : row.get(3),
-                            actor_id : row.get(4),
-                            community_name : row.get(5),
-                            comments : Vec::new()
+                            remote_id : row.get(3),
+                            author : SearchAuthor {
+                                avatar : row.get(4),
+                                name : row.get(5),
+                                display_name : row.get(6),
+                            },
+                            community : SearchCommunity {
+                                icon : row.get(7),
+                                name : row.get(8),
+                                title : row.get(9)
+                            }
                         }
                     }).collect()
                 })

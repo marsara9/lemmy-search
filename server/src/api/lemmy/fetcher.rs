@@ -6,12 +6,10 @@ use super::models::{
     common::SortType,
     site::{
         SiteRequest,
-        SiteResponse
+        SiteResponse, 
+        FederatedInstancesResponse, 
+        FederatedInstancesRequest
     },
-    community::{
-        CommunityListRequest, 
-        CommunityData, CommunityListResponse
-    }, 
     post::{
         PostData, 
         PostListRequest, PostListResponse, 
@@ -52,23 +50,13 @@ impl Fetcher {
             .await
     }
 
-    pub async fn fetch_communities(
-        &self,
-        page : i32
-    ) -> Result<Vec<CommunityData>, LemmySearchError> {
-        let params = CommunityListRequest {
-            sort: Some(SortType::Old),
-            limit: Self::DEFAULT_LIMIT,
-            page: page
-        };
-
-        let url = self.get_url("/api/v3/community/list");
-
+    pub async fn fetch_instances(
+        &self
+    ) -> Result<FederatedInstancesResponse, LemmySearchError> {
+        let params = FederatedInstancesRequest;
+        let url = self.get_url("/api/v3/federated_instances");
         fetch_json(&url, params)
             .await
-            .map(|view: CommunityListResponse| {
-                view.communities
-            })
     }
 
     pub async fn fetch_posts(
@@ -76,6 +64,7 @@ impl Fetcher {
         page : i32
     ) -> Result<Vec<PostData>, LemmySearchError> {
         let params = PostListRequest {
+            type_: Some(super::models::common::ListingType::All),
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
             page: page,
@@ -91,6 +80,7 @@ impl Fetcher {
             })
     }
 
+    #[allow(unused)]
     pub async fn fetch_comments(
         &self,
         page : i32

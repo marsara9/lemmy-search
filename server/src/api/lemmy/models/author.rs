@@ -4,9 +4,9 @@ use serde::{
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct Community {
+pub struct Author {
     pub actor_id : String,
-    pub icon : Option<String>,
+    pub avatar : Option<String>,
     pub name : String,
-    pub title : Option<String>
+    pub display_name : Option<String>
 }

@@ -1,7 +1,7 @@
 
 #[derive(Debug)]
 pub enum LemmySearchError {
-    Unknown,
+    Unknown(String),
     Database(postgres::Error),
     DatabaseConnection(r2d2_postgres::r2d2::Error),
     Network(reqwest::Error)
@@ -10,7 +10,7 @@ pub enum LemmySearchError {
 impl std::fmt::Display for LemmySearchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
-            Self::Unknown => write!(f, "Unknown Error"),
+            Self::Unknown(string) => write!(f, "Unknown Error '{}'", string),
             Self::Database(postgres) => postgres.fmt(f),
             Self::DatabaseConnection(r2d2_postgres) => r2d2_postgres.fmt(f),
             Self::Network(reqwest) => reqwest.fmt(f)

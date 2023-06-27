@@ -32,11 +32,11 @@ Note that a post that just contains the same word repeated over and over will st
 For the first release I expect to have the following features:
 
 - [x] Indexing will be limited to a single 'seed instance'.  Now assuming that instance is federated, you should still be able to search across all of the posts that your seed instance is aware of.
-- [x] Federated instances of that 'seed instance' will only be indexed so that opening links will work on that target instanace.
+- [x] Federated instances of that 'seed instance' will only be indexed so that opening links will work on that target instance.
 - [x] Users can type in any search string and it will match on the contents of any Post.
-  - [ ] Common words are automatically removed from the search query to help reduce false positives.
+  - [x] Short words are automatically removed from the search query to help reduce false positives.
 - [x] Preferred Instance selection.  This will be limited to instances that the search engine has found as it indexes the fediverse.
-- [ ] Filtering by Instance, Community and/or Author.
+- [x] Filtering by Instance, Community and/or Author.
 
 
 Eventually some ideas I'd like to support (in no particular order):

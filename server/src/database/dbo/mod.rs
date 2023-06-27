@@ -1,6 +1,8 @@
+pub mod author;
 pub mod site;
 pub mod comment;
 pub mod community;
+pub mod id;
 pub mod post;
 pub mod word;
 pub mod search;
@@ -31,11 +33,6 @@ pub trait DBO<T : Default> {
         &self
     ) -> Result<(), LemmySearchError>;
 
-    async fn retrieve(
-        &self, 
-        ap_id : &str
-    ) -> Result<T, LemmySearchError>;
-
     async fn upsert(
         &self,
         object : T
@@ -59,7 +56,6 @@ where
             LemmySearchError::Database(err)
         })
     }).join().map_err(|err| {
-        println!("Unknown error {:#?}", err);
-        LemmySearchError::Unknown
+        LemmySearchError::Unknown(format!("{:#?}", err))
     })?
 }

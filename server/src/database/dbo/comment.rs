@@ -7,18 +7,7 @@ use super::{
 use crate::{
     error::LemmySearchError,
     database::DatabasePool,
-    api::lemmy::models::{
-        comment::{
-            Comment, 
-            CommentData, 
-            Counts
-        }, 
-        post::{
-            Post, 
-            Creator
-        }, 
-        community::Community
-    }    
+    api::lemmy::models::comment::CommentData 
 };
 
 #[derive(Clone)]
@@ -72,62 +61,6 @@ impl DBO<CommentData> for CommentDBO {
                 .map(|_| {
                     ()
                 })
-        })
-    }
-
-    async fn retrieve(
-        &self, 
-        ap_id : &str
-    ) -> Result<CommentData, LemmySearchError> {
-
-        let ap_id = ap_id.to_owned();
-
-        get_database_client(&self.pool, move |client| {
-            client.query_one("
-                SELECT m.body, 
-                        m.score,
-                        m.author_actor_id,
-                        p.ap_id,
-                        p.url,
-                        p.name, 
-                        p.body,
-                        c.ap_id,
-                        c.name,
-                        c.title
-                    FROM comments AS m 
-                        JOIN posts AS p ON p.ap_id = m.post_ap_id
-                        JOIN community AS c ON c.ap_id = m.community_ap_id
-                    WHERE m.ap_id = $1
-                ",
-                &[&ap_id] 
-            ).map(|row| {
-                CommentData { 
-                    comment : Comment {
-                        ap_id: ap_id.to_string(),
-                        content: row.get(0),
-                    },
-                    counts: Counts {
-                        score : Some(row.get(1))
-                    },
-                    creator : Creator {
-                        actor_id : row.get(2)
-                    },
-                    post : Post {
-                        ap_id: row.get(3),
-                        url : row.get(4),
-                        name : row.get(5),
-                        body : row.get(6),
-                        removed : Some(false),
-                        deleted : Some(false),
-                        language_id: 0
-                    },
-                    community : Community {
-                        actor_id: row.get(7),
-                        name: row.get(8),
-                        title: row.get(9)
-                    }
-                }
-            })
         })
     }
 
