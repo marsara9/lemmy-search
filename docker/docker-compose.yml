@@ -23,6 +23,9 @@ services:
     networks:
       - internal # Both `lemmy-search' and 'postgres' MUST be on the same network.
     volumes:
+      # This must point to the folder that contains your lemmy-search config.json file.
+      # While this is technically optional, the default config points to 'voyager.lemmy.ml',
+      # which is just a small testing instance ran by the developers of Lemmy itself.
       - /docker/lemmy-search/config:/lemmy/config
     depends_on:
       - postgres
