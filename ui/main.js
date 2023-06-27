@@ -3,7 +3,7 @@ var preferred_instance = "lemmy.world"
 function populateInstances() {
     fetchJson("/instances", result => {
 
-        preferred_instance = getCookie("preferred-instance");
+        preferred_instance = getCookie("preferred-instance") ?? result[0].site.actor_id;
 
         let select = $("#instance-select");
         result.forEach(instance => {

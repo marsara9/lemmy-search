@@ -16,12 +16,12 @@ Lemmy-Search, ya I need a better name, will uniquely search any Lemmy instance a
     b. Community -- You can also filter search results by just the particular community.
     c. Author -- You can also just search for posts that were made by a particular user.
 
-## Roadmap
+## Road-map
 
 For the first release I expect to have the following features:
 
 - [x] Indexing will be limited to a single 'seed instance'.  Now assuming that instance is federated, you should still be able to search across all of the posts that your seed instance is aware of.
-- [x] Federated instances of that 'seed instance' will only be indexed so that opening links will work on that target instanace.
+- [x] Federated instances of that 'seed instance' will only be indexed so that opening links will work on that target instance.
 - [x] Users can type in any search string and it will match on the contents of any Post.
   - [ ] Common words are automatically removed from the search query to help reduce false positives.
 - [x] Preferred Instance selection.  This will be limited to instances that the search engine has found as it indexes the fediverse.
@@ -46,7 +46,7 @@ TODO Include a step-by-step guide.
 
 |Name|Details|
 |----|----|
-|vX.Y.Z|This tag will always correspond to a particular release.  It won't recieve any updates apart from any critical bugs that may be discovered.|
+|vX.Y.Z|This tag will always correspond to a particular release.  It won't receive any updates apart from any critical bugs that may be discovered.|
 |latest|This tag will always match the master branch.  It should be the most stable apart from actual releases.  Note that this tag will be updated when a release goes out.|
-|dev|This tag will always align with the develop branch.  I cannot guarentee that everything will work on this tag as feature development is on-going.|
+|dev|This tag will always align with the develop branch.  I cannot guarantee that everything will work on this tag as feature development is on-going.|
 |test|This is my local testing tag.  It can be updated multiple times per day and may not align to any particular code in the repository.  I recommend that no-one uses this, or if they do, do so at your own risk.|

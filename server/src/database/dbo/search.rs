@@ -6,7 +6,11 @@ use crate::{
     error::LemmySearchError,
     database::DatabasePool,
     api::{
-        search::models::search::{SearchPost, SearchAuthor, SearchCommunity}, 
+        search::models::search::{
+            SearchPost, 
+            SearchAuthor, 
+            SearchCommunity
+        }, 
         lemmy::models::{
             post::Post, 
             comment::Comment
