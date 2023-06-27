@@ -58,6 +58,15 @@ input[type=button]:hover, input[type=submit]:hover {
     background-color: #313131;
 }
 
+.header {
+    background-color: #222;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 24px;
+}
+
 .footer {
     background-color: #222;
     position: fixed;
