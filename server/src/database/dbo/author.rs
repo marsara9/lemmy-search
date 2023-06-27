@@ -10,7 +10,6 @@ use super::{
     get_database_client
 };
 
-
 pub struct AuthorDBO {
     pool : DatabasePool
 }

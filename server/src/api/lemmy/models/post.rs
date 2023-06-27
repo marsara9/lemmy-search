@@ -4,13 +4,17 @@ use serde::{
 };
 
 use super::{
-    common::SortType, 
+    common::{
+        SortType, 
+        ListingType
+    }, 
     community::Community, 
     author::Author
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct PostListRequest {
+    pub type_ : Option<ListingType>,
     pub community_id : Option<i64>,
     pub sort : Option<SortType>,
     pub limit : i32,

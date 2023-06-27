@@ -24,7 +24,7 @@ use crate::{
     }
 };
 
-use super::analyizer::Analyizer;
+use super::analyzer::Analyzer;
 
 pub struct Crawler {
     pub instance : String,
@@ -32,7 +32,7 @@ pub struct Crawler {
     config : config::Crawler,
     database : Database,
     fetcher : Fetcher,
-    analyizer : Analyizer,
+    analyzer : Analyzer,
 
     just_update_remote_ids : bool
 }
@@ -51,7 +51,7 @@ impl Crawler {
             config,
             database,
             fetcher: Fetcher::new(instance),
-            analyizer : Analyizer::new(),
+            analyzer : Analyzer::new(),
             just_update_remote_ids
         }
     }
@@ -141,6 +141,10 @@ impl Crawler {
 
             for post_data in posts {
 
+                if post_data.post.deleted.unwrap_or(false) || post_data.post.removed.unwrap_or(false) {
+                    continue;
+                }
+
                 let clone_post = post_data.post.clone();
 
                 post_dbo.upsert(post_data.clone())
@@ -165,11 +169,11 @@ impl Crawler {
                     .await
                     .log_error("\t...failed to insert remote ids.", self.config.log)?;
 
-                let words = self.analyizer.get_distinct_words_in_post(&clone_post);
+                let words = self.analyzer.get_distinct_words_in_post(&clone_post);
                 for word in words.clone() {
                     if !words_dbo.upsert(word)
                         .await
-                        .log_error("\t...an error occured during insertion of search words.", self.config.log)? {
+                        .log_error("\t...an error occurred during insertion of search words.", self.config.log)? {
                             println!("\t...failed to insert search words.")
                         }
                 }

@@ -1,4 +1,4 @@
-pub mod analyizer;
+pub mod analyzer;
 pub mod crawler;
 
 use self::crawler::Crawler;
@@ -73,7 +73,7 @@ impl Runner {
             let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database, false)
                     .crawl()
                     .await
-                    .log_error(format!("The crawler for '{}' incountered an error.", config.seed_instance).as_str(), config.log);
+                    .log_error(format!("The crawler for '{}' encountered an error.", config.seed_instance).as_str(), config.log);
         } else {
             println!("Crawler is currently disabled; skipping...");
         }

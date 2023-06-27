@@ -5,9 +5,9 @@ use crate::api::lemmy::models::{
     comment::Comment
 };
 
-pub struct Analyizer;
+pub struct Analyzer;
 
-impl Analyizer {
+impl Analyzer {
 
     pub fn new() -> Self {
         Self {}

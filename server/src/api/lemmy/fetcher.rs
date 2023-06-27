@@ -64,6 +64,7 @@ impl Fetcher {
         page : i32
     ) -> Result<Vec<PostData>, LemmySearchError> {
         let params = PostListRequest {
+            type_: Some(super::models::common::ListingType::All),
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
             page: page,

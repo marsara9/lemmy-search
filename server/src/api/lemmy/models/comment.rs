@@ -4,7 +4,10 @@ use serde::{
 };
 
 use super::{
-    common::SortType, 
+    common::{
+        SortType, 
+        ListingType
+    }, 
     post::Post, 
     author::Author,
     community::Community
@@ -12,6 +15,7 @@ use super::{
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct CommentListRequest {
+    pub type_ : Option<ListingType>,
     pub post_id : Option<i64>,
     pub sort : Option<SortType>,
     pub limit : i32,
