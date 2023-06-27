@@ -43,3 +43,12 @@ Eventually some ideas I'd like to support (in no particular order):
 I've included a sample docker-compose.yml file that you refence to get things started.  There's no environment variables or anything that you need to pass to the docker container, but there is a [config.yml](./config/config.yml) file that allows you to fine-tune the seettings of the search engine and it's associated cralwer.
 
 TODO Include a step-by-step guide.
+
+### Docker Tag Reference
+
+|Name|Details|
+|----|----|
+|vX.Y.Z|This tag will always correspond to a particular release.  It won't recieve any updates apart from any critical bugs that may be discovered.|
+|latest|This tag will always match the master branch.  It should be the most stable apart from actual releases.  Note that this tag will be updated when a release goes out.|
+|dev|This tag will always align with the develop branch.  I cannot guarentee that everything will work on this tag as feature development is on-going.|
+|test|This is my local testing tag.  It can be updated mutliple times per day and may not align to any particular code in the repository.  I recommend that noone uses this, or if they do, do so at your own risk.|
