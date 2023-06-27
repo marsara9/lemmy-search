@@ -15,7 +15,7 @@ function populateInstances() {
 
 $(document).ready(function() {
     $("#submit").click(function() {
-        let query = $("#input").val()
+        let query = $("#search").val()
 
         let params = {
             "query" : query,
