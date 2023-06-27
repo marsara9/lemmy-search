@@ -5,8 +5,28 @@ function checkQueryParamers() {
     return urlParameters.has("query");
 }
 
+function populateInstances() {
+    fetchJson("/instances", result => {
+        let select = $("#instance-select");
+        result.forEach(instance => {
+            let option = $("<option />")
+                .attr("value", instance.site.actor_id);
+            option.text(instance.site.name);
+
+            select.append(option);
+        })
+    })
+}
+
 function query(queryString) {
     fetchJson("/search" + queryString, result => {
+
+        let response_time = Math.round((result.time_taken.secs + (result.time_taken.nanos / 1_000_000_000)) * 100) / 100;
+
+        $("#response-time").text(
+            "Found " + result.posts.length + " results in " + response_time + " seconds"
+        );
+
         let list = $("<ol/>");
         result.posts.forEach(post => {
             let item = $("<li/>")
@@ -105,10 +125,16 @@ function isImage(url) {
 }
 
 $(document).ready(function() {
+    let header = $(".header");
+    let contentPlacement = header.position().top + header.outerHeight();
+    $('#results').css('margin-top',contentPlacement);
+
     if (!checkQueryParamers()) {
         window.location = "/";
         return;
     }
+
+    populateInstances();
 
     query(window.location.search);
 });

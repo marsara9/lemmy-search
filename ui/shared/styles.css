@@ -64,7 +64,27 @@ input[type=button]:hover, input[type=submit]:hover {
     top: 0;
     left: 0;
     right: 0;
-    padding: 24px;
+    padding: 12px;
+}
+
+.header > div {
+    margin: 12px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+}
+
+.header > div > * {
+    margin: 12px;
+}
+
+.header #instance-select {
+    margin-left: auto;
+}
+
+.header #submit {
+    width: 200px;
 }
 
 .footer {
@@ -80,6 +100,14 @@ input[type=button]:hover, input[type=submit]:hover {
     gap: 12px;
 }
 
+#search {
+    max-width: 768px;
+}
+
+.header #search {
+    width: 80%;
+}
+
 a, a:visited {
     color: #1ed2ff;
 }
@@ -90,6 +118,10 @@ a, a:visited {
 
 #results {
     max-width: 768px;
+}
+
+ol {
+    padding: 0;
 }
 
 li.search-result {

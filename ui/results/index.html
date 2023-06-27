@@ -9,13 +9,18 @@
         <script type="text/javascript" src="/results/results.js"></script>
     </head>
     <body>
-        <div id="menu" class="header">
-            <select id="instance-select"></select>
-        </div>
-        <div>
-            <div id="results">
-
+        <div class="header">
+            <div>
+                <input type="search" id="search" />
+                <input type="submit" id="submit" value="Search" />
+                <select id="instance-select"></select>
             </div>
+            <div>
+                <span id="response-time">Found 300 items in 0.42 seconds</span>
+            </div>
+        </div>
+        <div id="results">
+
         </div>
         <div class="footer">
             <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
