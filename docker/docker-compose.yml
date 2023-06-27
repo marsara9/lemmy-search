@@ -1,0 +1,73 @@
+version: "3.5"
+services:
+  webui:
+    image: nginx:latest
+    container_name: webui
+    networks:
+      - internal # MUST be on the same network as 'lemmy-search'.
+    volumes:
+      # The location of your Nginx config
+      - /docker/nginx/:/etc/nginx/
+      # The location of your SSL certificates, you can technically put these anywhere.
+      - /docker/certs:/certs
+    ports:
+      - 80:80 # Just so we can redirect http traffic to https
+      - 443:443
+    depends_on:
+      - lemmy-search
+    restart: unless-stopped
+  lemmy-search:
+    image: marsara9/lemmy-search:latest # Use 'latest', 'dev' or ideally a target release tag.
+    container_name: lemmy-search  # You can technically set this to whatever you want, it's just for ease of reference.
+    hostname: lemmy-search # If you change this, make sure to update your Nginx config to match.
+    networks:
+      - internal # Both `lemmy-search' and 'postgres' MUST be on the same network.
+    volumes:
+      # This must point to the folder that contains your lemmy-search config.json file.
+      # While this is technically optional, the default config points to 'voyager.lemmy.ml',
+      # which is just a small testing instance ran by the developers of Lemmy itself.
+      - /docker/lemmy-search/config:/lemmy/config
+    depends_on:
+      - postgres
+    restart: unless-stopped
+  postgres:
+    image: postgres:latest
+    container_name: lemmy-search-db # You can technically set this to whatever you want, it's just for ease of reference.
+    hostname: lemmy-search-db # Set this to be the same as the 'hostname' in the config.json.
+    networks:
+      - internal # Both `lemmy-search' and 'postgres' MUST be on the same network.
+    environment:
+      - POSTGRES_USER=lemmy # Must match the 'user' in the config.json.
+      - POSTGRES_PASSWORD=password # Make sure the 'password' what is set in the config.json.
+      - POSTGRES_DB=lemmy-search-db # Set this to match the 'database' in the config.json.
+    volumes:
+      # This MUST be a valid path on your host machine as to where the database is stored.
+      # If you don't specify this, every reboot of the this service will erase the entire
+      # database.
+      - /docker/lemmy-search/database:/var/lib/postgresql/data
+    restart: unless-stopped
+  # Only required if you want to inspect the database.  Otherwise
+  # feel free to remove this entire service.  For production
+  # environments, I suggest removing this or moving it to another 
+  # server entirely. 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    networks:
+      - internal
+    environment:
+      # The admin email and password to view the database.  DO NOT USE the same user and password
+      # that you used for Postgres, this is specific to the admin tool.
+      - PGADMIN_DEFAULT_EMAIL={ some email address }
+      - PGADMIN_DEFAULT_PASSWORD={ some password }
+    ports:
+      # Set this to whatever port you want to expose to access the admin tool.
+      # DO NOT expose this port to the internet.
+      - "5050:80"
+    restart: unless-stopped
+networks:
+  # Required so that the backend can talk to the database without exposing 
+  # the database to the internet.
+  internal:
+    name: internal
+    driver: bridge
