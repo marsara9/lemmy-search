@@ -2,7 +2,7 @@ var preferred_instance = null;
 
 function checkQueryParameters() {
     const urlParameters = new URLSearchParams(window.location.search);
-    $("#search").value(urlParameters.get("query"));
+    $("#search").val(urlParameters.get("query"));
     return urlParameters.has("query");
 }
 
