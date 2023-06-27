@@ -19,10 +19,10 @@ postgres:
   hostname: "lemmy-search-db"
   # The post as defined in the docker-compose.yml.  Default port for postgres is 5432.
   port: 5432
-  # The default database that is created by postgres on bootup.  Check your 
+  # The default database that is created by postgres on boot-up.  Check your 
   # docker-compose.yml for details.
   database: "lemmy-search-db"
-  # Same as the cralwer's logging.  This just turns ON or OFF stack-trace reporting.
+  # Same as the crawler's logging.  This just turns ON or OFF stack-trace reporting.
   # Logs will still be sent to the console but they won't contain any stack-traces
   # should a crash or panic occur.
   log: false
