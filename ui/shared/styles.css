@@ -81,6 +81,7 @@ input[type=button]:hover, input[type=submit]:hover {
 
 .header #instance-select {
     margin-left: auto;
+    width: 120px;
 }
 
 .header #submit {
