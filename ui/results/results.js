@@ -35,7 +35,7 @@ function query(queryString) {
         let list = $("<ol/>");
 
         result.posts.forEach(post => {
-            let item = buildSearchResult(post);
+            let item = buildSearchResult(post, result.original_query_terms);
             list.append(item);
         });
         $("#results").empty();
@@ -43,7 +43,7 @@ function query(queryString) {
     })
 }
 
-function buildSearchResult(post) {
+function buildSearchResult(post, original_query_terms) {
     let item = $("<li/>")
         .addClass("search-result");
     if (post.ur && isImage(post.url)) {
@@ -93,7 +93,7 @@ function buildSearchResult(post) {
     let post_body = $("<p>/")
         .addClass("post-body");
     if(post.body != null) {
-        post_body.append(getPostQueryBody(result.original_query_terms, post.body));
+        post_body.append(getPostQueryBody(original_query_terms, post.body));
     }
     item.append(post_body);
 
