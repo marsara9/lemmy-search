@@ -46,5 +46,6 @@ pub struct FederatedInstancesResponse {
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct Instance {
-    pub domain : String
+    pub domain : String,
+    pub software : Option<String>
 }
