@@ -41,7 +41,7 @@ impl Runner {
         let config = self.config.clone();
         let database = self.database.clone();
 
-        scheduler.every(1.day())
+        scheduler.every(6.hours())
             .at("07:00")
             .run(move || Self::run(config.clone(), database.clone()));
 
