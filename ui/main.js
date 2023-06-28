@@ -34,9 +34,9 @@ $(document).ready(function() {
         window.location = "/results?" + new URLSearchParams(params).toString();
     });
 
-    $("instance-select").on("change", function() {
+    $("#instance-select").on("change", function() {
         preferred_instance = this.value;
-        setCookie("preferred-instance", instance-select);
+        setCookie("preferred-instance", preferred_instance);
     });
 
     populateInstances();
