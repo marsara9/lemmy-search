@@ -17,6 +17,8 @@ use database::Database;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init();
+
     let args: Vec<String> = env::args().collect();
     let ui_directory = match args.get(1) {
         Some(path) => path,

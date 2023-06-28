@@ -9,8 +9,7 @@ use crate::{
         fetcher::Fetcher, 
         models::id::LemmyId
     }, 
-    database::{
-        Database,        
+    database::{  
         dbo::{
             DBO, 
             site::SiteDBO, 
@@ -20,7 +19,8 @@ use crate::{
             search::SearchDatabase, 
             author::AuthorDBO, 
             id::IdDBO
-        }
+        }, 
+        DatabasePool
     }
 };
 
@@ -30,7 +30,7 @@ pub struct Crawler {
     pub instance : String,
 
     config : config::Crawler,
-    database : Database,
+    pool : DatabasePool,
     fetcher : Fetcher,
     analyzer : Analyzer,
 
@@ -42,14 +42,14 @@ impl Crawler {
     pub fn new(
         instance : String,
         config : config::Crawler,
-        database : Database,
+        pool : DatabasePool,
 
         just_update_remote_ids : bool
     ) -> Self {
         Self {
             instance: instance.clone(),
             config,
-            database,
+            pool,
             fetcher: Fetcher::new(instance),
             analyzer : Analyzer::new(),
             just_update_remote_ids
@@ -67,7 +67,7 @@ impl Crawler {
 
         let site_actor_id = site_view.site.actor_id.clone();
 
-        let site_dbo = SiteDBO::new(self.database.pool.clone());
+        let site_dbo = SiteDBO::new(self.pool.clone());
 
         if !site_dbo.upsert(site_view.clone())
             .await
@@ -95,7 +95,7 @@ impl Crawler {
                     let cralwer = Crawler::new(
                         instance.domain, 
                         self.config.clone(), 
-                        self.database.clone(), 
+                        self.pool.clone(), 
                         true
                     );
                     cralwer.crawl()
@@ -114,14 +114,14 @@ impl Crawler {
         site_actor_id : &str
     ) -> Result<(), LemmySearchError> {
 
-        let words_dbo = WordsDBO::new(self.database.pool.clone());
-        let search = SearchDatabase::new(self.database.pool.clone());
-        let lemmy_id_dbo = IdDBO::new(self.database.pool.clone());
+        let words_dbo = WordsDBO::new(self.pool.clone());
+        let search = SearchDatabase::new(self.pool.clone());
+        let lemmy_id_dbo = IdDBO::new(self.pool.clone());
 
-        let site_dbo = SiteDBO::new(self.database.pool.clone());
-        let post_dbo = PostDBO::new(self.database.pool.clone());
-        let author_dbo = AuthorDBO::new(self.database.pool.clone());
-        let community_dbo = CommunityDBO::new(self.database.pool.clone());
+        let site_dbo = SiteDBO::new(self.pool.clone());
+        let post_dbo = PostDBO::new(self.pool.clone());
+        let author_dbo = AuthorDBO::new(self.pool.clone());
+        let community_dbo = CommunityDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
@@ -201,8 +201,8 @@ impl Crawler {
         site_actor_id : &str
     ) -> Result<(), LemmySearchError> {
 
-        let site_dbo = SiteDBO::new(self.database.pool.clone());
-        let lemmy_id_dbo = IdDBO::new(self.database.pool.clone());
+        let site_dbo = SiteDBO::new(self.pool.clone());
+        let lemmy_id_dbo = IdDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;

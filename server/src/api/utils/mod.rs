@@ -10,7 +10,10 @@ pub async fn fetch_json<T: Serialize + Sized, R: Default + DeserializeOwned>(
     url : &str,
     params : T
 ) -> Result<R, LemmySearchError> {
-    let client = Client::new();
+    let client = Client::builder()
+        .connection_verbose(true)
+        .build()?;
+    
     return match client
         .get(url)
         .query(&params)
