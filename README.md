@@ -4,19 +4,30 @@
 ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/marsara9/lemmy-search)
 ![GitHub](https://img.shields.io/github/license/marsara9/lemmy-search)
 
+# Please Read
+
+If anyone wants to help contribute to this, please feel free to reach out to me.  You can obviously find me on Lemmy, mainly https://lemmy.world/u/marsara9 or you can find me on Discord.  If you can't contribute but still want to help, feel free to raise feature requests for things you'd like to see.
+
 # Lemmy-Search
 
 The fediverse creates some unique problems when it comes to searching.  Mostly that existing search engines can't deal with the concept that multiple servers may exist that are ultimately hosting the same content.  These same search engines also aren't aware that you only have an account on one, or maybe a select few of these instances.
 
 Lemmy-Search, ya I need a better name, will uniquely search any Lemmy instance and attempt to index the entire ferdiverse and then present a familiar search interface that will allow users to:
 
-1. Users can choose a preferred instance.  Such that all links that you open from the search results will automatically open with that user's instance, where they should already be logged in.
-2. The big search engines let you filter by a particular website, but this doesn't make sense for the fediverse.. Instead you can still refine your searches by:
-    a. Instance -- This will limit your search to just communities that were created on that particular instance.
-    b. Community -- You can also filter search results by just the particular community.
-    c. Author -- You can also just search for posts that were made by a particular user.
+* Users can choose a preferred instance.  Such that all links that you open from the search results will automatically open with that user's instance, where they should already be logged in.
+* The big search engines let you filter by a particular website, but this doesn't make sense for the fediverse. Instead you can still refine your searches by:
+  * Instance -- This will limit your search to just communities that were created on that particular instance.
+  * Community -- You can also filter search results by just the particular community.
+  * Author -- You can also just search for posts that were made by a particular user.
 
-## Road-map
+## How it Works
+
+For any given post that is found, all non-alphanumeric characters are removed a distinct list of words (anything that has a space between it) is taken from both the post title and body.  Then when the user performs a search a similar process is applied to the query and all of those distinct words are then queried from the database.  Posts that then have the highest number of matches are returned first and then those are sorted by the total score of said post.  As it is assumed that if there are more matches from your query the post is more relevant to you, and that posts with a higher score are more trust-worthy.
+
+Note that a post that just contains the same word repeated over and over will still only count for a single match compared to a post that only mentions the word once.
+
+
+## Road map
 
 For the first release I expect to have the following features:
 
