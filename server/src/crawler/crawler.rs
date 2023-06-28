@@ -129,7 +129,7 @@ impl Crawler {
         let mut total_found = 0;
         let mut page = last_page;
         loop {
-            let posts = self.fetcher.fetch_posts(page)
+            let posts = self.fetcher.fetch_posts(page+1)
                 .await
                 .log_error(format!("\tfailed to fetch another page of {}...", post_dbo.get_object_name()).as_str(), self.config.log)?;
 
