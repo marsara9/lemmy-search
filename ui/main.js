@@ -36,7 +36,7 @@ $(document).ready(function() {
 
     $("#instance-select").on("change", function() {
         preferred_instance = this.value;
-        setCookie("preferred-instance", instance-select);
+        setCookie("preferred-instance", preferred_instance);
     });
 
     populateInstances();
