@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use reqwest::Client;
 use serde::{
     Serialize, 
@@ -6,14 +8,21 @@ use serde::{
 
 use crate::error::LemmySearchError;
 
-pub async fn fetch_json<T: Serialize + Sized, R: Default + DeserializeOwned>(
+pub async fn fetch_json<T, R>(
     url : &str,
     params : T
-) -> Result<R, LemmySearchError> {
+) -> Result<R, LemmySearchError>
+where
+    T : Serialize + Sized + Debug,
+    R : Default + DeserializeOwned
+{
     let client = Client::builder()
         .connection_verbose(true)
         .build()?;
-    
+
+    println!("Connecting to {}...", url);
+    println!("\twith params {:?}...", params);
+
     return match client
         .get(url)
         .query(&params)

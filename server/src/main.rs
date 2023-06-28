@@ -4,7 +4,10 @@ mod crawler;
 mod database;
 mod error;
 
-use std::{env, sync::Mutex};
+use std::{
+    env, 
+    sync::Mutex
+};
 use actix_files as fs;
 use actix_web::{
     App, 
