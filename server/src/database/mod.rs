@@ -3,14 +3,10 @@ pub mod schema;
 
 use crate::{
     config::Postgres, 
-    database::{
-        dbo::{
-            DBO, 
-            site::SiteDBO, 
-        }, schema::{
-            word::Word, 
-            xref::Search
-        }
+    database::schema::{
+        site::Site,
+        word::Word, 
+        xref::Search
     }, 
     error::{
         LogError,
@@ -86,12 +82,9 @@ impl Database {
     ) -> Result<()> {
         println!("Creating database...");
 
-        self.create_table(
-            SiteDBO::new(self.pool.clone())
-        ).await?;
-
         let drop_table = false;
 
+        self.create_table_from_schema::<Site>(drop_table)?;
         self.create_table_from_schema::<Author>(drop_table)?;
         self.create_table_from_schema::<Community>(drop_table)?;
         self.create_table_from_schema::<PostData>(drop_table)?;
@@ -149,20 +142,5 @@ impl Database {
         }).log_error("\t\t...failed to create table.", self.config.log)?;
 
         Ok(())
-    }
-
-    async fn create_table<D, T>(
-        &self,
-        dbo : D
-    ) -> Result<()>
-    where 
-        D : DBO<T> + Sized,
-        T : Default
-    {
-        println!("\tCreating '{}' table...", dbo.get_object_name());
-        // dbo.drop_table_if_exists()
-            // .await?;
-        dbo.create_table_if_not_exists()
-            .await.log_error("\t\t...failed to create table.", self.config.log)
     }
 }

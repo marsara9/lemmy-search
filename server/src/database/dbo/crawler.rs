@@ -29,7 +29,7 @@ impl CrawlerDatabase {
         })
     }
 
-    pub fn builk_update_post(
+    pub fn bulk_update_post(
         &mut self,
         instance_actor_id : &str,
         posts : &Vec<PostData>

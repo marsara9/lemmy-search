@@ -2,6 +2,7 @@ pub mod author;
 pub mod community;
 pub mod id;
 pub mod posts;
+pub mod site;
 pub mod word;
 pub mod xref;
 
@@ -104,6 +105,7 @@ impl<T> DatabaseSchema for HashSet<T> where T : DatabaseSchema {
     }
 }
 
+#[allow(unused)]
 pub enum DatabaseType {
     Bool,
     I8,
@@ -112,8 +114,10 @@ pub enum DatabaseType {
     I64,
     String(i16),
     Uuid,
+    DateTime,
     Optional(Box<DatabaseType>),
-    Required(Box<DatabaseType>)
+    Required(Box<DatabaseType>),
+    Unique(Box<DatabaseType>),
 }
 
 impl DatabaseType {
@@ -134,11 +138,15 @@ impl DatabaseType {
                 }
             },
             DatabaseType::Uuid => "UUID".to_string(),
+            DatabaseType::DateTime => "TIMESTAMP WITH TIME ZONE".to_string(),
             DatabaseType::Optional(type_) => {
                 format!("{} NULL", type_.to_sql_type_name())
             },
             DatabaseType::Required(type_) => {
                 format!("{} NOT NULL", type_.to_sql_type_name())
+            },
+            DatabaseType::Unique(type_) => {
+                format!("{} UNIQUE", type_.to_sql_type_name())
             }
         }
     }
@@ -153,5 +161,11 @@ impl DatabaseType {
         self
     ) -> DatabaseType {
         DatabaseType::Optional(Box::new(self))
+    }
+
+    pub fn unique(
+        self
+    ) -> DatabaseType {
+        DatabaseType::Unique(Box::new(self))
     }
 }
