@@ -89,8 +89,7 @@ impl DBO<Community> for CommunityDBO {
                     ap_id             VARCHAR PRIMARY KEY,
                     icon              VARCHAR NULL,
                     name              VARCHAR NOT NULL,
-                    title             VARCHAR NULL,
-                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
+                    title             VARCHAR NULL
                 )
             ", &[]
             ).map(|_| {

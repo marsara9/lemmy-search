@@ -9,7 +9,8 @@ use crate::{
 };
 use super::{
     DBO, 
-    get_database_client, schema::DatabaseSchema
+    get_database_client, 
+    schema::DatabaseSchema
 };
 
 pub struct AuthorDBO {
@@ -88,8 +89,7 @@ impl DBO<Author> for AuthorDBO {
                     ap_id             VARCHAR PRIMARY KEY,
                     avatar            VARCHAR NULL,
                     name              VARCHAR NOT NULL,
-                    display_name      VARCHAR NULL,
-                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
+                    display_name      VARCHAR NULL
                 )
             ", &[]
             ).map(|_| {

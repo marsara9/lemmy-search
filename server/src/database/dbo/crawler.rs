@@ -77,7 +77,7 @@ impl CrawlerDatabase {
         self.bulk_update(&communities)?;
         self.bulk_update(&posts)?;
         self.bulk_update(&lemmy_ids)?;
-        self.bulk_update(&words)?;
+        self.bulk_update_words(&words)?;
         self.bulk_update(&xrefs)?;
 
         Ok(())
@@ -144,6 +144,16 @@ impl CrawlerDatabase {
                 values.join(",\n\t\t\t\t"),
                 T::get_keys().join(", ")
             )
+        } else if T::get_keys().is_empty() {
+            format!("
+                INSERT INTO {} ({})
+                    VALUES 
+                        {}
+            ", 
+                T::get_table_name(),
+                T::get_column_names().join(", "),
+                values.join(",\n\t\t\t\t")
+            )
         } else { 
             format!("
                 INSERT INTO {} ({})
@@ -161,7 +171,38 @@ impl CrawlerDatabase {
             )
         };
 
-        // println!("{:#?}", objects);
+        self.client.execute(&query, &params)?;
+
+        Ok(())
+    }
+
+    fn bulk_update_words(
+        &mut self,
+        objects : &HashSet<Word>
+    ) -> Result<()> {
+        let params = objects.get_values();
+
+        let mut values = Vec::<String>::new();
+        let mut index = 1;
+        for item in objects {
+            let t = item.get_values().into_iter().enumerate().map(|(i, _)| {
+                format!("${}", index + i)
+            }).collect::<Vec<_>>();
+            values.push(format!("({})", t.join(", ")));
+            index += t.len();
+        }
+
+        let query = format!("
+            INSERT INTO {} ({})
+                VALUES 
+                    {}
+            ON CONFLICT (word) 
+                DO NOTHING
+        ", 
+            Word::get_table_name(),
+            Word::get_column_names().join(", "),
+            values.join(",\n\t\t\t\t")
+        );
 
         self.client.execute(&query, &params)?;
 

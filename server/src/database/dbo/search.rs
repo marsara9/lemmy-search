@@ -96,7 +96,8 @@ impl SearchDatabase {
             client.execute("
                 CREATE TABLE IF NOT EXISTS xref (
                     word_id         UUID NOT NULL,
-                    post_ap_id      VARCHAR NOT NULL
+                    post_ap_id      VARCHAR NOT NULL,
+                    UNIQUE (word_id, post_ap_id)
                 )
             ", &[]
             ).map(|_| {
