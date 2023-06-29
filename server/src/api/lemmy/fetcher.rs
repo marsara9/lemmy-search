@@ -1,3 +1,5 @@
+use reqwest::Client;
+
 use crate::{
     api::utils::fetch_json, 
     error::LemmySearchError
@@ -21,15 +23,20 @@ use super::models::{
 };
 
 pub struct Fetcher {
-    instance : String
+    instance : String,
+    client : Client
 }
 
 impl Fetcher {
 
     pub const DEFAULT_LIMIT : i32 = 50;
 
-    pub fn new(instance : String) -> Self {
+    pub fn new(
+        client : Client,
+        instance : String
+    ) -> Self {
         Self {
+            client,
             instance
         }
     }
@@ -46,7 +53,7 @@ impl Fetcher {
     ) -> Result<SiteResponse, LemmySearchError> {
         let params = SiteRequest;
         let url = self.get_url("/api/v3/site");
-        fetch_json::<SiteRequest, SiteResponse>(&url, params)
+        fetch_json::<SiteRequest, SiteResponse>(&self.client, &url, params)
             .await
     }
 
@@ -55,7 +62,7 @@ impl Fetcher {
     ) -> Result<FederatedInstancesResponse, LemmySearchError> {
         let params = FederatedInstancesRequest;
         let url = self.get_url("/api/v3/federated_instances");
-        fetch_json(&url, params)
+        fetch_json(&self.client, &url, params)
             .await
     }
 
@@ -73,7 +80,7 @@ impl Fetcher {
 
         let url = self.get_url("/api/v3/post/list");
 
-        fetch_json(&url, params)
+        fetch_json(&self.client, &url, params)
             .await
             .map(|view: PostListResponse| {
                 view.posts
@@ -94,7 +101,7 @@ impl Fetcher {
 
         let url = self.get_url("/api/v3/comment/list");
 
-        fetch_json(&url, params)
+        fetch_json(&self.client, &url, params)
             .await
             .map(|view:CommentListResponse| {
                 view.comments

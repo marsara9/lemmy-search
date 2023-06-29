@@ -24,10 +24,11 @@ use postgres::{
 };
 use r2d2_postgres::{
     PostgresConnectionManager, 
-    r2d2::Pool
+    r2d2::{Pool, PooledConnection}
 };
 
 pub type DatabasePool = Pool<PostgresConnectionManager<NoTls>>;
+pub type DatabaseClient = PooledConnection<PostgresConnectionManager<NoTls>>;
 
 #[derive(Clone)]
 pub struct Database {

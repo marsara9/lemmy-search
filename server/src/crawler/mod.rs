@@ -70,7 +70,8 @@ impl Runner {
     ) {
         if config.enabled {
             println!("Crawler is starting to index '{}'...", config.seed_instance);
-            let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database, false)
+            let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database.pool, false)
+                    .unwrap()
                     .crawl()
                     .await
                     .log_error(format!("The crawler for '{}' encountered an error.", config.seed_instance).as_str(), config.log);

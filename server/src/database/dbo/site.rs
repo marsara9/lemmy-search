@@ -26,6 +26,31 @@ impl SiteDBO {
         }
     }
 
+    pub async fn upsert(
+        &self,
+        object : SiteView
+    ) -> Result<bool, LemmySearchError> {
+
+        get_database_client(&self.pool, move |client| {
+
+            client.execute("
+                INSERT INTO sites (\"id\", \"name\", \"actor_id\", \"last_update\") 
+                    VALUES ($1, $2, $3, $4)
+                ON CONFLICT (actor_id)
+                DO UPDATE SET \"name\" = $2, \"last_update\" = $4
+                ",
+                    &[
+                        &Uuid::new_v4(),
+                        &object.site.name,
+                        &object.site.actor_id,
+                        &Utc::now()
+                    ]
+            ).map(|count| {
+                count == 1
+            })
+        })
+    }
+
     pub async fn retrieve_all(
         &self
     ) -> Result<Vec<SiteView>, LemmySearchError> {
@@ -181,31 +206,6 @@ impl DBO<SiteView> for SiteDBO {
                 .map(|_| {
                     ()
                 })
-        })
-    }
-
-    async fn upsert(
-        &self,
-        object : SiteView
-    ) -> Result<bool, LemmySearchError> {
-
-        get_database_client(&self.pool, move |client| {
-
-            client.execute("
-                INSERT INTO sites (\"id\", \"name\", \"actor_id\", \"last_update\") 
-                    VALUES ($1, $2, $3, $4)
-                ON CONFLICT (actor_id)
-                DO UPDATE SET \"name\" = $2, \"last_update\" = $4
-                ",
-                    &[
-                        &Uuid::new_v4(),
-                        &object.site.name,
-                        &object.site.actor_id,
-                        &Utc::now()
-                    ]
-            ).map(|count| {
-                count == 1
-            })
         })
     }
 }

@@ -1,5 +1,7 @@
+use std::hash::Hash;
+
 use async_trait::async_trait;
-use chrono::Utc;
+use postgres::types::ToSql;
 use crate::{
     api::lemmy::models::author::Author, 
     database::DatabasePool, 
@@ -7,7 +9,8 @@ use crate::{
 };
 use super::{
     DBO, 
-    get_database_client
+    get_database_client, 
+    schema::DatabaseSchema
 };
 
 pub struct AuthorDBO {
@@ -19,6 +22,53 @@ impl AuthorDBO {
         Self {
             pool
         }
+    }
+}
+
+impl DatabaseSchema for Author {
+
+    fn get_table_name(
+
+    ) -> String {
+        "authors".to_string()
+    }
+
+    fn get_column_names(
+    
+    ) -> Vec<String> {
+        vec![
+            "ap_id".to_string(),
+            "avatar".to_string(),
+            "name".to_string(),
+            "display_name".to_string()
+        ]
+    }
+
+    fn get_values(
+        &self
+    ) -> Vec<&(dyn ToSql + Sync)> {
+        vec![
+            &self.actor_id,
+            &self.avatar,
+            &self.name,
+            &self.display_name
+        ]
+    }
+}
+
+impl PartialEq for Author {
+    fn eq(&self, other: &Self) -> bool {
+        self.actor_id == other.actor_id
+    }
+}
+
+impl Eq for Author {
+
+}
+
+impl Hash for Author {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.actor_id.hash(state);
     }
 }
 
@@ -39,8 +89,7 @@ impl DBO<Author> for AuthorDBO {
                     ap_id             VARCHAR PRIMARY KEY,
                     avatar            VARCHAR NULL,
                     name              VARCHAR NOT NULL,
-                    display_name      VARCHAR NULL,
-                    last_update       TIMESTAMP WITH TIME ZONE NOT NULL
+                    display_name      VARCHAR NULL
                 )
             ", &[]
             ).map(|_| {
@@ -58,30 +107,6 @@ impl DBO<Author> for AuthorDBO {
                 .map(|_| {
                     ()
                 })
-        })
-    }
-
-    async fn upsert(
-        &self, 
-        object : Author
-    ) ->  Result<bool,LemmySearchError> {
-
-        get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO authors (\"ap_id\", \"avatar\", \"name\", \"display_name\", \"last_update\")
-                    VALUES ($1, $2, $3, $4, $5)
-                ON CONFLICT (ap_id)
-                DO UPDATE SET \"avatar\" = $2, \"name\" = $3, \"display_name\" = $4, \"last_update\" = $5
-                ", &[
-                    &object.actor_id,
-                    &object.avatar,
-                    &object.name,
-                    &object.display_name,
-                    &Utc::now()
-                ]
-            ).map(|count| {
-                count == 1
-            })
         })
     }
 }

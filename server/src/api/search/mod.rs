@@ -32,7 +32,7 @@ use crate::{
             search::SearchDatabase
         }, 
         DatabasePool
-    }
+    }, crawler::crawler::Crawler, config::Config
 };
 
 lazy_static! {
@@ -53,6 +53,7 @@ impl SearchHandler {
     pub fn new() -> Self {
         let mut routes = HashMap::<String, Route>::new();
         routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
+        routes.insert("/crawl".to_string(), get().to(Self::crawl));
         routes.insert("/search".to_string(), get().to(Self::search));
         routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
@@ -66,9 +67,35 @@ impl SearchHandler {
      * It should never do anything besides just respond with 'Ready'.
      */
     pub async fn heartbeat<'a>(
-
+        
     ) -> Result<impl Responder> {
         Ok("Ready")
+    }
+
+    /**
+     * Temporary endpoint to allow for more easily testing the crawler.
+     */
+    pub async fn crawl<'a>(
+        pool : Data<Mutex<DatabasePool>>
+    ) -> Result<impl Responder> {
+
+        tokio::spawn(async move {
+
+            let config = Config::load();
+
+            let crawler = Crawler::new(
+                config.crawler.seed_instance.clone(), 
+                config.crawler, 
+                pool.lock().unwrap().clone(), 
+                false
+            ).unwrap();
+
+            let _ = crawler.crawl()
+                .await;
+
+        });
+
+        Ok("Started")
     }
 
     /**
