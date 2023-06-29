@@ -60,7 +60,7 @@ async fn main() -> std::io::Result<()> {
     let pool = Data::new(Mutex::new(database.pool.clone()));
 
     let factory = move || {
-        let search_handler = SearchHandler::new();
+        let search_handler = SearchHandler::new(&config);
         let mut app = App::new()
             .app_data(pool.clone());
         for (path, route) in search_handler.routes {

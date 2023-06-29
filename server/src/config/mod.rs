@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Config {
+    pub development_mode : bool,
     pub crawler : Crawler,
     pub postgres : Postgres,
 }

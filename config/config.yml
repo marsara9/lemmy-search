@@ -1,3 +1,7 @@
+# Turn this flag on to enable QOL features for development:
+#  * Turns on a /crawl endpoint to trigger the crawler manually
+#  * Other features to come in the future.
+development_mode: false
 crawler:
   # Turns ON or OFF the crawler.  Useful if you want to do testing and don't
   # want to worry about it indexing the seed instance randomly.
