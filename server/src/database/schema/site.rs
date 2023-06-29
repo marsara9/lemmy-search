@@ -8,7 +8,6 @@ use chrono::{
 };
 use postgres::types::ToSql;
 use uuid::Uuid;
-
 use super::{
     DatabaseSchema, 
     DatabaseType

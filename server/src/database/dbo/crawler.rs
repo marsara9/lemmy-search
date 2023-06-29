@@ -5,7 +5,12 @@ use std::{
 use crate::{
     database::{
         DatabaseClient, 
-        DatabasePool, schema::{DatabaseSchema, word::Word, xref::Search}
+        DatabasePool, 
+        schema::{
+            DatabaseSchema, 
+            word::Word, 
+            xref::Search
+        }
     }, 
     error::Result,
     api::lemmy::models::{

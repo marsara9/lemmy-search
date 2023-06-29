@@ -4,7 +4,8 @@ use regex::Regex;
 use lazy_static::lazy_static;
 use std::{
     collections::{
-        HashMap, HashSet
+        HashMap, 
+        HashSet
     }, 
     sync::Mutex, 
     time::Instant
@@ -32,7 +33,9 @@ use crate::{
             search::SearchDatabase
         }, 
         DatabasePool
-    }, crawler::crawler::Crawler, config::Config
+    }, 
+    crawler::crawler::Crawler, 
+    config::Config
 };
 
 lazy_static! {
@@ -53,7 +56,7 @@ impl SearchHandler {
     pub fn new() -> Self {
         let mut routes = HashMap::<String, Route>::new();
         routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
-        routes.insert("/crawl".to_string(), get().to(Self::crawl));
+        // routes.insert("/crawl".to_string(), get().to(Self::crawl));
         routes.insert("/search".to_string(), get().to(Self::search));
         routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
@@ -75,28 +78,28 @@ impl SearchHandler {
     /**
      * Temporary endpoint to allow for more easily testing the crawler.
      */
-    pub async fn crawl<'a>(
-        pool : Data<Mutex<DatabasePool>>
-    ) -> Result<impl Responder> {
+    // pub async fn crawl<'a>(
+    //     pool : Data<Mutex<DatabasePool>>
+    // ) -> Result<impl Responder> {
 
-        tokio::spawn(async move {
+    //     tokio::spawn(async move {
 
-            let config = Config::load();
+    //         let config = Config::load();
 
-            let crawler = Crawler::new(
-                config.crawler.seed_instance.clone(), 
-                config.crawler, 
-                pool.lock().unwrap().clone(), 
-                false
-            ).unwrap();
+    //         let crawler = Crawler::new(
+    //             config.crawler.seed_instance.clone(), 
+    //             config.crawler, 
+    //             pool.lock().unwrap().clone(), 
+    //             false
+    //         ).unwrap();
 
-            let _ = crawler.crawl()
-                .await;
+    //         let _ = crawler.crawl()
+    //             .await;
 
-        });
+    //     });
 
-        Ok("Started")
-    }
+    //     Ok("Started")
+    // }
 
     /**
      * This is the actual search function that is called when the user enters a query.

@@ -7,13 +7,20 @@ use crate::{
         LogError, 
         LemmySearchError
     },
-    api::lemmy::{fetcher::Fetcher, models::post::PostData}, 
+    api::lemmy::{
+        fetcher::Fetcher, 
+        models::post::PostData
+    }, 
     database::{  
         dbo::{
             site::SiteDBO,
             crawler::CrawlerDatabase
         }, 
-        DatabasePool, schema::{DatabaseSchema, site::Site}
+        DatabasePool, 
+        schema::{
+            DatabaseSchema, 
+            site::Site
+        }
     }
 };
 

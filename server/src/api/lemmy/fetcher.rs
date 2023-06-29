@@ -1,8 +1,12 @@
+use std::fmt::Debug;
 use reqwest::Client;
-
-use crate::{
-    api::utils::fetch_json, 
-    error::Result
+use crate::error::{
+    Result,
+    LemmySearchError
+};
+use serde::{
+    Serialize, 
+    de::DeserializeOwned
 };
 use super::models::{
     common::SortType,
@@ -14,11 +18,8 @@ use super::models::{
     },
     post::{
         PostData, 
-        PostListRequest, PostListResponse, 
-    }, 
-    comment::{
-        CommentListRequest, 
-        CommentData, CommentListResponse
+        PostListRequest, 
+        PostListResponse, 
     }
 };
 
@@ -53,7 +54,7 @@ impl Fetcher {
     ) -> Result<SiteResponse> {
         let params = SiteRequest;
         let url = self.get_url("/api/v3/site");
-        fetch_json::<SiteRequest, SiteResponse>(&self.client, &url, params)
+        self.fetch_json::<SiteRequest, SiteResponse>(&url, params)
             .await
     }
 
@@ -62,7 +63,7 @@ impl Fetcher {
     ) -> Result<FederatedInstancesResponse> {
         let params = FederatedInstancesRequest;
         let url = self.get_url("/api/v3/federated_instances");
-        fetch_json(&self.client, &url, params)
+        self.fetch_json(&url, params)
             .await
     }
 
@@ -80,31 +81,39 @@ impl Fetcher {
 
         let url = self.get_url("/api/v3/post/list");
 
-        fetch_json(&self.client, &url, params)
+        self.fetch_json(&url, params)
             .await
             .map(|view: PostListResponse| {
                 view.posts
             })
     }
 
-    #[allow(unused)]
-    pub async fn fetch_comments(
+    async fn fetch_json<T, R>(
         &self,
-        page : i32
-    ) -> Result<Vec<CommentData>> {
-        let params = CommentListRequest {
-            sort: Some(SortType::Old),
-            limit: Self::DEFAULT_LIMIT,
-            page: page,
-            ..Default::default()
-        };
-
-        let url = self.get_url("/api/v3/comment/list");
-
-        fetch_json(&self.client, &url, params)
-            .await
-            .map(|view:CommentListResponse| {
-                view.comments
-            })
+        url : &str,
+        params : T
+    ) -> Result<R>
+    where
+        T : Serialize + Sized + Debug,
+        R : Default + DeserializeOwned
+    {
+        println!("Connecting to {}...", url);
+        println!("\twith params {:?}...", params);
+    
+        return match self.client
+            .get(url)
+            .query(&params)
+            .send()
+            .await {
+                Ok(response) => {
+                    response.json()
+                        .await.map_err(|err| {
+                            LemmySearchError::Network(err)
+                        })
+                }
+                Err(err) => {
+                    Err(LemmySearchError::Network(err))
+                }
+            }
     }
 }

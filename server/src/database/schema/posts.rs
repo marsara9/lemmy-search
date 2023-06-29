@@ -1,7 +1,13 @@
-use std::{hash::Hash, collections::HashMap};
+use std::{
+    hash::Hash, 
+    collections::HashMap
+};
 use postgres::types::ToSql;
 use crate::api::lemmy::models::post::PostData;
-use super::{DatabaseSchema, DatabaseType};
+use super::{
+    DatabaseSchema, 
+    DatabaseType
+};
 
 impl DatabaseSchema for PostData {
 
