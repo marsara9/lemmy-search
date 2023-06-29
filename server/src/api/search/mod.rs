@@ -87,7 +87,8 @@ impl SearchHandler {
                 config.crawler.seed_instance.clone(), 
                 config.crawler, 
                 pool.lock().unwrap().clone(), 
-                false);
+                false
+            ).unwrap();
 
             let _ = crawler.crawl()
                 .await;

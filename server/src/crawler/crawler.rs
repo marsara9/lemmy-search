@@ -1,4 +1,5 @@
 use async_recursion::async_recursion;
+use reqwest::Client;
 use crate::{
     config,
     error::{
@@ -35,14 +36,18 @@ impl Crawler {
         pool : DatabasePool,
 
         just_update_remote_ids : bool
-    ) -> Self {
-        Self {
+    ) -> Result<Self> {
+        let client = Client::builder()
+            .connection_verbose(true)
+            .build()?;
+
+        Ok(Self {
             instance: instance.clone(),
             config,
             pool,
-            fetcher: Fetcher::new(instance),
+            fetcher: Fetcher::new(client, instance),
             just_update_remote_ids
-        }
+        })
     }
 
     #[async_recursion]
@@ -86,7 +91,7 @@ impl Crawler {
                         self.config.clone(), 
                         self.pool.clone(), 
                         true
-                    );
+                    )?;
                     cralwer.crawl()
                         .await?;
                 }

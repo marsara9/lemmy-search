@@ -9,6 +9,7 @@ use serde::{
 use crate::error::LemmySearchError;
 
 pub async fn fetch_json<T, R>(
+    client : &Client,
     url : &str,
     params : T
 ) -> Result<R, LemmySearchError>
@@ -16,9 +17,6 @@ where
     T : Serialize + Sized + Debug,
     R : Default + DeserializeOwned
 {
-    let client = Client::builder()
-        .connection_verbose(true)
-        .build()?;
 
     println!("Connecting to {}...", url);
     println!("\twith params {:?}...", params);
