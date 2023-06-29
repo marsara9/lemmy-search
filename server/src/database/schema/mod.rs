@@ -117,7 +117,7 @@ pub enum DatabaseType {
 }
 
 impl DatabaseType {
-    fn to_sql_type_name(
+    pub fn to_sql_type_name(
         &self
     ) -> String {
         match self {
@@ -146,13 +146,13 @@ impl DatabaseType {
         }
     }
 
-    fn not_null(
+    pub fn not_null(
         self
     ) -> DatabaseType {
         DatabaseType::Required(Box::new(self))
     }
 
-    fn nullable(
+    pub fn nullable(
         self
     ) -> DatabaseType {
         DatabaseType::Optional(Box::new(self))
