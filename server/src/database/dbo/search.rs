@@ -27,35 +27,6 @@ impl SearchDatabase {
         }
     }
 
-    pub async fn create_table_if_not_exists(
-        &self
-    ) -> Result<(), LemmySearchError> {
-        get_database_client(&self.pool, |client| {
-            client.execute("
-                CREATE TABLE IF NOT EXISTS xref (
-                    word_id         UUID NOT NULL,
-                    post_ap_id      VARCHAR NOT NULL,
-                    UNIQUE (word_id, post_ap_id)
-                )
-            ", &[]
-            ).map(|_| {
-                ()
-            })
-        })
-    }
-
-    #[allow(unused)]
-    pub async fn drop_table_if_exists(
-        &self
-    ) -> Result<(), LemmySearchError> {
-        get_database_client(&self.pool, |client| {
-            client.execute("DROP TABLE IF EXISTS xref", &[])
-                .map(|_| {
-                    ()
-                })
-        })
-    }
-
     pub async fn search(
         &self,
         query : &HashSet<String>,

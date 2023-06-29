@@ -1,14 +1,7 @@
-pub mod author;
 pub mod site;
-pub mod comment;
-pub mod community;
-pub mod id;
-pub mod post;
-pub mod word;
 pub mod search;
 pub mod crawler;
 
-use async_trait::async_trait;
 use super::DatabasePool;
 use std::thread;
 use crate::error::{
@@ -21,21 +14,7 @@ use r2d2_postgres::{
     PostgresConnectionManager
 };
 
-#[async_trait]
-pub trait DBO<T : Default> {
-
-    fn get_object_name(&self) -> &str;
-
-    async fn create_table_if_not_exists(
-        &self
-    ) -> Result<()>;
-
-    async fn drop_table_if_exists(
-        &self
-    ) -> Result<()>;
-}
-
-fn get_database_client<T, F>(
+pub fn get_database_client<T, F>(
     pool : &DatabasePool,
     callback : F
 ) -> Result<T> 

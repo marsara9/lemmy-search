@@ -4,17 +4,23 @@ use crate::{
     config,
     error::{
         Result,
-        LogError, LemmySearchError
+        LogError, 
+        LemmySearchError
     },
-    api::lemmy::fetcher::Fetcher, 
+    api::lemmy::{
+        fetcher::Fetcher, 
+        models::post::PostData
+    }, 
     database::{  
         dbo::{
-            DBO, 
-            site::SiteDBO, 
-            post::PostDBO,
+            site::SiteDBO,
             crawler::CrawlerDatabase
         }, 
-        DatabasePool
+        DatabasePool, 
+        schema::{
+            DatabaseSchema, 
+            site::Site
+        }
     }
 };
 
@@ -65,8 +71,8 @@ impl Crawler {
 
         if !site_dbo.upsert(site_view.clone())
             .await
-            .log_error(format!("\t...error during update {} during crawl.", site_dbo.get_object_name()).as_str(), self.config.log)? {
-                println!("\t...failed to update {} during crawl.", site_dbo.get_object_name());
+            .log_error(format!("\t...error during update {} during crawl.", Site::get_table_name()).as_str(), self.config.log)? {
+                println!("\t...failed to update {} during crawl.", Site::get_table_name());
             }
 
         if self.just_update_remote_ids {
@@ -85,13 +91,12 @@ impl Crawler {
                     Some(value) => value == "lemmy",
                     None => false
                 } {
-                    let cralwer = Crawler::new(
+                    Crawler::new(
                         instance.domain, 
                         self.config.clone(), 
                         self.pool.clone(), 
                         true
-                    )?;
-                    cralwer.crawl()
+                    )?.crawl()
                         .await?;
                 }
             }
@@ -108,7 +113,6 @@ impl Crawler {
     ) -> Result<()> {
 
         let site_dbo = SiteDBO::new(self.pool.clone());
-        let post_dbo = PostDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
@@ -118,13 +122,13 @@ impl Crawler {
         loop {
             let posts = self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error(format!("\tfailed to fetch another page of {}...", post_dbo.get_object_name()).as_str(), self.config.log)?;
+                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.config.log)?;
 
             if posts.is_empty() {
                 break;
             }
             let count = posts.len();
-            println!("\tfetched another {} {}...", count, post_dbo.get_object_name());
+            println!("\tfetched another {} {}...", count, PostData::get_table_name());
 
             let filtered_posts = posts.into_iter().filter(|post_data| {
                 !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
@@ -138,7 +142,7 @@ impl Crawler {
             tokio::task::spawn_blocking(move || -> Result<()> {
                 let mut crawler_database = CrawlerDatabase::init(pool.clone())?;
 
-                crawler_database.builk_update_post(&site_actor_id_string, &filtered_posts)
+                crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
                     .log_error("\t...Bulk insert failed.", true)
             }).await.map_err(|_| {
                 LemmySearchError::Unknown("Unknown".to_string())
@@ -146,7 +150,7 @@ impl Crawler {
 
             total_found += filtered_count;
 
-            println!("\tinserted {} {}...", total_found, post_dbo.get_object_name());
+            println!("\tinserted {} {}...", total_found, PostData::get_table_name());
 
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;
@@ -164,7 +168,6 @@ impl Crawler {
     ) -> Result<()> {
 
         let site_dbo = SiteDBO::new(self.pool.clone());
-        // let lemmy_id_dbo = IdDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;

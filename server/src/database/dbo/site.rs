@@ -1,12 +1,8 @@
 use chrono::Utc;
 use uuid::Uuid;
-use async_trait::async_trait;
-use super::{
-    DBO, 
-    get_database_client    
-};
+use super::get_database_client;
 use crate::{
-    error::LemmySearchError,
+    error::Result,
     database::DatabasePool,
     api::lemmy::models::site::{
         SiteView, 
@@ -29,7 +25,7 @@ impl SiteDBO {
     pub async fn upsert(
         &self,
         object : SiteView
-    ) -> Result<bool, LemmySearchError> {
+    ) -> Result<bool> {
 
         get_database_client(&self.pool, move |client| {
 
@@ -53,7 +49,7 @@ impl SiteDBO {
 
     pub async fn retrieve_all(
         &self
-    ) -> Result<Vec<SiteView>, LemmySearchError> {
+    ) -> Result<Vec<SiteView>> {
 
         get_database_client(&self.pool, move |client| {
 
@@ -80,7 +76,7 @@ impl SiteDBO {
         &self,
         ap_id : &str,
         page : i32
-    ) -> Result<bool, LemmySearchError> {
+    ) -> Result<bool> {
 
         let ap_id = ap_id.to_owned();
         
@@ -104,7 +100,7 @@ impl SiteDBO {
         &self,
         ap_id : &str,
         page : i32
-    ) -> Result<bool, LemmySearchError> {
+    ) -> Result<bool> {
 
         let ap_id = ap_id.to_owned();
         
@@ -126,7 +122,7 @@ impl SiteDBO {
     pub async fn get_last_post_page(
         &self,
         ap_id : &str
-    ) -> Result<i32, LemmySearchError> {
+    ) -> Result<i32> {
 
         let ap_id = ap_id.to_owned();
 
@@ -148,7 +144,7 @@ impl SiteDBO {
     pub async fn get_last_comment_page(
         &self,
         ap_id : &str
-    ) -> Result<i32, LemmySearchError> {
+    ) -> Result<i32> {
 
         let ap_id = ap_id.to_owned();
         
@@ -163,49 +159,6 @@ impl SiteDBO {
             ).map(|row| {
                 row.get("last_comment_page")
             })
-        })
-    }
-}
-
-#[async_trait]
-impl DBO<SiteView> for SiteDBO {
-
-    fn get_object_name(&self) -> &str {
-        "SiteView"
-    }
-
-    async fn create_table_if_not_exists(
-        &self
-    ) -> Result<(), LemmySearchError> {
-
-        get_database_client(&self.pool, move |client| {
-
-            client.execute("
-                CREATE TABLE IF NOT EXISTS sites (
-                    id                  UUID PRIMARY KEY,
-                    name                VARCHAR NULL,
-                    actor_id            VARCHAR NOT NULL UNIQUE,
-                    last_post_page      INTEGER DEFAULT 0,
-                    last_comment_page   INTEGER DEFAULT 0,
-                    last_update         TIMESTAMP WITH TIME ZONE NOT NULL
-                )
-            ", &[]
-            ).map(|_| {
-                ()
-            })
-        })
-    }
-
-    async fn drop_table_if_exists(
-        &self
-    ) -> Result<(), LemmySearchError> {
-
-        get_database_client(&self.pool, move |client| {
-
-            client.execute("DROP TABLE IF EXISTS sites", &[])
-                .map(|_| {
-                    ()
-                })
         })
     }
 }

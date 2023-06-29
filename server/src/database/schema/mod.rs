@@ -2,10 +2,14 @@ pub mod author;
 pub mod community;
 pub mod id;
 pub mod posts;
+pub mod site;
 pub mod word;
 pub mod xref;
 
-use std::collections::{HashSet, HashMap};
+use std::collections::{
+    HashSet, 
+    HashMap
+};
 use postgres::types::ToSql;
 
 pub trait DatabaseSchema {
@@ -101,19 +105,19 @@ impl<T> DatabaseSchema for HashSet<T> where T : DatabaseSchema {
     }
 }
 
+#[allow(unused)]
 pub enum DatabaseType {
     Bool,
     I8,
     I16,
     I32,
     I64,
-    F32,
-    F64,
     String(i16),
     Uuid,
     DateTime,
     Optional(Box<DatabaseType>),
-    Required(Box<DatabaseType>)
+    Required(Box<DatabaseType>),
+    Unique(Box<DatabaseType>),
 }
 
 impl DatabaseType {
@@ -126,8 +130,6 @@ impl DatabaseType {
             DatabaseType::I16 => "INT2".to_string(),
             DatabaseType::I32 => "INT4".to_string(),
             DatabaseType::I64 => "INT8".to_string(),
-            DatabaseType::F32 => "FLOAT4".to_string(),
-            DatabaseType::F64 => "FLOAT8".to_string(),
             DatabaseType::String(n) => {
                 if n > &0 {
                     format!("VARCHAR({})", n)
@@ -142,6 +144,9 @@ impl DatabaseType {
             },
             DatabaseType::Required(type_) => {
                 format!("{} NOT NULL", type_.to_sql_type_name())
+            },
+            DatabaseType::Unique(type_) => {
+                format!("{} UNIQUE", type_.to_sql_type_name())
             }
         }
     }
@@ -156,5 +161,11 @@ impl DatabaseType {
         self
     ) -> DatabaseType {
         DatabaseType::Optional(Box::new(self))
+    }
+
+    pub fn unique(
+        self
+    ) -> DatabaseType {
+        DatabaseType::Unique(Box::new(self))
     }
 }
