@@ -6,15 +6,14 @@ use crate::{
         Result,
         LogError, LemmySearchError
     },
-    api::lemmy::fetcher::Fetcher, 
+    api::lemmy::{fetcher::Fetcher, models::post::PostData}, 
     database::{  
         dbo::{
             DBO, 
-            site::SiteDBO, 
-            post::PostDBO,
+            site::SiteDBO,
             crawler::CrawlerDatabase
         }, 
-        DatabasePool
+        DatabasePool, schema::DatabaseSchema
     }
 };
 
@@ -108,7 +107,6 @@ impl Crawler {
     ) -> Result<()> {
 
         let site_dbo = SiteDBO::new(self.pool.clone());
-        let post_dbo = PostDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
@@ -118,13 +116,13 @@ impl Crawler {
         loop {
             let posts = self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error(format!("\tfailed to fetch another page of {}...", post_dbo.get_object_name()).as_str(), self.config.log)?;
+                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.config.log)?;
 
             if posts.is_empty() {
                 break;
             }
             let count = posts.len();
-            println!("\tfetched another {} {}...", count, post_dbo.get_object_name());
+            println!("\tfetched another {} {}...", count, PostData::get_table_name());
 
             let filtered_posts = posts.into_iter().filter(|post_data| {
                 !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
@@ -146,7 +144,7 @@ impl Crawler {
 
             total_found += filtered_count;
 
-            println!("\tinserted {} {}...", total_found, post_dbo.get_object_name());
+            println!("\tinserted {} {}...", total_found, PostData::get_table_name());
 
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;
