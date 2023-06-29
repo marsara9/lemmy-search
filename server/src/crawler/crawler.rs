@@ -4,7 +4,8 @@ use crate::{
     config,
     error::{
         Result,
-        LogError, LemmySearchError
+        LogError, 
+        LemmySearchError
     },
     api::lemmy::{fetcher::Fetcher, models::post::PostData}, 
     database::{  
@@ -83,13 +84,12 @@ impl Crawler {
                     Some(value) => value == "lemmy",
                     None => false
                 } {
-                    let cralwer = Crawler::new(
+                    Crawler::new(
                         instance.domain, 
                         self.config.clone(), 
                         self.pool.clone(), 
                         true
-                    )?;
-                    cralwer.crawl()
+                    )?.crawl()
                         .await?;
                 }
             }

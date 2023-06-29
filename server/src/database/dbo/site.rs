@@ -2,7 +2,7 @@ use chrono::Utc;
 use uuid::Uuid;
 use super::get_database_client;
 use crate::{
-    error::LemmySearchError,
+    error::Result,
     database::DatabasePool,
     api::lemmy::models::site::{
         SiteView, 
@@ -25,7 +25,7 @@ impl SiteDBO {
     pub async fn upsert(
         &self,
         object : SiteView
-    ) -> Result<bool, LemmySearchError> {
+    ) -> Result<bool> {
 
         get_database_client(&self.pool, move |client| {
 
@@ -49,7 +49,7 @@ impl SiteDBO {
 
     pub async fn retrieve_all(
         &self
-    ) -> Result<Vec<SiteView>, LemmySearchError> {
+    ) -> Result<Vec<SiteView>> {
 
         get_database_client(&self.pool, move |client| {
 
@@ -76,7 +76,7 @@ impl SiteDBO {
         &self,
         ap_id : &str,
         page : i32
-    ) -> Result<bool, LemmySearchError> {
+    ) -> Result<bool> {
 
         let ap_id = ap_id.to_owned();
         
@@ -100,7 +100,7 @@ impl SiteDBO {
         &self,
         ap_id : &str,
         page : i32
-    ) -> Result<bool, LemmySearchError> {
+    ) -> Result<bool> {
 
         let ap_id = ap_id.to_owned();
         
@@ -122,7 +122,7 @@ impl SiteDBO {
     pub async fn get_last_post_page(
         &self,
         ap_id : &str
-    ) -> Result<i32, LemmySearchError> {
+    ) -> Result<i32> {
 
         let ap_id = ap_id.to_owned();
 
@@ -144,7 +144,7 @@ impl SiteDBO {
     pub async fn get_last_comment_page(
         &self,
         ap_id : &str
-    ) -> Result<i32, LemmySearchError> {
+    ) -> Result<i32> {
 
         let ap_id = ap_id.to_owned();
         

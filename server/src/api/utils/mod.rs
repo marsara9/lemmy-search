@@ -6,13 +6,16 @@ use serde::{
     de::DeserializeOwned
 };
 
-use crate::error::LemmySearchError;
+use crate::error::{
+    Result,
+    LemmySearchError
+};
 
 pub async fn fetch_json<T, R>(
     client : &Client,
     url : &str,
     params : T
-) -> Result<R, LemmySearchError>
+) -> Result<R>
 where
     T : Serialize + Sized + Debug,
     R : Default + DeserializeOwned

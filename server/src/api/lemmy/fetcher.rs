@@ -2,7 +2,7 @@ use reqwest::Client;
 
 use crate::{
     api::utils::fetch_json, 
-    error::LemmySearchError
+    error::Result
 };
 use super::models::{
     common::SortType,
@@ -50,7 +50,7 @@ impl Fetcher {
 
     pub async fn fetch_site_data(
         &self
-    ) -> Result<SiteResponse, LemmySearchError> {
+    ) -> Result<SiteResponse> {
         let params = SiteRequest;
         let url = self.get_url("/api/v3/site");
         fetch_json::<SiteRequest, SiteResponse>(&self.client, &url, params)
@@ -59,7 +59,7 @@ impl Fetcher {
 
     pub async fn fetch_instances(
         &self
-    ) -> Result<FederatedInstancesResponse, LemmySearchError> {
+    ) -> Result<FederatedInstancesResponse> {
         let params = FederatedInstancesRequest;
         let url = self.get_url("/api/v3/federated_instances");
         fetch_json(&self.client, &url, params)
@@ -69,7 +69,7 @@ impl Fetcher {
     pub async fn fetch_posts(
         &self,
         page : i32
-    ) -> Result<Vec<PostData>, LemmySearchError> {
+    ) -> Result<Vec<PostData>> {
         let params = PostListRequest {
             type_: Some(super::models::common::ListingType::All),
             sort: Some(SortType::Old),
@@ -91,7 +91,7 @@ impl Fetcher {
     pub async fn fetch_comments(
         &self,
         page : i32
-    ) -> Result<Vec<CommentData>, LemmySearchError> {
+    ) -> Result<Vec<CommentData>> {
         let params = CommentListRequest {
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
