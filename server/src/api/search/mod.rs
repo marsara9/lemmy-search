@@ -32,7 +32,9 @@ use crate::{
             search::SearchDatabase
         }, 
         DatabasePool
-    }, crawler::crawler::Crawler, config::Config
+    }, 
+    crawler::crawler::Crawler, 
+    config::Config
 };
 
 lazy_static! {
@@ -50,10 +52,12 @@ pub struct SearchHandler {
 
 impl SearchHandler {
 
-    pub fn new() -> Self {
+    pub fn new(config : &Config) -> Self {
         let mut routes = HashMap::<String, Route>::new();
-        routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
-        routes.insert("/crawl".to_string(), get().to(Self::crawl));
+        if config.development_mode {
+            routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
+            routes.insert("/crawl".to_string(), get().to(Self::crawl));
+        }
         routes.insert("/search".to_string(), get().to(Self::search));
         routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
@@ -91,7 +95,8 @@ impl SearchHandler {
             ).unwrap();
 
             let _ = crawler.crawl()
-                .await;
+                .await
+                .log_error("The manually triggered crawler encountered an error.", true);
 
         });
 
