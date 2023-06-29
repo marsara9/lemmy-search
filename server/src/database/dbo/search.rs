@@ -1,12 +1,6 @@
-use std::{
-    collections::HashSet, 
-    hash::Hash
-};
-use postgres::types::ToSql;
-use uuid::Uuid;
+use std::collections::HashSet;
 use super::{
-    get_database_client, 
-    schema::DatabaseSchema
+    get_database_client
 };
 use crate::{
     error::LemmySearchError,
@@ -23,62 +17,6 @@ use crate::{
 #[derive(Clone)]
 pub struct SearchDatabase {
     pub pool : DatabasePool
-}
-
-#[derive(Debug)]
-pub struct Search {
-    pub word_id : Uuid,
-    pub post_ap_id : String
-}
-
-impl DatabaseSchema for Search {
-
-    fn get_table_name(
-
-    ) -> String {
-        "xref".to_string()
-    }
-
-    fn get_keys(
-    
-    ) -> Vec<String> {
-        Self::get_column_names()
-    }
-
-    fn get_column_names(
-    
-    ) -> Vec<String> {
-        vec![
-            "word_id".to_string(),
-            "post_ap_id".to_string(),
-        ]
-    }
-
-    fn get_values(
-        &self
-    ) -> Vec<&(dyn ToSql + Sync)> {
-        vec![
-            &self.word_id,
-            &self.post_ap_id
-        ]
-    }
-}
-
-impl PartialEq for Search {
-    fn eq(&self, other: &Self) -> bool {
-        self.word_id == other.word_id && self.post_ap_id == other.post_ap_id
-    }
-}
-
-impl Eq for Search {
-
-}
-
-impl Hash for Search {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.word_id.hash(state);
-        self.post_ap_id.hash(state);
-    }
 }
 
 impl SearchDatabase {

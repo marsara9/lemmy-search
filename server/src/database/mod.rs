@@ -1,4 +1,5 @@
 pub mod dbo;
+pub mod schema;
 
 use crate::{
     config::Postgres, 

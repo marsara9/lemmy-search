@@ -1,10 +1,7 @@
-use std::hash::Hash;
 use async_trait::async_trait;
-use postgres::types::ToSql;
 use super::{
     DBO, 
-    get_database_client, 
-    schema::DatabaseSchema
+    get_database_client
 };
 use crate::{
     database::DatabasePool, 
@@ -21,61 +18,6 @@ impl IdDBO {
         Self {
             pool
         }
-    }
-}
-
-impl DatabaseSchema for LemmyId {
-
-    fn get_table_name(
-
-    ) -> String {
-        "lemmy_ids".to_string()
-    }
-
-    fn get_keys(
-    
-    ) -> Vec<String> {
-        vec![
-            "post_actor_id".to_string(),
-            "instance_actor_id".to_string() 
-        ]    
-    }
-
-    fn get_column_names(
-    
-    ) -> Vec<String> {
-        vec![
-            "post_remote_id".to_string(),
-            "post_actor_id".to_string(),
-            "instance_actor_id".to_string()
-        ]
-    }
-
-    fn get_values(
-        &self
-    ) -> Vec<&(dyn ToSql + Sync)> {
-        vec![
-            &self.post_remote_id,
-            &self.post_actor_id,
-            &self.instance_actor_id
-        ]
-    }
-}
-
-impl PartialEq for LemmyId {
-    fn eq(&self, other: &Self) -> bool {
-        self.post_actor_id == other.post_actor_id && self.instance_actor_id == other.instance_actor_id
-    }
-}
-
-impl Eq for LemmyId {
-
-}
-
-impl Hash for LemmyId {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.post_actor_id.hash(state);
-        self.instance_actor_id.hash(state);
     }
 }
 

@@ -1,7 +1,4 @@
-use std::hash::Hash;
-
 use async_trait::async_trait;
-use postgres::types::ToSql;
 use crate::{
     api::lemmy::models::author::Author, 
     database::DatabasePool, 
@@ -9,8 +6,7 @@ use crate::{
 };
 use super::{
     DBO, 
-    get_database_client, 
-    schema::DatabaseSchema
+    get_database_client
 };
 
 pub struct AuthorDBO {
@@ -22,53 +18,6 @@ impl AuthorDBO {
         Self {
             pool
         }
-    }
-}
-
-impl DatabaseSchema for Author {
-
-    fn get_table_name(
-
-    ) -> String {
-        "authors".to_string()
-    }
-
-    fn get_column_names(
-    
-    ) -> Vec<String> {
-        vec![
-            "ap_id".to_string(),
-            "avatar".to_string(),
-            "name".to_string(),
-            "display_name".to_string()
-        ]
-    }
-
-    fn get_values(
-        &self
-    ) -> Vec<&(dyn ToSql + Sync)> {
-        vec![
-            &self.actor_id,
-            &self.avatar,
-            &self.name,
-            &self.display_name
-        ]
-    }
-}
-
-impl PartialEq for Author {
-    fn eq(&self, other: &Self) -> bool {
-        self.actor_id == other.actor_id
-    }
-}
-
-impl Eq for Author {
-
-}
-
-impl Hash for Author {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        self.actor_id.hash(state);
     }
 }
 

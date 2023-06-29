@@ -7,7 +7,6 @@ pub mod post;
 pub mod word;
 pub mod search;
 pub mod crawler;
-pub mod schema;
 
 use async_trait::async_trait;
 use super::DatabasePool;

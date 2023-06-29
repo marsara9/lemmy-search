@@ -78,8 +78,7 @@ impl Crawler {
 
             let federated_instances = self.fetcher.fetch_instances()
                 .await?
-                .linked
-                .into_iter();
+                .linked;
     
             for instance in federated_instances {
                 if match instance.software {
@@ -113,8 +112,6 @@ impl Crawler {
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
-
-        
 
         let mut total_found = 0;
         let mut page = last_page;
