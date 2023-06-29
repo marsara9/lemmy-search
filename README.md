@@ -20,6 +20,8 @@ Lemmy-Search, ya I need a better name, will uniquely search any Lemmy instance a
   * Community -- You can also filter search results by just the particular community.
   * Author -- You can also just search for posts that were made by a particular user.
 
+![search results page](https://i.ibb.co/kySD4qM/lemmy-search-results.png)
+
 ## How it Works
 
 For any given post that is found, all non-alphanumeric characters are removed a distinct list of words (anything that has a space between it) is taken from both the post title and body.  Then when the user performs a search a similar process is applied to the query and all of those distinct words are then queried from the database.  Posts that then have the highest number of matches are returned first and then those are sorted by the total score of said post.  As it is assumed that if there are more matches from your query the post is more relevant to you, and that posts with a higher score are more trust-worthy.
@@ -69,7 +71,9 @@ Finally you'll want to pull a copy of the [nginx.conf](./nginx/nginx.conf).  The
 
 Assuming you have everything configured correctly, you should now just be able to call `docker compose up -d` and the server should start up.
 
-Due note that crawling of your seed instance is a process that only runs at a regular interval.  So you may need to wait 24hrs for the initial crawl to finish.  Alternatively you can edit [mod.rs](./server/src/crawler/mod.rs) to change that interval to whatever you want.  There's also a commented out service call [here](./server/src/api/search/mod.rs) that you can enable that will allow you to send a simple GET request to `/crawl` and it will trigger the crawler to start manually.  PLEASE try and use your own private Lemmy instance for development.  This instance MUST be running on port 443 though, so it'll have to be on a separate machine or different sub-domain.
+Due note that crawling of your seed instance is a process that only runs at a regular interval.  So you may need to wait 24hrs for the initial crawl to finish.  Alternatively you can edit [mod.rs](./server/src/crawler/mod.rs) to change that interval to whatever you want, but you should keep it so that it's a fairly long time between runs.  If a new crawler starts while an existing one is still running, they will both start writing the same entries to the database. For development purposes there's a config property `development_mode` that enables a few QOL features, specifically for development, including an endpoint `/crawl` that you can send a simple GET request to that will start an instance of the crawler.
+
+***PLEASE try and use your own private Lemmy instance for development.  This instance MUST be running on port 443 though, so it'll have to be on a separate machine or different sub-domain.***
 
 ### Docker Tag Reference
 
