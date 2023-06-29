@@ -51,7 +51,25 @@ Eventually some ideas I'd like to support (in no particular order):
 
 I've included a sample docker-compose.yml file that you reference to get things started.  There's no environment variables or anything that you need to pass to the docker container, but there is a [config.yml](./config/config.yml) file that allows you to fine-tune the settings of the search engine and it's associated crawler.
 
-TODO Include a step-by-step guide.
+### Step by Step guide
+
+To setup your own instance or begin development, start with pulling down a copy of the [docker-compose.yml](./docker/docker-compose.yml) file.  You'll then want to edit any usernames and/or passwords, but the default values should work for development right out of the box.  
+
+One exception though, is you'll want to modify which tag to pull down.  If you're just wanting to stand-up your own instance you can refer to the table below to see which tag you should use.  However if you wanting to do actual development, you'll want to uncomment the section that builds from the dockerfile. that looks something like this:
+
+```yml
+  build:
+    context: ../
+    dockerfile: dev.dockerfile
+```
+
+Next, pull down a copy of the [config.yml](./config/config.yml) file.  If you edited any values in the `docker-compose.yml` file you'll want to then make the same changes here.  Also make sure you place this in the volume that you've mapped to the `lemmy-search` service.
+
+Finally you'll want to pull a copy of the [nginx.conf](./nginx/nginx.conf).  The default configuration assumes that you have SSL certificates and are planning to host publicly as an HTTPS server.  Feel free to modify this as needed, no special headers need to be passed to Nginx, but it is assumed to run at the root of the domain, i.e. not in a subpath.  (I haven't actually tested running this on a subpath, it may just work.)
+
+Assuming you have everything configured correctly, you should now just be able to call `docker compose up -d` and the server should start up.
+
+Due note that crawling of your seed instance is a process that only runs at a regular interval.  So you may need to wait 24hrs for the initial crawl to finish.  Alternatively you can edit [mod.rs](./server/src/crawler/mod.rs) to change that interval to whatever you want.  There's also a commented out service call [here](./server/src/api/search/mod.rs) that you can enable that will allow you to send a simple GET request to `/crawl` and it will trigger the crawler to start manually.  PLEASE try and use your own private Lemmy instance for development.  This instance MUST be running on port 443 though, so it'll have to be on a separate machine or different sub-domain.
 
 ### Docker Tag Reference
 
