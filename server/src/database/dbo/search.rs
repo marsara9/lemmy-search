@@ -1,7 +1,13 @@
-use std::collections::HashSet;
+use std::{
+    collections::HashSet, 
+    hash::Hash
+};
 use postgres::types::ToSql;
 use uuid::Uuid;
-use super::get_database_client;
+use super::{
+    get_database_client, 
+    schema::DatabaseSchema
+};
 use crate::{
     error::LemmySearchError,
     database::DatabasePool,
@@ -10,17 +16,69 @@ use crate::{
             SearchPost, 
             SearchAuthor, 
             SearchCommunity
-        }, 
-        lemmy::models::{
-            post::Post, 
-            comment::Comment
-        },
+        }
     }
 };
 
 #[derive(Clone)]
 pub struct SearchDatabase {
     pub pool : DatabasePool
+}
+
+#[derive(Debug)]
+pub struct Search {
+    pub word_id : Uuid,
+    pub post_ap_id : String
+}
+
+impl DatabaseSchema for Search {
+
+    fn get_table_name(
+
+    ) -> String {
+        "xref".to_string()
+    }
+
+    fn get_keys(
+    
+    ) -> Vec<String> {
+        Self::get_column_names()
+    }
+
+    fn get_column_names(
+    
+    ) -> Vec<String> {
+        vec![
+            "word_id".to_string(),
+            "post_ap_id".to_string(),
+        ]
+    }
+
+    fn get_values(
+        &self
+    ) -> Vec<&(dyn ToSql + Sync)> {
+        vec![
+            &self.word_id,
+            &self.post_ap_id
+        ]
+    }
+}
+
+impl PartialEq for Search {
+    fn eq(&self, other: &Self) -> bool {
+        self.word_id == other.word_id && self.post_ap_id == other.post_ap_id
+    }
+}
+
+impl Eq for Search {
+
+}
+
+impl Hash for Search {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.word_id.hash(state);
+        self.post_ap_id.hash(state);
+    }
 }
 
 impl SearchDatabase {
@@ -57,57 +115,6 @@ impl SearchDatabase {
                     ()
                 })
         })
-    }
-
-    pub async fn upsert_post(
-        &self,
-        words : HashSet<String>,
-        post : &Post
-    ) -> Result<(), LemmySearchError> {
-
-        let post = post.to_owned();
-
-        get_database_client(&self.pool, move |client| {
-
-            let mut transaction = client.transaction()?;
-            let deleted = transaction.execute("DELETE FROM xref WHERE post_ap_id = $1", &[&post.ap_id])?;
-
-            let words = words.into_iter().collect::<Vec<String>>();
-            let rows = transaction.query("SELECT id FROM words WHERE word = any($1)", &[&words])?;
-            let ids = rows.into_iter().map(|row| {
-                row.get::<&str, Uuid>("id")
-            }).collect::<Vec<Uuid>>();
-
-            let mut params: Vec<&(dyn ToSql + Sync)> = Vec::new();
-            for id in &ids {
-                params.push(id);
-            }
-
-            let mut query = format!("INSERT INTO xref (word_id, post_ap_id) VALUES ");
-            if ids.len() != 0 {
-                for index in 0..ids.len() {
-                    query += format!("(${} , $1),", index+2).as_str();
-                }
-                query = query.trim_end_matches(",").to_string();
-                params.insert(0, &post.ap_id);
-                transaction.execute(&query, &params)?;
-            } else {
-                println!("WARNING: post was inserted but had 0 words? {} associations were deleted however.", deleted);
-                println!("{:#?}", post);
-            }
-
-            transaction.commit()
-        })
-    }
-
-    #[allow(unused)]
-    pub async fn upsert_comment(
-        &self,
-        words : HashSet<String>,
-        comment : Comment
-    ) -> Result<(), LemmySearchError> {
-        // TODO
-        Ok(())
     }
 
     pub async fn search(

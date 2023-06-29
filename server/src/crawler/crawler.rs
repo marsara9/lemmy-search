@@ -2,29 +2,20 @@ use async_recursion::async_recursion;
 use crate::{
     config,
     error::{
-        LemmySearchError,
-        LogError
+        Result,
+        LogError, LemmySearchError
     },
-    api::lemmy::{
-        fetcher::Fetcher, 
-        models::id::LemmyId
-    }, 
+    api::lemmy::fetcher::Fetcher, 
     database::{  
         dbo::{
             DBO, 
             site::SiteDBO, 
-            community::CommunityDBO, 
             post::PostDBO,
-            word::WordsDBO, 
-            search::SearchDatabase, 
-            author::AuthorDBO, 
-            id::IdDBO
+            crawler::CrawlerDatabase
         }, 
         DatabasePool
     }
 };
-
-use super::analyzer::Analyzer;
 
 pub struct Crawler {
     pub instance : String,
@@ -32,7 +23,6 @@ pub struct Crawler {
     config : config::Crawler,
     pool : DatabasePool,
     fetcher : Fetcher,
-    analyzer : Analyzer,
 
     just_update_remote_ids : bool
 }
@@ -51,7 +41,6 @@ impl Crawler {
             config,
             pool,
             fetcher: Fetcher::new(instance),
-            analyzer : Analyzer::new(),
             just_update_remote_ids
         }
     }
@@ -59,7 +48,7 @@ impl Crawler {
     #[async_recursion]
     pub async fn crawl(
         &self
-    ) -> Result<(), LemmySearchError> {
+    ) -> Result<()> {
         let site_view = self.fetcher.fetch_site_data()
             .await
             .log_error(format!("\t...unable to fetch site data for instance '{}'.", self.instance).as_str(), self.config.log)
@@ -112,19 +101,15 @@ impl Crawler {
     async fn fetch_posts(
         &self,
         site_actor_id : &str
-    ) -> Result<(), LemmySearchError> {
-
-        let words_dbo = WordsDBO::new(self.pool.clone());
-        let search = SearchDatabase::new(self.pool.clone());
-        let lemmy_id_dbo = IdDBO::new(self.pool.clone());
+    ) -> Result<()> {
 
         let site_dbo = SiteDBO::new(self.pool.clone());
         let post_dbo = PostDBO::new(self.pool.clone());
-        let author_dbo = AuthorDBO::new(self.pool.clone());
-        let community_dbo = CommunityDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
+
+        
 
         let mut total_found = 0;
         let mut page = last_page;
@@ -139,50 +124,25 @@ impl Crawler {
             let count = posts.len();
             println!("\tfetched another {} {}...", count, post_dbo.get_object_name());
 
-            for post_data in posts {
+            let filtered_posts = posts.into_iter().filter(|post_data| {
+                !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
+            }).collect::<Vec<_>>();
 
-                if post_data.post.deleted.unwrap_or(false) || post_data.post.removed.unwrap_or(false) {
-                    continue;
-                }
+            let filtered_count = filtered_posts.len();
 
-                let clone_post = post_data.post.clone();
+            let pool = self.pool.clone();
+            let site_actor_id_string = site_actor_id.to_string();
 
-                post_dbo.upsert(post_data.clone())
-                    .await
-                    .log_error(format!("\t...failed to insert after fetching {} objects", count).as_str(), self.config.log)?;
+            tokio::task::spawn_blocking(move || -> Result<()> {
+                let mut crawler_database = CrawlerDatabase::init(pool.clone())?;
 
-                author_dbo.upsert(post_data.creator)
-                    .await
-                    .log_error("\t...failed to add author data", self.config.log)?;
+                crawler_database.builk_update_post(&site_actor_id_string, &filtered_posts)
+                    .log_error("\t...Bulk insert failed.", true)
+            }).await.map_err(|_| {
+                LemmySearchError::Unknown("Unknown".to_string())
+            })??;
 
-                community_dbo.upsert(post_data.community)
-                    .await
-                    .log_error("\t...failed to add community data", self.config.log)?;
-
-                let lemmy_id = LemmyId {
-                    post_remote_id: post_data.post.id,
-                    post_actor_id: post_data.post.ap_id,
-                    instance_actor_id: site_actor_id.to_owned()
-                };
-
-                lemmy_id_dbo.upsert(lemmy_id)
-                    .await
-                    .log_error("\t...failed to insert remote ids.", self.config.log)?;
-
-                let words = self.analyzer.get_distinct_words_in_post(&clone_post);
-                for word in words.clone() {
-                    if !words_dbo.upsert(word)
-                        .await
-                        .log_error("\t...an error occurred during insertion of search words.", self.config.log)? {
-                            println!("\t...failed to insert search words.")
-                        }
-                }
-                search.upsert_post(words, &clone_post)
-                    .await
-                    .log_error("\t...building search queries failed.", self.config.log)?;
-
-                total_found += 1;
-            }
+            total_found += filtered_count;
 
             println!("\tinserted {} {}...", total_found, post_dbo.get_object_name());
 
@@ -199,13 +159,15 @@ impl Crawler {
     async fn fetch_remote_ids(
         &self,
         site_actor_id : &str
-    ) -> Result<(), LemmySearchError> {
+    ) -> Result<()> {
 
         let site_dbo = SiteDBO::new(self.pool.clone());
-        let lemmy_id_dbo = IdDBO::new(self.pool.clone());
+        // let lemmy_id_dbo = IdDBO::new(self.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
+
+        let mut crawler_database = CrawlerDatabase::init(self.pool.clone())?;
 
         let mut page = last_page;
         loop {
@@ -219,17 +181,7 @@ impl Crawler {
 
             println!("\tfetched another {} 'post ids'...", posts.len());
 
-            for post_data in posts {
-                let lemmy_id = LemmyId {
-                    post_remote_id: post_data.post.id,
-                    post_actor_id: post_data.post.ap_id,
-                    instance_actor_id: site_actor_id.to_owned()
-                };
-
-                lemmy_id_dbo.upsert(lemmy_id)
-                    .await
-                    .log_error("\t...failed to insert remote ids.", self.config.log)?;
-            }
+            crawler_database.bulk_update_lemmy_ids(site_actor_id, &posts)?;
 
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;

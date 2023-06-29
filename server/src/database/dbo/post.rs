@@ -1,8 +1,11 @@
-use chrono::Utc;
+use std::hash::Hash;
+
 use async_trait::async_trait;
+use postgres::types::ToSql;
 use super::{
     DBO, 
-    get_database_client
+    get_database_client, 
+    schema::DatabaseSchema
 };
 use crate::{
     error::LemmySearchError,
@@ -20,6 +23,59 @@ impl PostDBO {
         return Self {
             pool
         }
+    }
+}
+
+impl DatabaseSchema for PostData {
+
+    fn get_table_name(
+
+    ) -> String {
+        "posts".to_string()
+    }
+
+    fn get_column_names(
+    
+    ) -> Vec<String> {
+        vec![
+            "ap_id".to_string(),
+            "url".to_string(),
+            "name".to_string(),
+            "body".to_string(),
+            "score".to_string(),
+            "author_actor_id".to_string(),
+            "community_ap_id".to_string(),
+        ]
+    }
+
+    fn get_values(
+        &self
+    ) -> Vec<&(dyn ToSql + Sync)> {
+        vec![
+            &self.post.ap_id,
+            &self.post.url,
+            &self.post.name,
+            &self.post.body,
+            &self.counts.score,
+            &self.creator.actor_id,
+            &self.community.actor_id
+        ]
+    }
+}
+
+impl PartialEq for PostData {
+    fn eq(&self, other: &Self) -> bool {
+        self.post.ap_id == other.post.ap_id
+    }
+}
+
+impl Eq for PostData {
+
+}
+
+impl Hash for PostData {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.post.ap_id.hash(state);
     }
 }
 
@@ -61,31 +117,5 @@ impl DBO<PostData> for PostDBO {
                     ()
                 })
             })
-    }
-
-    async fn upsert(
-        &self,
-        object : PostData
-    ) -> Result<bool, LemmySearchError> {
-        get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO posts (\"ap_id\", \"url\", \"name\", \"body\", \"score\", \"author_actor_id\", \"community_ap_id\", \"last_update\") 
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-                ON CONFLICT (ap_id)
-                DO UPDATE SET \"url\" = $2, \"name\" = $3, \"body\" = $4, \"score\" = $5, \"author_actor_id\" = $6, \"community_ap_id\" = $7, \"last_update\" = $8
-                ", &[
-                    &object.post.ap_id,
-                    &object.post.url,
-                    &object.post.name,
-                    &object.post.body,
-                    &object.counts.score,
-                    &object.creator.actor_id,
-                    &object.community.actor_id,
-                    &Utc::now()
-                ]
-            ).map(|count| {
-                count == 1
-            })
-        })
     }
 }

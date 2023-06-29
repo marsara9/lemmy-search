@@ -1,8 +1,11 @@
-use chrono::Utc;
+use std::hash::Hash;
+
 use async_trait::async_trait;
+use postgres::types::ToSql;
 use super::{
     DBO, 
-    get_database_client
+    get_database_client, 
+    schema::DatabaseSchema
 };
 use crate::{
     error::LemmySearchError,
@@ -20,6 +23,53 @@ impl CommunityDBO {
         return Self {
             pool
         }
+    }
+}
+
+impl DatabaseSchema for Community {
+
+    fn get_table_name(
+
+    ) -> String {
+        "communities".to_string()
+    }
+
+    fn get_column_names(
+    
+    ) -> Vec<String> {
+        vec![
+            "ap_id".to_string(),
+            "icon".to_string(),
+            "name".to_string(),
+            "title".to_string()
+        ]
+    }
+
+    fn get_values(
+        &self
+    ) -> Vec<&(dyn ToSql + Sync)> {
+        vec![
+            &self.actor_id,
+            &self.icon,
+            &self.name,
+            &self.title
+        ]
+    }
+}
+
+impl PartialEq for Community {
+    fn eq(&self, other: &Self) -> bool {
+        self.actor_id == other.actor_id
+    }
+}
+
+impl Eq for Community {
+
+}
+
+impl Hash for Community {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.actor_id.hash(state);
     }
 }
 
@@ -57,29 +107,6 @@ impl DBO<Community> for CommunityDBO {
                 .map(|_| {
                     ()
                 })
-        })
-    }
-    
-    async fn upsert(
-        &self,
-        object : Community
-    ) -> Result<bool, LemmySearchError> {
-        get_database_client(&self.pool, move |client| {
-            client.execute("
-                INSERT INTO communities (\"ap_id\", \"icon\", \"name\", \"title\", \"last_update\") 
-                    VALUES ($1, $2, $3, $4, $5)
-                ON CONFLICT (ap_id)
-                DO UPDATE SET \"icon\" = $2, \"name\" = $3, \"title\" = $4, \"last_update\" = $5
-                ", &[
-                    &object.actor_id,
-                    &object.icon,
-                    &object.name,
-                    &object.title,                        
-                    &Utc::now()
-                ]
-            ).map(|count| {
-                count == 1
-            })
         })
     }
 }

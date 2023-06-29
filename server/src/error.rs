@@ -7,6 +7,8 @@ pub enum LemmySearchError {
     Network(reqwest::Error)
 }
 
+pub type Result<T> = std::result::Result<T, LemmySearchError>;
+
 impl std::fmt::Display for LemmySearchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
@@ -42,15 +44,15 @@ pub trait LogError<T> {
         self, 
         message : 
         &str, log : bool
-    ) -> Result<T, LemmySearchError>;
+    ) -> Result<T>;
 }
 
-impl<T> LogError<T> for Result<T, LemmySearchError> {
+impl<T> LogError<T> for Result<T> {
     fn log_error(
         self, 
         message : &str, 
         log : bool
-    ) -> Result<T, LemmySearchError> {
+    ) -> Result<T> {
         match self {
             Ok(value) => Ok(value),
             Err(err) => {
