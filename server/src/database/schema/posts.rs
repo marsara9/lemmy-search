@@ -30,7 +30,7 @@ impl DatabaseSchema for PostData {
     ) -> HashMap<String, DatabaseType> {
         HashMap::from([
             ("ap_id".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("url".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
+            ("url".to_string(), DatabaseType::Optional(Box::new(DatabaseType::String(0)))),
             ("name".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
             ("body".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
             ("score".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
