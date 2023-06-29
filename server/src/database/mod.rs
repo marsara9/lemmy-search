@@ -135,6 +135,8 @@ impl Database {
             )
         ", table_name, columns, primary_key);
 
+        println!("Logging create table query: {}", create_table);
+
         get_database_client(&self.pool, move |client| {
 
             if drop {

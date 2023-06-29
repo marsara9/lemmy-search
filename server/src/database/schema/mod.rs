@@ -5,7 +5,10 @@ pub mod posts;
 pub mod word;
 pub mod xref;
 
-use std::collections::{HashSet, HashMap};
+use std::collections::{
+    HashSet, 
+    HashMap
+};
 use postgres::types::ToSql;
 
 pub trait DatabaseSchema {
