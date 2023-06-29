@@ -35,7 +35,7 @@ pub trait DBO<T : Default> {
     ) -> Result<()>;
 }
 
-fn get_database_client<T, F>(
+pub fn get_database_client<T, F>(
     pool : &DatabasePool,
     callback : F
 ) -> Result<T> 

@@ -14,14 +14,6 @@ pub struct CommunityDBO {
     pool : DatabasePool
 }
 
-impl CommunityDBO {
-    pub fn new(pool : DatabasePool) -> Self {
-        return Self {
-            pool
-        }
-    }
-}
-
 #[async_trait]
 impl DBO<Community> for CommunityDBO {
 

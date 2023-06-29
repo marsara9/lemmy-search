@@ -29,13 +29,13 @@ impl DatabaseSchema for PostData {
     
     ) -> HashMap<String, DatabaseType> {
         HashMap::from([
-            ("ap_id".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("url".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("name".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("body".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("score".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("author_actor_id".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0)))),
-            ("community_ap_id".to_string(), DatabaseType::Required(Box::new(DatabaseType::String(0))))
+            ("ap_id".to_string(), DatabaseType::String(0).not_null()),
+            ("url".to_string(), DatabaseType::String(0).nullable()),
+            ("name".to_string(), DatabaseType::String(0).not_null()),
+            ("body".to_string(), DatabaseType::String(0).nullable()),
+            ("score".to_string(), DatabaseType::I32.not_null()),
+            ("author_actor_id".to_string(), DatabaseType::String(0).not_null()),
+            ("community_ap_id".to_string(), DatabaseType::String(0).not_null())
         ])
     }
 

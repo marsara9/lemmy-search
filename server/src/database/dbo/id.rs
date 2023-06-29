@@ -13,14 +13,6 @@ pub struct IdDBO {
     pool : DatabasePool
 }
 
-impl IdDBO {
-    pub fn new(pool : DatabasePool) -> Self {
-        Self {
-            pool
-        }
-    }
-}
-
 #[async_trait]
 impl DBO<LemmyId> for IdDBO {
 

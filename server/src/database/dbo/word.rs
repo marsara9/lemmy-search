@@ -13,16 +13,6 @@ pub struct WordsDBO {
     pool : DatabasePool
 }
 
-impl WordsDBO {
-    pub fn new(pool : DatabasePool) -> Self {
-        return Self {
-            pool
-        }
-    }
-}
-
-
-
 #[async_trait]
 impl DBO<String> for WordsDBO {
 

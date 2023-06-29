@@ -13,14 +13,6 @@ pub struct AuthorDBO {
     pool : DatabasePool
 }
 
-impl AuthorDBO {
-    pub fn new(pool : DatabasePool) -> Self {
-        Self {
-            pool
-        }
-    }
-}
-
 #[async_trait]
 impl DBO<Author> for AuthorDBO {
 

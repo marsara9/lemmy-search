@@ -107,11 +107,8 @@ pub enum DatabaseType {
     I16,
     I32,
     I64,
-    F32,
-    F64,
     String(i16),
     Uuid,
-    DateTime,
     Optional(Box<DatabaseType>),
     Required(Box<DatabaseType>)
 }
@@ -126,8 +123,6 @@ impl DatabaseType {
             DatabaseType::I16 => "INT2".to_string(),
             DatabaseType::I32 => "INT4".to_string(),
             DatabaseType::I64 => "INT8".to_string(),
-            DatabaseType::F32 => "FLOAT4".to_string(),
-            DatabaseType::F64 => "FLOAT8".to_string(),
             DatabaseType::String(n) => {
                 if n > &0 {
                     format!("VARCHAR({})", n)
@@ -136,7 +131,6 @@ impl DatabaseType {
                 }
             },
             DatabaseType::Uuid => "UUID".to_string(),
-            DatabaseType::DateTime => "TIMESTAMP WITH TIME ZONE".to_string(),
             DatabaseType::Optional(type_) => {
                 format!("{} NULL", type_.to_sql_type_name())
             },
