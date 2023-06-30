@@ -57,13 +57,7 @@ impl CrawlerDatabase {
             let words = post.post.get_distinct_words().into_iter().map(|word| {
                 Word::from(word)
             }).collect::<HashSet<_>>();
-            let xref = words.iter().map(|word| {
-                Search {
-                    word_id: word.id.clone(),
-                    post_ap_id: post.post.ap_id.clone()
-                }
-            }).collect::<Vec<_>>();
-            xrefs.extend(xref);
+            xrefs.extend(self.get_xrefs_for_post(post)?);
 
             all_words.extend(words);
         }
@@ -81,6 +75,35 @@ impl CrawlerDatabase {
         self.bulk_update(&xrefs)?;
 
         Ok(())
+    }
+
+    pub fn get_xrefs_for_post(
+        &mut self,
+        post_data : &PostData
+    ) -> Result<HashSet<Search>> {
+
+        let words = post_data.post.get_distinct_words()
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        let query = "
+            SELECT w.id, p.ap_id FROM posts AS p
+            JOIN words AS w ON w.id = w.id
+            WHERE w.word = any($1)
+                AND p.ap_id = $2
+        ".to_string();
+
+        let results = self.client.query(&query, &[&words, &post_data.post.ap_id])
+            .map(|rows| {
+                rows.into_iter().map(|row| {
+                    Search {
+                        word_id : row.get(0),
+                        post_ap_id : row.get(1)
+                    }
+                }).collect::<HashSet<_>>()
+            })?;
+        
+        Ok(results)
     }
 
     pub fn bulk_update_lemmy_ids(
