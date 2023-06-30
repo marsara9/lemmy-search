@@ -53,6 +53,8 @@ pub struct SearchHandler {
 
 impl SearchHandler {
 
+    const PAGE_LIMIT : usize = 50;
+
     pub fn new(config : &Config) -> Self {
         let mut routes = HashMap::<String, Route>::new();
         if config.development_mode {
@@ -213,6 +215,8 @@ impl SearchHandler {
         // The preferred instance is sent without the https://, re-add it back.
         let preferred_instance_actor_id = format!("https://{}/", search_query.preferred_instance);
 
+        let page = search_query.page.unwrap_or(1);
+
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
         let search_results = search.search(
             &query_terms, 
@@ -226,13 +230,19 @@ impl SearchHandler {
                 actix_web::error::ErrorInternalServerError(err)
             })?;
 
+        let len = search_results.len();
+
         // Capture the duration that the search took so we can report it back
         // to the user.
         let duration = start.elapsed();
 
         let results: SearchResult = SearchResult {
             original_query_terms : query_terms,
-            posts : search_results,
+            posts : search_results.into_iter()
+                .skip(Self::PAGE_LIMIT * page)
+                .take(Self::PAGE_LIMIT)
+                .collect(),
+            total_results : len,
             total_pages : 0,
             time_taken: duration
         };
