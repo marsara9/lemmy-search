@@ -3,10 +3,12 @@ pub mod schema;
 
 use crate::{
     config::Postgres, 
-    database::schema::{
-        site::Site,
-        word::Word, 
-        xref::Search
+    database::{
+        schema::{
+            site::Site,
+            word::Word, 
+            xref::Search
+        }
     }, 
     error::{
         LogError,
@@ -84,18 +86,18 @@ impl Database {
 
         let drop_table = false;
 
-        self.create_table_from_schema::<Site>(drop_table)?;
-        self.create_table_from_schema::<Author>(drop_table)?;
-        self.create_table_from_schema::<Community>(drop_table)?;
-        self.create_table_from_schema::<PostData>(drop_table)?;
-        self.create_table_from_schema::<LemmyId>(drop_table)?;
-        self.create_table_from_schema::<Word>(drop_table)?;
-        self.create_table_from_schema::<Search>(drop_table)?;
+        self.create_table_from_schema::<Site>(drop_table).await?;
+        self.create_table_from_schema::<Author>(drop_table).await?;
+        self.create_table_from_schema::<Community>(drop_table).await?;
+        self.create_table_from_schema::<PostData>(drop_table).await?;
+        self.create_table_from_schema::<LemmyId>(drop_table).await?;
+        self.create_table_from_schema::<Word>(drop_table).await?;
+        self.create_table_from_schema::<Search>(drop_table).await?;
 
         Ok(())
     }
 
-    fn create_table_from_schema<S : DatabaseSchema>(
+    async fn create_table_from_schema<S : DatabaseSchema>(
         &self,
         drop : bool
     ) -> Result<()> {
@@ -130,6 +132,21 @@ impl Database {
 
         println!("Logging create table query: {}", create_table);
 
+        // let pool = self.pool.clone();
+        // thread::spawn(move || -> Result<()> {
+        //     let mut client = pool.get().unwrap();
+
+        //     if drop {
+        //         client.execute(&drop_table, &[])?;
+        //     }
+
+        //     client.execute(&create_table, &[])?;
+
+        //     Ok(())
+        // }).join().map_err(|_| {
+        //     LemmySearchError::Unknown("".to_string())
+        // }).log_error("\t\t...failed to create table.", self.config.log)??;
+
         get_database_client(&self.pool, move |client| {
 
             if drop {
@@ -139,8 +156,6 @@ impl Database {
             client.execute(&create_table, &[])?;
 
             Ok(())
-        }).log_error("\t\t...failed to create table.", self.config.log)?;
-
-        Ok(())
+        }).log_error("\t\t...failed to create table.", self.config.log)
     }
 }
