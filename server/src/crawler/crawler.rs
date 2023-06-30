@@ -34,6 +34,12 @@ pub struct Crawler {
     just_update_remote_ids : bool
 }
 
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+);
+
 impl Crawler {
 
     pub fn new(
@@ -44,6 +50,7 @@ impl Crawler {
         just_update_remote_ids : bool
     ) -> Result<Self> {
         let client = Client::builder()
+            .user_agent(APP_USER_AGENT)
             .connection_verbose(true)
             .build()?;
 
@@ -60,6 +67,11 @@ impl Crawler {
     pub async fn crawl(
         &self
     ) -> Result<()> {
+
+        if !self.fetcher.fetch_if_can_crawl(APP_USER_AGENT).await? {
+            return Err(LemmySearchError::Generic("Crawling disabled by robots.txt"));
+        }
+
         let site_view = self.fetcher.fetch_site_data()
             .await
             .log_error(format!("\t...unable to fetch site data for instance '{}'.", self.instance).as_str(), self.config.log)
@@ -84,6 +96,7 @@ impl Crawler {
 
             let federated_instances = self.fetcher.fetch_instances()
                 .await?
+                .federated_instances
                 .linked;
     
             for instance in federated_instances {
