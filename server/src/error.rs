@@ -3,6 +3,7 @@ use tokio::task::JoinError;
 
 #[derive(Debug)]
 pub enum LemmySearchError {
+    Generic(&'static str),
     Unknown(String),
     Database(postgres::Error),
     DatabaseConnection(r2d2_postgres::r2d2::Error),
@@ -15,6 +16,7 @@ pub type Result<T> = std::result::Result<T, LemmySearchError>;
 impl std::fmt::Display for LemmySearchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self {
+            Self::Generic(string) => write!(f, "Error '{}'", string),
             Self::Unknown(string) => write!(f, "Unknown Error '{}'", string),
             Self::Database(postgres) => postgres.fmt(f),
             Self::DatabaseConnection(r2d2_postgres) => r2d2_postgres.fmt(f),

@@ -67,6 +67,11 @@ impl Crawler {
     pub async fn crawl(
         &self
     ) -> Result<()> {
+
+        if !self.fetcher.fetch_if_can_crawl(APP_USER_AGENT).await? {
+            return Err(LemmySearchError::Generic("Crawling disabled by robots.txt"));
+        }
+
         let site_view = self.fetcher.fetch_site_data()
             .await
             .log_error(format!("\t...unable to fetch site data for instance '{}'.", self.instance).as_str(), self.config.log)

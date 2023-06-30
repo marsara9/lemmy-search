@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 use reqwest::Client;
+use robotstxt::DefaultMatcher;
 use crate::error::{
     Result,
     LemmySearchError
@@ -47,6 +48,25 @@ impl Fetcher {
         path : &str
     ) -> String {
         return format!("https://{}{}", self.instance, path);
+    }
+
+    pub async fn fetch_if_can_crawl(
+        &self,
+        user_agent : &str
+    ) -> Result<bool> {
+
+        let url = self.get_url("robots.txt");
+
+        println!("Connecting to {}...", url);
+    
+        let robots_txt = self.client
+            .get(url)
+            .send()
+            .await?
+            .text()
+            .await?;
+
+        Ok(DefaultMatcher::default().one_agent_allowed_by_robots(&robots_txt, user_agent, "/"))
     }
 
     pub async fn fetch_site_data(
