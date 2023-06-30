@@ -22,7 +22,8 @@ pub struct Postgres {
     pub hostname : String,
     pub port : u16,
     pub database : String,
-    pub log : bool
+    pub log : bool,
+    pub max_size : usize
 }
 
 impl Config {

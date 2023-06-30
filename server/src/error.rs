@@ -1,9 +1,19 @@
+use deadpool_r2d2::{
+    InteractError, 
+    PoolError, 
+    Manager
+};
+use postgres::NoTls;
+use r2d2_postgres::PostgresConnectionManager;
+
 
 #[derive(Debug)]
 pub enum LemmySearchError {
     Unknown(String),
     Database(postgres::Error),
     DatabaseConnection(r2d2_postgres::r2d2::Error),
+    DatabaseInteractionError(InteractError),
+    DatabasePoolError(PoolError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>),
     Network(reqwest::Error)
 }
 
@@ -23,6 +33,18 @@ impl std::fmt::Display for LemmySearchError {
 impl From<postgres::Error> for LemmySearchError {
     fn from(value: postgres::Error) -> Self {
         LemmySearchError::Database(value)
+    }
+}
+
+impl From<InteractError> for LemmySearchError {
+    fn from(value:InteractError) -> Self {
+        LemmySearchError::DatabaseInteractionError(value)
+    }
+}
+
+impl From<PoolError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>> for LemmySearchError {
+    fn from(value:PoolError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>) -> Self {
+        LemmySearchError::DatabasePoolError(value)
     }
 }
 

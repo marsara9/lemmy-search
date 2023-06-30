@@ -9,7 +9,7 @@ use super::{
     DatabaseType
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Word {
     pub id : Uuid,
     pub word : String

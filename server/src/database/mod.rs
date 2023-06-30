@@ -10,7 +10,7 @@ use crate::{
     }, 
     error::{
         LogError,
-        Result
+        Result, LemmySearchError
     }, 
     api::lemmy::models::{
         author::Author, 
@@ -19,25 +19,31 @@ use crate::{
         id::LemmyId
     }
 };
+use deadpool::managed::Object;
+use deadpool_r2d2::{Runtime, Manager};
 use postgres::{
     NoTls, 
     Config
 };
 use r2d2_postgres::{
     PostgresConnectionManager, 
-    r2d2::{
-        Pool, 
-        PooledConnection
-    }
+    r2d2::PooledConnection
 };
 
 use self::{
     schema::DatabaseSchema, 
-    dbo::get_database_client
+    // dbo::get_database_client
 };
 
-pub type DatabasePool = Pool<PostgresConnectionManager<NoTls>>;
-pub type DatabaseClient = PooledConnection<PostgresConnectionManager<NoTls>>;
+pub type DatabasePool = deadpool_r2d2::Pool<PgManager>;
+//Pool<PostgresConnectionManager<NoTls>>;
+pub type DatabaseClient = postgres::Client;
+//Object<Manager<PostgresConnectionManager<NoTls>>>;
+//PooledConnection<PostgresConnectionManager<NoTls>>;
+
+pub type PgManager = deadpool_r2d2::Manager<
+    r2d2_postgres::PostgresConnectionManager<r2d2_postgres::postgres::NoTls>,
+>;
 
 #[derive(Clone)]
 pub struct Database {
@@ -49,7 +55,7 @@ impl Database {
 
     pub async fn create(
         config : &Postgres
-    ) -> std::result::Result<Self, r2d2_postgres::r2d2::Error> {
+    ) -> std::result::Result<Self, LemmySearchError> {
         Self::create_database_pool(config)
             .await
             .map(|pool| {
@@ -62,7 +68,7 @@ impl Database {
 
     async fn create_database_pool(
         config : &Postgres
-    ) -> std::result::Result<DatabasePool, r2d2_postgres::r2d2::Error> {
+    ) -> std::result::Result<DatabasePool, LemmySearchError> {
         let db_config = Config::new()
             .user(&config.user)
             .password(&config.password)
@@ -71,10 +77,17 @@ impl Database {
             .dbname(&config.database)
             .to_owned();
 
-        let manager = PostgresConnectionManager::new(
+        let r2d2_manager = PostgresConnectionManager::new(
             db_config, NoTls            
         );
-        Pool::new(manager)
+
+        let manager = PgManager::new(r2d2_manager, Runtime::Tokio1);
+        DatabasePool::builder(manager)
+            .max_size(config.max_size)
+            .build()
+            .map_err(|err| {
+                LemmySearchError::Unknown("".to_string())
+            })
     }
 
     pub async fn init_database(
@@ -130,8 +143,9 @@ impl Database {
 
         println!("Logging create table query: {}", create_table);
 
-        get_database_client(&self.pool, move |client| {
+        let client = self.pool.get().await?;
 
+        client.interact(move |client| -> Result<()> {
             if drop {
                 client.execute(&drop_table, &[])?;
             }
@@ -139,7 +153,8 @@ impl Database {
             client.execute(&create_table, &[])?;
 
             Ok(())
-        }).log_error("\t\t...failed to create table.", self.config.log)?;
+        }).await?
+            .log_error("\t\t...failed to create table.", self.config.log);
 
         Ok(())
     }

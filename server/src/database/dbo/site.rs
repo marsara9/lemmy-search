@@ -1,6 +1,5 @@
 use chrono::Utc;
 use uuid::Uuid;
-use super::get_database_client;
 use crate::{
     error::Result,
     database::DatabasePool,
@@ -9,6 +8,8 @@ use crate::{
         Site
     }
 };
+
+use super::get_database_client;
 
 #[derive(Clone)]
 pub struct SiteDBO {
@@ -44,7 +45,7 @@ impl SiteDBO {
             ).map(|count| {
                 count == 1
             })
-        })
+        }).await
     }
 
     pub async fn retrieve_all(
@@ -69,7 +70,7 @@ impl SiteDBO {
                     }
                 }).collect()
             })
-        })
+        }).await
     }
 
     pub async fn set_last_post_page(
@@ -92,7 +93,7 @@ impl SiteDBO {
             ).map(|count| {
                 count == 1
             })
-        })
+        }).await
     }
 
     #[allow(unused)]
@@ -116,7 +117,7 @@ impl SiteDBO {
             ).map(|count| {
                 count == 1
             })
-        })
+        }).await
     }
 
     pub async fn get_last_post_page(
@@ -137,7 +138,7 @@ impl SiteDBO {
             ).map(|row| {
                 row.get("last_post_page")
             })
-        })
+        }).await
     }
 
     #[allow(unused)]
@@ -159,6 +160,6 @@ impl SiteDBO {
             ).map(|row| {
                 row.get("last_comment_page")
             })
-        })
+        }).await
     }
 }

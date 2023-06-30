@@ -9,7 +9,7 @@ use super::{
     DatabaseType
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Search {
     pub word_id : Uuid,
     pub post_ap_id : String

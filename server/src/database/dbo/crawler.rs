@@ -1,10 +1,14 @@
 use std::{
     collections::HashSet, 
-    fmt::Debug
+    fmt::Debug,
 };
+use deadpool::managed::Object;
+use deadpool_r2d2::Manager;
+use postgres::NoTls;
+use r2d2_postgres::PostgresConnectionManager;
+
 use crate::{
     database::{
-        DatabaseClient, 
         DatabasePool, 
         schema::{
             DatabaseSchema, 
@@ -21,20 +25,20 @@ use crate::{
 };
 
 pub struct CrawlerDatabase {
-    client : DatabaseClient
+    client : Object<Manager<PostgresConnectionManager<NoTls>>>
 }
 
 impl CrawlerDatabase {
 
-    pub fn init(pool : DatabasePool) -> Result<Self> {
-        let client = pool.get()?;
+    pub async fn init(pool : DatabasePool) -> Result<Self> {
+        let client = pool.get().await?;
 
         Ok(Self {
             client
         })
     }
 
-    pub fn bulk_update_post(
+    pub async fn bulk_update_post(
         &mut self,
         instance_actor_id : &str,
         posts : &Vec<PostData>
@@ -73,17 +77,17 @@ impl CrawlerDatabase {
             p.clone()
         }).collect();
 
-        self.bulk_update(&authors)?;
-        self.bulk_update(&communities)?;
-        self.bulk_update(&posts)?;
-        self.bulk_update(&lemmy_ids)?;
-        self.bulk_update_words(&words)?;
-        self.bulk_update(&xrefs)?;
+        self.bulk_update(&authors).await?;
+        self.bulk_update(&communities).await?;
+        self.bulk_update(&posts).await?;
+        self.bulk_update(&lemmy_ids).await?;
+        self.bulk_update_words(&words).await?;
+        self.bulk_update(&xrefs).await?;
 
         Ok(())
     }
 
-    pub fn bulk_update_lemmy_ids(
+    pub async fn bulk_update_lemmy_ids(
         &mut self,
         instance_actor_id : &str,
         posts : &Vec<PostData>
@@ -99,20 +103,19 @@ impl CrawlerDatabase {
             });
         }
 
-        self.bulk_update(&lemmy_ids)?;
-
-        Ok(())
+        self.bulk_update(&lemmy_ids)
+            .await
     }
 
-    fn bulk_update<T : DatabaseSchema + Debug>(
+    async fn bulk_update<'a, T : DatabaseSchema + Debug + Clone + Send + 'a>(
         &mut self,
         objects : &HashSet<T>
     ) -> Result<()> {
-        let params = objects.get_values();
+        let objects = objects.clone();
 
         let mut values = Vec::<String>::new();
         let mut index = 1;
-        for item in objects {
+        for item in &objects {
             let t = item.get_values().into_iter().enumerate().map(|(i, _)| {
                 format!("${}", index + i)
             }).collect::<Vec<_>>();
@@ -171,40 +174,49 @@ impl CrawlerDatabase {
             )
         };
 
-        self.client.execute(&query, &params)?;
+        self.client.interact(move |client| {
+            let params = objects.get_values();
+
+            client.execute(&query, &params)
+        }).await?;
 
         Ok(())
     }
 
-    fn bulk_update_words(
+    async fn bulk_update_words(
         &mut self,
         objects : &HashSet<Word>
     ) -> Result<()> {
-        let params = objects.get_values();
+        let objects = objects.clone();
+        
+        self.client.interact(move |client| {
 
-        let mut values = Vec::<String>::new();
-        let mut index = 1;
-        for item in objects {
-            let t = item.get_values().into_iter().enumerate().map(|(i, _)| {
-                format!("${}", index + i)
-            }).collect::<Vec<_>>();
-            values.push(format!("({})", t.join(", ")));
-            index += t.len();
-        }
+            let params = objects.get_values();
 
-        let query = format!("
-            INSERT INTO {} ({})
-                VALUES 
-                    {}
-            ON CONFLICT (word) 
-                DO NOTHING
-        ", 
-            Word::get_table_name(),
-            Word::get_column_names().join(", "),
-            values.join(",\n\t\t\t\t")
-        );
+            let mut values = Vec::<String>::new();
+            let mut index = 1;
+            for item in &objects {
+                let t = item.get_values().into_iter().enumerate().map(|(i, _)| {
+                    format!("${}", index + i)
+                }).collect::<Vec<_>>();
+                values.push(format!("({})", t.join(", ")));
+                index += t.len();
+            }
 
-        self.client.execute(&query, &params)?;
+            let query = format!("
+                INSERT INTO {} ({})
+                    VALUES 
+                        {}
+                ON CONFLICT (word) 
+                    DO NOTHING
+            ", 
+                Word::get_table_name(),
+                Word::get_column_names().join(", "),
+                values.join(",\n\t\t\t\t")
+            );
+
+            client.execute(&query, &params);
+        }).await;
 
         Ok(())
     }
