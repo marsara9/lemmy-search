@@ -14,7 +14,7 @@ use crate::{
     }, 
     error::{
         Result, 
-        LemmySearchError
+        LemmySearchError, LogError
     }, 
     api::lemmy::models::{
         author::Author, 
@@ -130,6 +130,7 @@ impl Database {
         ", table_name, columns, primary_key);
 
         let pool = self.pool.clone();
+        let log: bool = self.config.log;
 
         thread::spawn(move || -> Result<()> {
             let mut client = pool.get()?;
@@ -142,7 +143,7 @@ impl Database {
                 ()
             }).map_err(|err| {
                 LemmySearchError::Database(err)
-            })
+            }).log_error(format!("...table creation failed for table '{}'", S::get_table_name()).as_str(), log)
         });
 
         Ok(())
