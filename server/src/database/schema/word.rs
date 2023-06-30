@@ -51,7 +51,9 @@ impl DatabaseSchema for Word {
     fn get_keys(
     
     ) -> Vec<String> {
-        Self::get_column_names()    
+        vec![
+            "id".to_string()
+        ]   
     }
 
     fn get_column_names(
@@ -68,7 +70,7 @@ impl DatabaseSchema for Word {
     ) -> HashMap<String, DatabaseType> {
         HashMap::from([
             ("id".to_string(), DatabaseType::Uuid.not_null()),
-            ("word".to_string(), DatabaseType::String(0).not_null()),
+            ("word".to_string(), DatabaseType::String(0).not_null().unique()),
         ])
     }
 

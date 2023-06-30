@@ -30,8 +30,8 @@ impl SiteDBO {
         get_database_client(&self.pool, move |client| {
 
             client.execute("
-                INSERT INTO sites (\"id\", \"name\", \"actor_id\", \"last_update\") 
-                    VALUES ($1, $2, $3, $4)
+                INSERT INTO sites (\"id\", \"name\", \"actor_id\", \"last_post_page\", \"last_comment_page\", \"last_update\") 
+                    VALUES ($1, $2, $3, 0, 0, $4)
                 ON CONFLICT (actor_id)
                 DO UPDATE SET \"name\" = $2, \"last_update\" = $4
                 ",
