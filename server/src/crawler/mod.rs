@@ -11,8 +11,7 @@ use crate::{
 };
 use clokwerk::{
     TimeUnits, 
-    AsyncScheduler,
-    Job
+    AsyncScheduler
 };
 
 pub struct Runner {
@@ -41,12 +40,8 @@ impl Runner {
         let config = self.config.clone();
         let database = self.database.clone();
 
-        scheduler.every(6.hours())
-            .at("07:00")
+        scheduler.every(6.hours())            
             .run(move || Self::run(config.clone(), database.clone()));
-
-        // scheduler.every(5.minutes())
-        //     .run(move || Self::run(config.clone(), database.clone()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {
@@ -75,6 +70,8 @@ impl Runner {
                     .crawl()
                     .await
                     .log_error(format!("The crawler for '{}' encountered an error.", config.seed_instance).as_str(), config.log);
+
+            println!("Crawling complete.");
         } else {
             println!("Crawler is currently disabled; skipping...");
         }

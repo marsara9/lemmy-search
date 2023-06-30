@@ -41,8 +41,10 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    let init_result = database.init_database()
-        .await;
+    let d = database.clone();
+
+    let init_result = d.init_database();
+    
     match init_result {
         Ok(_) => {}
         Err(err) => {

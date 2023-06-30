@@ -4,7 +4,8 @@ use regex::Regex;
 use lazy_static::lazy_static;
 use std::{
     collections::{
-        HashMap, HashSet
+        HashMap, 
+        HashSet
     }, 
     sync::Mutex, 
     time::Instant
@@ -97,7 +98,6 @@ impl SearchHandler {
             let _ = crawler.crawl()
                 .await
                 .log_error("The manually triggered crawler encountered an error.", true);
-
         });
 
         Ok("Started")
