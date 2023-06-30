@@ -4,7 +4,10 @@ mod crawler;
 mod database;
 mod error;
 
-use std::{env, sync::Mutex};
+use std::{
+    env, 
+    sync::Mutex
+};
 use actix_files as fs;
 use actix_web::{
     App, 
@@ -17,6 +20,8 @@ use database::Database;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init();
+
     let args: Vec<String> = env::args().collect();
     let ui_directory = match args.get(1) {
         Some(path) => path,
@@ -36,8 +41,10 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    let init_result = database.init_database()
-        .await;
+    let d = database.clone();
+
+    let init_result = d.init_database();
+    
     match init_result {
         Ok(_) => {}
         Err(err) => {
@@ -55,7 +62,7 @@ async fn main() -> std::io::Result<()> {
     let pool = Data::new(Mutex::new(database.pool.clone()));
 
     let factory = move || {
-        let search_handler = SearchHandler::new();
+        let search_handler = SearchHandler::new(&config);
         let mut app = App::new()
             .app_data(pool.clone());
         for (path, route) in search_handler.routes {

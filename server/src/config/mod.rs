@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Config {
+    pub development_mode : bool,
     pub crawler : Crawler,
     pub postgres : Postgres,
 }
@@ -36,9 +37,9 @@ impl Config {
                 println!("{:?}", value);
                 value
             },
-            Err(_) => {
+            Err(err) => {
                 println!("Failed to load config file...");
-                println!("\tusing defaults...");
+                println!("{}", err);
                 Config {
                     ..Default::default()
                 }
