@@ -55,7 +55,7 @@ impl Fetcher {
         user_agent : &str
     ) -> Result<bool> {
 
-        let url = self.get_url("robots.txt");
+        let url = self.get_url("/robots.txt");
 
         println!("Connecting to {}...", url);
     
