@@ -154,6 +154,11 @@ impl CrawlerDatabase {
             .collect::<Vec<_>>()
             .join(",\n\t\t\t");
 
+        if values.is_empty() {
+            // Nothing to insert; skip
+            return Ok(())
+        }
+
         let query = if exclude.is_empty() {
             format!("
                 INSERT INTO {} ({})

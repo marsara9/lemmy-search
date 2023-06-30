@@ -41,6 +41,11 @@ pub struct FederatedInstancesRequest;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct FederatedInstancesResponse {
+    pub federated_instances : FederatedInstances
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct FederatedInstances {
     pub linked : Vec<Instance>
 }
 

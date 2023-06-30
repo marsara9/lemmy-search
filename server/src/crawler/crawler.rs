@@ -84,6 +84,7 @@ impl Crawler {
 
             let federated_instances = self.fetcher.fetch_instances()
                 .await?
+                .federated_instances
                 .linked;
     
             for instance in federated_instances {
