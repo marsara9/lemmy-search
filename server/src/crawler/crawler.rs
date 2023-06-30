@@ -34,9 +34,13 @@ pub struct Crawler {
     just_update_remote_ids : bool
 }
 
-impl Crawler {
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+);
 
-    const VERSION: &str = env!("CARGO_PKG_VERSION");
+impl Crawler {
 
     pub fn new(
         instance : String,
@@ -46,7 +50,7 @@ impl Crawler {
         just_update_remote_ids : bool
     ) -> Result<Self> {
         let client = Client::builder()
-            .user_agent(format!("lemmy-search/{}", Self::VERSION))
+            .user_agent(APP_USER_AGENT)
             .connection_verbose(true)
             .build()?;
 
