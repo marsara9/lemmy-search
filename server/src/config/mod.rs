@@ -38,9 +38,9 @@ impl Config {
                 println!("{:?}", value);
                 value
             },
-            Err(_) => {
+            Err(err) => {
                 println!("Failed to load config file...");
-                println!("\tusing defaults...");
+                println!("{}", err);
                 Config {
                     ..Default::default()
                 }

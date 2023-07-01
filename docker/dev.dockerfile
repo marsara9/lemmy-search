@@ -1,5 +1,5 @@
 FROM lukemathwalker/cargo-chef:latest-rust-slim AS chef
-WORKDIR /cache
+WORKDIR /build/server
 
 FROM chef as planner
 
@@ -12,14 +12,14 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         pkg-config libssl-dev
 
-COPY --from=planner /cache/recipe.json recipe.json
+COPY --from=planner /build/server/recipe.json recipe.json
 RUN cargo chef cook --release --recipe-path recipe.json
 
 FROM rust:slim-bookworm AS build
 
 WORKDIR /build
 COPY server/ server/
-COPY --from=cacher /cache/target/ server/target/
+COPY --from=cacher /build/server/target/ server/target/
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \

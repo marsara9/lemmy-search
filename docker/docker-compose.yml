@@ -18,6 +18,10 @@ services:
     restart: unless-stopped
   lemmy-search:
     image: marsara9/lemmy-search:latest # Use 'latest', 'dev' or ideally a target release tag.
+    # Uncomment this for development.
+    # build:
+    #   context: ../
+    #   dockerfile: dev.dockerfile
     container_name: lemmy-search  # You can technically set this to whatever you want, it's just for ease of reference.
     hostname: lemmy-search # If you change this, make sure to update your Nginx config to match.
     networks:

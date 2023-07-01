@@ -1,16 +1,21 @@
 pub mod dbo;
 pub mod schema;
 
+use std::thread;
+
 use crate::{
     config::Postgres, 
-    database::schema::{
-        site::Site,
-        word::Word, 
-        xref::Search
+    database::{
+        schema::{
+            site::Site,
+            word::Word, 
+            xref::Search
+        }
     }, 
     error::{
-        LogError,
-        Result, LemmySearchError
+        Result, 
+        LemmySearchError, 
+        LogError
     }, 
     api::lemmy::models::{
         author::Author, 
@@ -30,10 +35,7 @@ use r2d2_postgres::{
     r2d2::PooledConnection
 };
 
-use self::{
-    schema::DatabaseSchema, 
-    // dbo::get_database_client
-};
+use self::schema::DatabaseSchema;
 
 pub type DatabasePool = deadpool_r2d2::Pool<PgManager>;
 //Pool<PostgresConnectionManager<NoTls>>;
@@ -97,18 +99,18 @@ impl Database {
 
         let drop_table = false;
 
-        self.create_table_from_schema::<Site>(drop_table)?;
-        self.create_table_from_schema::<Author>(drop_table)?;
-        self.create_table_from_schema::<Community>(drop_table)?;
-        self.create_table_from_schema::<PostData>(drop_table)?;
-        self.create_table_from_schema::<LemmyId>(drop_table)?;
-        self.create_table_from_schema::<Word>(drop_table)?;
-        self.create_table_from_schema::<Search>(drop_table)?;
+        self.create_table_from_schema::<Site>(drop_table).await?;
+        self.create_table_from_schema::<Author>(drop_table).await?;
+        self.create_table_from_schema::<Community>(drop_table).await?;
+        self.create_table_from_schema::<PostData>(drop_table).await?;
+        self.create_table_from_schema::<LemmyId>(drop_table).await?;
+        self.create_table_from_schema::<Word>(drop_table).await?;
+        self.create_table_from_schema::<Search>(drop_table).await?;
 
         Ok(())
     }
 
-    fn create_table_from_schema<S : DatabaseSchema>(
+    async fn create_table_from_schema<S : DatabaseSchema>(
         &self,
         drop : bool
     ) -> Result<()> {
@@ -120,7 +122,7 @@ impl Database {
         let columns = column_names.into_iter().map(|name| {
             format!("{}\t{}", name, column_types[&name].to_sql_type_name())
         }).collect::<Vec<_>>()
-            .join("\n");
+            .join(",\n");
 
         let primary_key = if primary_keys.is_empty() {
             "".to_string()
@@ -141,7 +143,8 @@ impl Database {
             )
         ", table_name, columns, primary_key);
 
-        println!("Logging create table query: {}", create_table);
+        let pool = self.pool.clone();
+        let log: bool = self.config.log;
 
         let client = self.pool.get().await?;
 
@@ -150,11 +153,12 @@ impl Database {
                 client.execute(&drop_table, &[])?;
             }
 
-            client.execute(&create_table, &[])?;
-
-            Ok(())
-        }).await?
-            .log_error("\t\t...failed to create table.", self.config.log);
+            client.execute(&create_table, &[]).map(|_| {
+                ()
+            }).map_err(|err| {
+                LemmySearchError::Database(err)
+            }).log_error(format!("...table creation failed for table '{}'", S::get_table_name()).as_str(), log)
+        });
 
         Ok(())
     }

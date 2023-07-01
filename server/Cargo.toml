@@ -8,6 +8,7 @@ authors = ["MarSara9"]
 env_logger = "0.10.*"
 async-recursion = "1.0.*"
 lazy_static = "1.4.*"
+robotstxt = "0.3.*"
 deadpool = "0.9.*"
 deadpool-r2d2 = "0.2.*"
 url = { version = "2.4.*", features = ["serde"] }

@@ -19,7 +19,7 @@ use crate::{
     error::Result,
     api::lemmy::models::{
         post::PostData, 
-        id::LemmyId,
+        id::LemmyId, author::Author, community::Community,
     }, 
     crawler::analyzer::Analyzer
 };
@@ -61,13 +61,7 @@ impl CrawlerDatabase {
             let words = post.post.get_distinct_words().into_iter().map(|word| {
                 Word::from(word)
             }).collect::<HashSet<_>>();
-            let xref = words.iter().map(|word| {
-                Search {
-                    word_id: word.id.clone(),
-                    post_ap_id: post.post.ap_id.clone()
-                }
-            }).collect::<Vec<_>>();
-            xrefs.extend(xref);
+            xrefs.extend(self.get_xrefs_for_post(post).await?);
 
             all_words.extend(words);
         }
@@ -77,14 +71,45 @@ impl CrawlerDatabase {
             p.clone()
         }).collect();
 
-        self.bulk_update(&authors).await?;
-        self.bulk_update(&communities).await?;
-        self.bulk_update(&posts).await?;
-        self.bulk_update(&lemmy_ids).await?;
-        self.bulk_update_words(&words).await?;
-        self.bulk_update(&xrefs).await?;
+        self.update_authors(&authors).await?;
+        self.update_communities(&communities).await?;
+        self.update_posts(&posts).await?;
+        self.update_lemmy_ids(&lemmy_ids).await?;
+        self.update_words(&words).await?;
+        self.update_xref(&xrefs).await?;
 
         Ok(())
+    }
+
+    pub async fn get_xrefs_for_post(
+        &mut self,
+        post_data : &PostData
+    ) -> Result<HashSet<Search>> {
+
+        let words = post_data.post.get_distinct_words()
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        let query = "
+            SELECT w.id, p.ap_id FROM posts AS p
+            JOIN words AS w ON w.id = w.id
+            WHERE w.word = any($1)
+                AND p.ap_id = $2
+        ".to_string();
+
+        let post_data = post_data.clone();
+
+        Ok(self.client.interact(move |client| {
+            client.query(&query, &[&words, &post_data.post.ap_id])
+                .map(|rows| {
+                    rows.into_iter().map(|row| {
+                        Search {
+                            word_id : row.get(0),
+                            post_ap_id : row.get(1)
+                        }
+                    }).collect::<HashSet<_>>()
+                })
+        }).await??)
     }
 
     pub async fn bulk_update_lemmy_ids(
@@ -103,14 +128,13 @@ impl CrawlerDatabase {
             });
         }
 
-        self.bulk_update(&lemmy_ids)
+        self.update_lemmy_ids(&lemmy_ids)
             .await
     }
 
-    async fn bulk_update<'a, T : DatabaseSchema + Debug + Clone + Send + 'a>(
-        &mut self,
+    fn bulk_get_query<T : DatabaseSchema + Debug + Clone>(
         objects : &HashSet<T>
-    ) -> Result<()> {
+    ) -> Option<String> {
         let objects = objects.clone();
 
         let mut values = Vec::<String>::new();
@@ -133,6 +157,11 @@ impl CrawlerDatabase {
             })
             .collect::<Vec<_>>()
             .join(",\n\t\t\t");
+
+        if values.is_empty() {
+            // Nothing to insert; skip
+            return None
+        }
 
         let query = if exclude.is_empty() {
             format!("
@@ -174,16 +203,120 @@ impl CrawlerDatabase {
             )
         };
 
-        self.client.interact(move |client| {
-            let params = objects.get_values();
-
-            client.execute(&query, &params)
-        }).await?;
-
-        Ok(())
+        Some(query)
     }
 
-    async fn bulk_update_words(
+    async fn update_authors(
+        &mut self,
+        objects : &HashSet<Author>
+    ) -> Result<()> {
+        let objects = objects.clone();
+        
+        Ok(self.client.interact(move |client| {
+            let q = Self::bulk_get_query(&objects);
+
+            let params = objects.get_values();
+
+            match q {
+                Some(query) => {
+                    client.execute(&query, &params)
+                },
+                None => Ok(0)
+            }
+        }).await.map(|_| {
+            ()
+        })?)
+    }
+
+    async fn update_communities(
+        &mut self,        
+        objects : &HashSet<Community>
+    ) -> Result<()> {
+        let objects = objects.clone();
+        
+        Ok(self.client.interact(move |client| {
+            let q = Self::bulk_get_query(&objects);
+
+            let params = objects.get_values();
+
+            match q {
+                Some(query) => {
+                    client.execute(&query, &params)
+                },
+                None => Ok(0)
+            }
+        }).await.map(|_| {
+            ()
+        })?)
+    }
+
+    async fn update_posts(
+        &mut self,
+        objects : &HashSet<PostData>
+    ) -> Result<()> {
+        let objects = objects.clone();
+        
+        Ok(self.client.interact(move |client| {
+            let q = Self::bulk_get_query(&objects);
+
+            let params = objects.get_values();
+
+            match q {
+                Some(query) => {
+                    client.execute(&query, &params)
+                },
+                None => Ok(0)
+            }
+        }).await.map(|_| {
+            ()
+        })?)
+    }
+
+    async fn update_lemmy_ids(
+        &mut self,
+        objects : &HashSet<LemmyId>
+    ) -> Result<()> {
+        let objects = objects.clone();
+        
+        Ok(self.client.interact(move |client| {
+            let q = Self::bulk_get_query(&objects);
+
+            let params = objects.get_values();
+
+            match q {
+                Some(query) => {
+                    client.execute(&query, &params)
+                },
+                None => Ok(0)
+            }
+        }).await.map(|_| {
+            ()
+        })?)
+    }
+
+    async fn update_xref(
+        &mut self,
+        objects : &HashSet<Search>
+    ) -> Result<()> {
+        let objects = objects.clone();
+        
+        Ok(self.client.interact(move |client| {
+            let q = Self::bulk_get_query(&objects);
+
+            let params = objects.get_values();
+
+            match q {
+                Some(query) => {
+                    client.execute(&query, &params)
+                },
+                None => Ok(0)
+            }
+        }).await.map(|_| {
+            ()
+        })?)
+    }
+
+    async fn update_words(
         &mut self,
         objects : &HashSet<Word>
     ) -> Result<()> {
