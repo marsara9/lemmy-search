@@ -34,7 +34,7 @@ impl SearchDatabase {
         community : &Option<String>,
         author : &Option<String>,
         preferred_instance : &str
-    ) -> Result<Vec<SearchPost>, LemmySearchError> {        
+    ) -> Result<Vec<SearchPost>> {        
 
         let query = query.to_owned();
         let instance = instance.to_owned();

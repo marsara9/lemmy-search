@@ -32,7 +32,7 @@ function query(queryString) {
         let response_time = Math.round((result.time_taken.secs + (result.time_taken.nanos / 1_000_000_000)) * 100) / 100;
 
         $("#response-time").text(
-            "Found " + result.posts.length + " results in " + response_time + " seconds"
+            "Found " + result.total_results + " results in " + response_time + " seconds"
         );
 
         let list = $("<ol/>");
