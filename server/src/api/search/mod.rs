@@ -76,7 +76,11 @@ impl SearchHandler {
     pub async fn heartbeat<'a>(
         
     ) -> Result<impl Responder> {
-        Ok("Ready")
+        Ok(
+            "Ready"
+                .customize()
+                .insert_header(("cache-control", "no-store"))
+        )
     }
 
     /**
@@ -102,7 +106,11 @@ impl SearchHandler {
                 .log_error("The manually triggered crawler encountered an error.", true);
         });
 
-        Ok("Started")
+        Ok(
+            "Started"
+                .customize()
+                .insert_header(("cache-control", "no-store"))
+        )
     }
 
     /**
@@ -249,7 +257,11 @@ impl SearchHandler {
             time_taken: duration
         };
 
-        Ok(Json(results))
+        Ok(
+            Json(results)
+                .customize()
+                .insert_header(("cache-control", "public, max-age=86400"))
+        )
     }
 
     /**
@@ -269,6 +281,10 @@ impl SearchHandler {
                 actix_web::error::ErrorInternalServerError(err)
             })?;
 
-        Ok(Json(sites))
+        Ok(
+            Json(sites)
+                .customize()
+                .insert_header(("cache-control", "public, max-age=86400"))
+        )
     }
 }
