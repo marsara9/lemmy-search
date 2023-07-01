@@ -32,10 +32,6 @@ use r2d2_postgres::PostgresConnectionManager;
 use self::schema::DatabaseSchema;
 
 pub type DatabasePool = deadpool_r2d2::Pool<PgManager>;
-//Pool<PostgresConnectionManager<NoTls>>;
-//pub type DatabaseClient = postgres::Client;
-//Object<Manager<PostgresConnectionManager<NoTls>>>;
-//PooledConnection<PostgresConnectionManager<NoTls>>;
 
 pub type PgManager = deadpool_r2d2::Manager<
     r2d2_postgres::PostgresConnectionManager<r2d2_postgres::postgres::NoTls>,
@@ -93,13 +89,20 @@ impl Database {
 
         let drop_table = false;
 
-        self.create_table_from_schema::<Site>(drop_table).await?;
-        self.create_table_from_schema::<Author>(drop_table).await?;
-        self.create_table_from_schema::<Community>(drop_table).await?;
-        self.create_table_from_schema::<PostData>(drop_table).await?;
-        self.create_table_from_schema::<LemmyId>(drop_table).await?;
-        self.create_table_from_schema::<Word>(drop_table).await?;
-        self.create_table_from_schema::<Search>(drop_table).await?;
+        self.create_table_from_schema::<Site>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Author>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Community>(drop_table)
+            .await?;
+        self.create_table_from_schema::<PostData>(drop_table)
+            .await?;
+        self.create_table_from_schema::<LemmyId>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Word>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Search>(drop_table)
+            .await?;
 
         Ok(())
     }
@@ -139,7 +142,8 @@ impl Database {
 
         let log: bool = self.config.log;
 
-        let client = self.pool.get().await?;
+        let client = self.pool.get()
+            .await?;
 
         client.interact(move |client| -> Result<()> {
             if drop {

@@ -9,27 +9,6 @@ use crate::error::{
 };
 use postgres::Client;
 
-// pub fn get_database_client<T, F>(
-//     pool : &DatabasePool,
-//     callback : F
-// ) -> Result<T> 
-// where
-//     F : FnOnce(&mut PooledConnection<PostgresConnectionManager<NoTls>>) -> std::result::Result<T, postgres::Error> + Send + 'static,
-//     T : Default + Send + 'static
-// {
-//     let pool = pool.clone();
-
-//     thread::spawn(move || -> Result<T> {
-//         let mut client = pool.get().await?;
-
-//         callback(&mut client).map_err(|err| {
-//             LemmySearchError::Database(err)
-//         })
-//     }).join().map_err(|err| {
-//         LemmySearchError::Unknown(format!("{:#?}", err))
-//     })?
-// }
-
 pub async fn get_database_client<T, F>(
     pool : &DatabasePool,
     callback : F

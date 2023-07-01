@@ -152,15 +152,11 @@ impl Crawler {
             let pool = self.pool.clone();
             let site_actor_id_string = site_actor_id.to_string();
 
-            // tokio::task::spawn_blocking(move || -> Result<()> {
-                let mut crawler_database = CrawlerDatabase::init(pool.clone()).await?;
+            let mut crawler_database = CrawlerDatabase::init(pool.clone()).await?;
 
-                crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
-                    .await
-                    .log_error("\t...Bulk insert failed.", true)?;
-            // }).await.map_err(|_| {
-            //     LemmySearchError::Unknown("Unknown".to_string())
-            // })??;
+            crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
+                .await
+                .log_error("\t...Bulk insert failed.", true)?;
 
             total_found += filtered_count;
 
@@ -190,7 +186,7 @@ impl Crawler {
 
         let mut page = last_page;
         loop {
-            let posts = self.fetcher.fetch_posts(page)
+            let posts = self.fetcher.fetch_posts(page+1)
                 .await
                 .log_error("\tfailed to fetch another page of 'post ids'...", self.config.log)?;
 
