@@ -4,6 +4,9 @@ function populateInstances() {
     fetchJson("/instances", result => {
 
         preferred_instance = getCookie("preferred-instance") ?? result[0].site.actor_id;
+        if(!result.map(site => { site.actor_id }).includes(preferred_instance)) {
+            preferred_instance = result[0].site.actor_id;
+        }
 
         let select = $("#instance-select");
         result.forEach(instance => {
