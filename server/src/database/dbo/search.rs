@@ -3,7 +3,7 @@ use super::{
     get_database_client
 };
 use crate::{
-    error::LemmySearchError,
+    error::Result,    
     database::DatabasePool,
     api::{
         search::models::search::{
@@ -115,6 +115,6 @@ impl SearchDatabase {
                         }
                     }).collect()
                 })
-        })
+        }).await
     }
 }
