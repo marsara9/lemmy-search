@@ -9,13 +9,14 @@ use serde::{
 pub struct SearchQuery {
     pub query : String,
     pub preferred_instance : String,
-    pub page : Option<i64>
+    pub page : Option<i32>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SearchResult {
     pub original_query_terms : HashSet<String>,
-    pub total_pages : i64,
+    pub total_results : i32,
+    pub total_pages : i32,
     pub time_taken : Duration,
     pub posts : Vec<SearchPost>
 }

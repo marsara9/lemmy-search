@@ -33,7 +33,7 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>,
-        preferred_instance : &str,
+        preferred_instance : &str
     ) -> Result<Vec<SearchPost>> {        
 
         let query = query.to_owned();
