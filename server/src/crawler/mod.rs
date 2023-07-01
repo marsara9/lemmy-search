@@ -2,12 +2,16 @@ pub mod analyzer;
 pub mod crawler;
 
 use self::crawler::Crawler;
-use std::time::Duration;
+use std::{time::Duration, path::Path};
+use async_std::fs::remove_file;
 use tokio::task::JoinHandle;
 use crate::{
     config, 
     database::Database,
-    error::LogError
+    error::{
+        LogError,
+        Result, LemmySearchError
+    }
 };
 use clokwerk::{
     TimeUnits, 
@@ -37,11 +41,16 @@ impl Runner {
 
         let mut scheduler = AsyncScheduler::with_tz(chrono::Utc);
 
-        let config = self.config.clone();
-        let database = self.database.clone();
+        let config1 = self.config.clone();
+        let database1 = self.database.clone();
+        let config2 = self.config.clone();
+        let database2 = self.database.clone();
 
         scheduler.every(6.hours())            
-            .run(move || Self::run(config.clone(), database.clone()));
+            .run(move || Self::run(config1.clone(), database1.clone()));
+
+        scheduler.every(1.minutes())
+            .run(move || Self::manual_check(config2.clone(), database2.clone()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {
@@ -57,7 +66,27 @@ impl Runner {
             None => {}
         }
         self.handle = None
-    }    
+    }
+
+    async fn manual_check(
+        config : config::Crawler,
+        database : Database
+    ) {
+        let file = Path::new("/lemmy/config/crawl");
+        if file.exists() {
+            match remove_file("/lemmy/config/crawl")
+                .await {
+                    Ok(_) => {
+                        Self::run(config.clone(), database.clone())
+                            .await; 
+                    },
+                    Err(err) => {
+                        let _ = Result::<()>::Err(LemmySearchError::from(err))
+                            .log_error("Failed to delete manual crawl trigger.", config.log);
+                    }
+                }
+        }
+    }
 
     async fn run(
         config : config::Crawler,
