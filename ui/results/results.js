@@ -9,8 +9,8 @@ function checkQueryParameters() {
 function populateInstances() {
     fetchJson("/instances", result => {
 
-        preferred_instance = getCookie("preferred-instance") ?? result[0].site.actor_id;
-        if(!result.map(site => { site.actor_id }).includes(preferred_instance)) {
+        preferred_instance = getCookie("preferred-instance") || result[0].site.actor_id;
+        if(!result.map(instance => instance.site.actor_id).includes(preferred_instance)) {
             preferred_instance = result[0].site.actor_id;
         }
 
@@ -43,7 +43,54 @@ function query(queryString) {
         });
         $("#results").empty();
         $("#results").append(list);
+
+        buildPageControls(result.total_pages);
     })
+}
+
+function buildPageControls(total_pages) {
+    const urlParameters = new URLSearchParams(window.location.search);
+    let query = urlParameters.get("query");
+    let page = Math.max(parseInt(urlParameters.get("page"), 10) || 1, 1);
+
+    let page_control = $("#page-control")
+        .empty();
+
+    if(page > 1) {
+        let params = {
+            "query" : query,
+            "preferred_instance" : dropSchema(preferred_instance),
+            "page" : page - 1
+        };
+        
+        let href = "/results?" + new URLSearchParams(params).toString();
+
+        let previous = $("<a />")
+            .attr("href", href);
+
+        previous.text("< Previous");
+
+        page_control.append(previous);
+    }
+    if(page > 1 && page < total_pages) {
+        page_control.append($("<span> | </span>"));
+    }
+    if(page < total_pages) {
+        let params = {
+            "query" : query,
+            "preferred_instance" : dropSchema(preferred_instance),
+            "page" : page + 1
+        };
+        
+        let href = "/results?" + new URLSearchParams(params).toString();
+
+        let next = $("<a />")
+            .attr("href", href);
+
+        next.text("Next >");
+
+        page_control.append(next);
+    }
 }
 
 function buildSearchResult(post, original_query_terms) {
@@ -144,8 +191,12 @@ function dropSchema(instance_actor_id) {
 
 $(document).ready(function() {
     let header = $(".header");
-    let contentPlacement = header.position().top + header.outerHeight();
-    $('#results').css('margin-top',contentPlacement);
+    let headerPlacement = header.position().top + header.outerHeight();
+    $('#results').css('margin-top',headerPlacement);
+
+    let footer = $(".footer");
+    let footerPlacement = footer.outerHeight();
+    $('#page-control').css('margin-bottom',footerPlacement);
 
     if (!checkQueryParameters()) {
         window.location = "/";

@@ -164,3 +164,9 @@ li.search-result {
 .post-body > .search-term {
     font-weight: bold;
 }
+
+#page-control {
+    padding: 12px;
+    text-align: center;
+    font-size: 1.2rem;
+}

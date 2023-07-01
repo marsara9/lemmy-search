@@ -230,7 +230,9 @@ impl SearchHandler {
                 actix_web::error::ErrorInternalServerError(err)
             })?;
 
-        let len = search_results.len();
+        let len = search_results.len() as i32;
+        let skip = (Self::PAGE_LIMIT * page as usize) as usize;
+        let total_pages = (len as f32 / Self::PAGE_LIMIT as f32).ceil() as i32;
 
         // Capture the duration that the search took so we can report it back
         // to the user.
@@ -239,11 +241,11 @@ impl SearchHandler {
         let results: SearchResult = SearchResult {
             original_query_terms : query_terms,
             posts : search_results.into_iter()
-                .skip(Self::PAGE_LIMIT * page)
+                .skip(skip)
                 .take(Self::PAGE_LIMIT)
                 .collect(),
             total_results : len,
-            total_pages : 0,
+            total_pages : total_pages,
             time_taken: duration
         };
 
