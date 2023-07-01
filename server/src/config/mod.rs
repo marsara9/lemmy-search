@@ -12,6 +12,7 @@ pub struct Config {
 pub struct Crawler {
     pub enabled : bool,
     pub seed_instance : String,
+    pub single_instance_only : Option<bool>,
     pub log : bool
 }
 
