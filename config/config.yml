@@ -30,3 +30,6 @@ postgres:
   # Logs will still be sent to the console but they won't contain any stack-traces
   # should a crash or panic occur.
   log: false
+  # The maximum number of concurrent connections to the database that should be
+  # maintained.
+  max_size: 15

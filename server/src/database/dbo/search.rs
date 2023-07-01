@@ -3,7 +3,7 @@ use super::{
     get_database_client
 };
 use crate::{
-    error::LemmySearchError,
+    error::Result,    
     database::DatabasePool,
     api::{
         search::models::search::{
@@ -34,7 +34,7 @@ impl SearchDatabase {
         community : &Option<String>,
         author : &Option<String>,
         preferred_instance : &str,
-    ) -> Result<Vec<SearchPost>, LemmySearchError> {        
+    ) -> Result<Vec<SearchPost>> {        
 
         let query = query.to_owned();
         let instance = instance.to_owned();
@@ -63,8 +63,8 @@ impl SearchDatabase {
             let community = community.unwrap_or("".to_string());
             let author = author.unwrap_or("".to_string());
 
-            // Finds all words that match the search critera, then filter those results
-            // by any additional critera that the user may have, such as instance, 
+            // Finds all words that match the search criteria, then filter those results
+            // by any additional criteria that the user may have, such as instance, 
             // community, or author.  Next, count the number of matches each post has
             // and sort first by the number of matches and then if there's a conflict
             // by the total number of upvotes that the post has.
@@ -115,6 +115,6 @@ impl SearchDatabase {
                         }
                     }).collect()
                 })
-        })
+        }).await
     }
 }

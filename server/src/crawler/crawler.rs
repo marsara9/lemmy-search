@@ -34,6 +34,12 @@ pub struct Crawler {
     just_update_remote_ids : bool
 }
 
+static APP_USER_AGENT: &str = concat!(
+    env!("CARGO_PKG_NAME"),
+    "/",
+    env!("CARGO_PKG_VERSION"),
+);
+
 impl Crawler {
 
     pub fn new(
@@ -44,6 +50,7 @@ impl Crawler {
         just_update_remote_ids : bool
     ) -> Result<Self> {
         let client = Client::builder()
+            .user_agent(APP_USER_AGENT)
             .connection_verbose(true)
             .build()?;
 
@@ -60,6 +67,11 @@ impl Crawler {
     pub async fn crawl(
         &self
     ) -> Result<()> {
+
+        if !self.fetcher.fetch_if_can_crawl(APP_USER_AGENT).await? {
+            return Err(LemmySearchError::Generic("Crawling disabled by robots.txt"));
+        }
+
         let site_view = self.fetcher.fetch_site_data()
             .await
             .log_error(format!("\t...unable to fetch site data for instance '{}'.", self.instance).as_str(), self.config.log)
@@ -84,6 +96,7 @@ impl Crawler {
 
             let federated_instances = self.fetcher.fetch_instances()
                 .await?
+                .federated_instances
                 .linked;
     
             for instance in federated_instances {
@@ -139,14 +152,11 @@ impl Crawler {
             let pool = self.pool.clone();
             let site_actor_id_string = site_actor_id.to_string();
 
-            tokio::task::spawn_blocking(move || -> Result<()> {
-                let mut crawler_database = CrawlerDatabase::init(pool.clone())?;
+            let mut crawler_database = CrawlerDatabase::init(pool.clone()).await?;
 
-                crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
-                    .log_error("\t...Bulk insert failed.", true)
-            }).await.map_err(|_| {
-                LemmySearchError::Unknown("Unknown".to_string())
-            })??;
+            crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
+                .await
+                .log_error("\t...Bulk insert failed.", true)?;
 
             total_found += filtered_count;
 
@@ -172,11 +182,11 @@ impl Crawler {
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
 
-        let mut crawler_database = CrawlerDatabase::init(self.pool.clone())?;
+        let mut crawler_database = CrawlerDatabase::init(self.pool.clone()).await?;
 
         let mut page = last_page;
         loop {
-            let posts = self.fetcher.fetch_posts(page)
+            let posts = self.fetcher.fetch_posts(page+1)
                 .await
                 .log_error("\tfailed to fetch another page of 'post ids'...", self.config.log)?;
 
@@ -186,7 +196,7 @@ impl Crawler {
 
             println!("\tfetched another {} 'post ids'...", posts.len());
 
-            crawler_database.bulk_update_lemmy_ids(site_actor_id, &posts)?;
+            crawler_database.bulk_update_lemmy_ids(site_actor_id, &posts).await?;
 
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;
