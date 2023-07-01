@@ -1,8 +1,6 @@
 pub mod dbo;
 pub mod schema;
 
-use std::thread;
-
 use crate::{
     config::Postgres, 
     database::{
@@ -14,7 +12,8 @@ use crate::{
     }, 
     error::{
         Result, 
-        LemmySearchError, LogError
+        LemmySearchError, 
+        LogError
     }, 
     api::lemmy::models::{
         author::Author, 
@@ -23,22 +22,20 @@ use crate::{
         id::LemmyId
     }
 };
+use deadpool_r2d2::Runtime;
 use postgres::{
     NoTls, 
     Config
 };
-use r2d2_postgres::{
-    PostgresConnectionManager, 
-    r2d2::{
-        Pool, 
-        PooledConnection
-    }
-};
+use r2d2_postgres::PostgresConnectionManager;
 
 use self::schema::DatabaseSchema;
 
-pub type DatabasePool = Pool<PostgresConnectionManager<NoTls>>;
-pub type DatabaseClient = PooledConnection<PostgresConnectionManager<NoTls>>;
+pub type DatabasePool = deadpool_r2d2::Pool<PgManager>;
+
+pub type PgManager = deadpool_r2d2::Manager<
+    r2d2_postgres::PostgresConnectionManager<r2d2_postgres::postgres::NoTls>,
+>;
 
 #[derive(Clone)]
 pub struct Database {
@@ -50,7 +47,7 @@ impl Database {
 
     pub async fn create(
         config : &Postgres
-    ) -> std::result::Result<Self, r2d2_postgres::r2d2::Error> {
+    ) -> std::result::Result<Self, LemmySearchError> {
         Self::create_database_pool(config)
             .await
             .map(|pool| {
@@ -63,7 +60,7 @@ impl Database {
 
     async fn create_database_pool(
         config : &Postgres
-    ) -> std::result::Result<DatabasePool, r2d2_postgres::r2d2::Error> {
+    ) -> std::result::Result<DatabasePool, LemmySearchError> {
         let db_config = Config::new()
             .user(&config.user)
             .password(&config.password)
@@ -72,31 +69,45 @@ impl Database {
             .dbname(&config.database)
             .to_owned();
 
-        let manager = PostgresConnectionManager::new(
+        let r2d2_manager = PostgresConnectionManager::new(
             db_config, NoTls            
         );
-        Pool::new(manager)
+
+        let manager = PgManager::new(r2d2_manager, Runtime::Tokio1);
+        DatabasePool::builder(manager)
+            .max_size(config.max_size)
+            .build()
+            .map_err(|_| {
+                LemmySearchError::Unknown("".to_string())
+            })
     }
 
-    pub fn init_database(
+    pub async fn init_database(
         &self,
     ) -> Result<()> {
         println!("Creating database...");
 
         let drop_table = false;
 
-        self.create_table_from_schema::<Site>(drop_table)?;
-        self.create_table_from_schema::<Author>(drop_table)?;
-        self.create_table_from_schema::<Community>(drop_table)?;
-        self.create_table_from_schema::<PostData>(drop_table)?;
-        self.create_table_from_schema::<LemmyId>(drop_table)?;
-        self.create_table_from_schema::<Word>(drop_table)?;
-        self.create_table_from_schema::<Search>(drop_table)?;
+        self.create_table_from_schema::<Site>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Author>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Community>(drop_table)
+            .await?;
+        self.create_table_from_schema::<PostData>(drop_table)
+            .await?;
+        self.create_table_from_schema::<LemmyId>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Word>(drop_table)
+            .await?;
+        self.create_table_from_schema::<Search>(drop_table)
+            .await?;
 
         Ok(())
     }
 
-    fn create_table_from_schema<S : DatabaseSchema>(
+    async fn create_table_from_schema<S : DatabaseSchema>(
         &self,
         drop : bool
     ) -> Result<()> {
@@ -129,12 +140,12 @@ impl Database {
             )
         ", table_name, columns, primary_key);
 
-        let pool = self.pool.clone();
         let log: bool = self.config.log;
 
-        thread::spawn(move || -> Result<()> {
-            let mut client = pool.get()?;
+        let client = self.pool.get()
+            .await?;
 
+        client.interact(move |client| -> Result<()> {
             if drop {
                 client.execute(&drop_table, &[])?;
             }
@@ -144,8 +155,6 @@ impl Database {
             }).map_err(|err| {
                 LemmySearchError::Database(err)
             }).log_error(format!("...table creation failed for table '{}'", S::get_table_name()).as_str(), log)
-        });
-
-        Ok(())
+        }).await?
     }
 }
