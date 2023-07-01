@@ -94,23 +94,29 @@ impl Crawler {
             self.fetch_posts(&site_actor_id)
                 .await?;
 
-            let federated_instances = self.fetcher.fetch_instances()
+            if !self.config.single_instance_only.unwrap_or(false) {
+                let federated_instances = self.fetcher.fetch_instances()
                 .await?
                 .federated_instances
                 .linked;
     
-            for instance in federated_instances {
-                if match instance.software {
-                    Some(value) => value == "lemmy",
-                    None => false
-                } {
-                    Crawler::new(
-                        instance.domain, 
-                        self.config.clone(), 
-                        self.pool.clone(), 
-                        true
-                    )?.crawl()
-                        .await?;
+                for instance in federated_instances {
+                    if match instance.software {
+                        Some(value) => value == "lemmy",
+                        None => false
+                    } {
+                        let crawler = Crawler::new(
+                            instance.domain, 
+                            self.config.clone(), 
+                            self.pool.clone(), 
+                            true
+                        );
+                        
+                        let _ = match crawler {
+                            Ok(crawler) => crawler.crawl().await,
+                            Err(_) => Ok(())
+                        };         
+                    }
                 }
             }
         }

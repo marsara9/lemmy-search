@@ -9,13 +9,14 @@ use serde::{
 pub struct SearchQuery {
     pub query : String,
     pub preferred_instance : String,
-    pub page : Option<i64>
+    pub page : Option<i32>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SearchResult {
     pub original_query_terms : HashSet<String>,
-    pub total_pages : i64,
+    pub total_results : i32,
+    pub total_pages : i32,
     pub time_taken : Duration,
     pub posts : Vec<SearchPost>
 }
@@ -32,6 +33,7 @@ pub struct SearchPost {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchAuthor {
+    pub actor_id : String,
     pub avatar : Option<String>,
     pub name : String,
     pub display_name : Option<String>
@@ -39,6 +41,7 @@ pub struct SearchAuthor {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchCommunity {
+    pub actor_id : String,
     pub icon : Option<String>,
     pub name : String,
     pub title : Option<String>

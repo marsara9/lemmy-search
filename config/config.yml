@@ -10,6 +10,10 @@ crawler:
   # that are federated with this instance will also be crawled, but only to
   # cross reference Posts found on the seed instance.
   seed_instance: "voyager.lemmy.ml"
+  # Turn this on if you you only want to crawl the seed_instance.  Users will
+  # only be able to select your seed_instance as a preferred instance with
+  # this turned on.
+  single_instance_only: false
   # Turn ON or OFF stack-traces.  Logging will still occur, but details
   # on any crashes will be suppressed if this is turned off.
   log: true

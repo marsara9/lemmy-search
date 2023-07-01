@@ -6,7 +6,7 @@ mod error;
 
 use std::{
     env, 
-    sync::Mutex
+    sync::Mutex, time::Duration
 };
 use actix_files as fs;
 use actix_web::{
@@ -29,6 +29,9 @@ async fn main() -> std::io::Result<()> {
     }.to_owned();
 
     let config = config::Config::load();
+
+    println!("Giving time for database to come online...");
+    async_std::task::sleep(Duration::from_secs( 1 )).await;
 
     let database = match Database::create(&config.postgres).await {
         Ok(value) => value,

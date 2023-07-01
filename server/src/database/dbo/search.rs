@@ -33,7 +33,7 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>,
-        preferred_instance : &str,
+        preferred_instance : &str
     ) -> Result<Vec<SearchPost>> {        
 
         let query = query.to_owned();
@@ -69,25 +69,41 @@ impl SearchDatabase {
             // and sort first by the number of matches and then if there's a conflict
             // by the total number of upvotes that the post has.
             let query_string = format!("
-                SELECT p.url, p.name, p.body, l.post_remote_id, a.avatar, a.name, a.display_name, c.icon, c.name, c.title FROM (
-                    SELECT COUNT (p.ap_id) as matches, p.ap_id FROM xref AS x
-                        LEFT JOIN words AS w ON w.id = x.word_id 
-                        LEFT JOIN posts AS p ON p.ap_id = x.post_ap_id
-                        LEFT JOIN communities AS c ON c.ap_id = p.community_ap_id
-                        LEFT JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
-                    WHERE w.word = any($1)
-                        AND $2 = $2
-                        AND $3 = $3
-                        AND $4 = $4
-                        {}
-                        {}
-                        {}
-                    GROUP BY p.ap_id
-                ) AS t
-                    INNER JOIN posts AS p ON p.ap_id = t.ap_id
-                    INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
-                    INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
-                    INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
+                SELECT 
+                        p.url, 
+                        p.name, 
+                        p.body, 
+                        
+                        l.post_remote_id, 
+                        
+                        a.ap_id,
+                        a.avatar, 
+                        a.name, 
+                        a.display_name, 
+                        
+                        c.ap_id,
+                        c.icon, 
+                        c.name, 
+                        c.title 
+                    FROM (
+                        SELECT COUNT (p.ap_id) as matches, p.ap_id FROM xref AS x
+                            LEFT JOIN words AS w ON w.id = x.word_id 
+                            LEFT JOIN posts AS p ON p.ap_id = x.post_ap_id
+                            LEFT JOIN communities AS c ON c.ap_id = p.community_ap_id
+                            LEFT JOIN sites AS s ON c.ap_id LIKE s.actor_id || '%'
+                        WHERE w.word = any($1)
+                            AND $2 = $2
+                            AND $3 = $3
+                            AND $4 = $4
+                            {}
+                            {}
+                            {}
+                        GROUP BY p.ap_id
+                    ) AS t
+                        INNER JOIN posts AS p ON p.ap_id = t.ap_id
+                        INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
+                        INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
+                        INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                 WHERE l.instance_actor_id = $5
                 ORDER BY 
                     matches DESC,
@@ -103,14 +119,16 @@ impl SearchDatabase {
                             body : row.get(2),
                             remote_id : row.get(3),
                             author : SearchAuthor {
-                                avatar : row.get(4),
-                                name : row.get(5),
-                                display_name : row.get(6),
+                                actor_id: row.get(4),
+                                avatar : row.get(5),
+                                name : row.get(6),
+                                display_name : row.get(7),
                             },
                             community : SearchCommunity {
-                                icon : row.get(7),
-                                name : row.get(8),
-                                title : row.get(9)
+                                actor_id : row.get(8),
+                                icon : row.get(9),
+                                name : row.get(10),
+                                title : row.get(11)
                             }
                         }
                     }).collect()
