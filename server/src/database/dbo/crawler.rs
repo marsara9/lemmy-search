@@ -64,21 +64,21 @@ impl CrawlerDatabase {
             all_words.extend(words);
         }
 
+        self.update_authors(&authors).await?;
+        self.update_communities(&communities).await?;
+
         let words = all_words.into_iter().collect();
+        let posts2 = posts.into_iter().map(|p| {
+            p.clone()
+        }).collect();
         
         self.update_words(&words).await?;
+        self.update_posts(&posts2).await?;
 
         for post in posts {
             xrefs.extend(self.get_xrefs_for_post(post).await?);
         }
 
-        let posts = posts.into_iter().map(|p| {
-            p.clone()
-        }).collect();
-
-        self.update_authors(&authors).await?;
-        self.update_communities(&communities).await?;
-        self.update_posts(&posts).await?;
         self.update_lemmy_ids(&lemmy_ids).await?;
         self.update_xref(&xrefs).await?;
 
