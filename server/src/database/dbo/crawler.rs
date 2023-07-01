@@ -61,22 +61,51 @@ impl CrawlerDatabase {
             let words = post.post.get_distinct_words().into_iter().map(|word| {
                 Word::from(word)
             }).collect::<HashSet<_>>();
-            xrefs.extend(self.get_xrefs_for_post(post).await?);
-
             all_words.extend(words);
         }
 
         let words = all_words.into_iter().collect();
+        
+        self.update_words(&words).await.map(|c| {
+            if c == 0 {
+                println!("WARNING inserted 0 words.")
+            }
+        })?;
+
+        for post in posts {
+            xrefs.extend(self.get_xrefs_for_post(post).await?);
+        }
+
         let posts = posts.into_iter().map(|p| {
             p.clone()
         }).collect();
 
-        self.update_authors(&authors).await?;
-        self.update_communities(&communities).await?;
-        self.update_posts(&posts).await?;
-        self.update_lemmy_ids(&lemmy_ids).await?;
-        self.update_words(&words).await?;
-        self.update_xref(&xrefs).await?;
+        self.update_authors(&authors).await.map(|c| {
+            if c == 0 {
+                println!("WARNING inserted 0 authors.")
+            }
+        })?;
+        self.update_communities(&communities).await.map(|c| {
+            if c == 0 {
+                println!("WARNING inserted 0 communities.")
+            }
+        })?;
+        self.update_posts(&posts).await.map(|c| {
+            if c == 0 {
+                println!("WARNING inserted 0 posts.")
+            }
+        })?;
+        self.update_lemmy_ids(&lemmy_ids).await.map(|c| {
+            if c == 0 {
+                println!("WARNING inserted 0 lemmy ids.")
+            }
+        })?;
+        
+        self.update_xref(&xrefs).await.map(|c| {
+            if c == 0 {
+                println!("WARNING inserted 0 xrefs.")
+            }
+        })?;
 
         Ok(())
     }
@@ -116,7 +145,7 @@ impl CrawlerDatabase {
         &mut self,
         instance_actor_id : &str,
         posts : &Vec<PostData>
-    ) -> Result<()> {
+    ) -> Result<u64> {
 
         let mut lemmy_ids = HashSet::<_>::new();
 
@@ -209,7 +238,7 @@ impl CrawlerDatabase {
     async fn update_authors(
         &mut self,
         objects : &HashSet<Author>
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let objects = objects.clone();
         
         Ok(self.client.interact(move |client| {
@@ -223,15 +252,13 @@ impl CrawlerDatabase {
                 },
                 None => Ok(0)
             }
-        }).await.map(|_| {
-            ()
-        })?)
+        }).await??)
     }
 
     async fn update_communities(
         &mut self,        
         objects : &HashSet<Community>
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let objects = objects.clone();
         
         Ok(self.client.interact(move |client| {
@@ -245,15 +272,13 @@ impl CrawlerDatabase {
                 },
                 None => Ok(0)
             }
-        }).await.map(|_| {
-            ()
-        })?)
+        }).await??)
     }
 
     async fn update_posts(
         &mut self,
         objects : &HashSet<PostData>
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let objects = objects.clone();
         
         Ok(self.client.interact(move |client| {
@@ -267,15 +292,13 @@ impl CrawlerDatabase {
                 },
                 None => Ok(0)
             }
-        }).await.map(|_| {
-            ()
-        })?)
+        }).await??)
     }
 
     async fn update_lemmy_ids(
         &mut self,
         objects : &HashSet<LemmyId>
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let objects = objects.clone();
         
         Ok(self.client.interact(move |client| {
@@ -289,15 +312,13 @@ impl CrawlerDatabase {
                 },
                 None => Ok(0)
             }
-        }).await.map(|_| {
-            ()
-        })?)
+        }).await??)
     }
 
     async fn update_xref(
         &mut self,
         objects : &HashSet<Search>
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let objects = objects.clone();
         
         Ok(self.client.interact(move |client| {
@@ -311,18 +332,16 @@ impl CrawlerDatabase {
                 },
                 None => Ok(0)
             }
-        }).await.map(|_| {
-            ()
-        })?)
+        }).await??)
     }
 
     async fn update_words(
         &mut self,
         objects : &HashSet<Word>
-    ) -> Result<()> {
+    ) -> Result<u64> {
         let objects = objects.clone();
         
-        self.client.interact(move |client| -> Result<()> {
+        Ok(self.client.interact(move |client| {
 
             let params = objects.get_values();
 
@@ -348,10 +367,8 @@ impl CrawlerDatabase {
                 values.join(",\n\t\t\t\t")
             );
 
-            client.execute(&query, &params)?;
-
-            Ok(())
-        }).await?
+            client.execute(&query, &params)
+        }).await??)
     }
 
 }
