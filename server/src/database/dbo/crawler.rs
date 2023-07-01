@@ -322,7 +322,7 @@ impl CrawlerDatabase {
     ) -> Result<()> {
         let objects = objects.clone();
         
-        self.client.interact(move |client| {
+        self.client.interact(move |client| -> Result<()> {
 
             let params = objects.get_values();
 
@@ -348,10 +348,10 @@ impl CrawlerDatabase {
                 values.join(",\n\t\t\t\t")
             );
 
-            client.execute(&query, &params);
-        }).await;
+            client.execute(&query, &params)?;
 
-        Ok(())
+            Ok(())
+        }).await?
     }
 
 }

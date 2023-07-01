@@ -1,8 +1,6 @@
 pub mod dbo;
 pub mod schema;
 
-use std::thread;
-
 use crate::{
     config::Postgres, 
     database::{
@@ -24,22 +22,18 @@ use crate::{
         id::LemmyId
     }
 };
-use deadpool::managed::Object;
-use deadpool_r2d2::{Runtime, Manager};
+use deadpool_r2d2::Runtime;
 use postgres::{
     NoTls, 
     Config
 };
-use r2d2_postgres::{
-    PostgresConnectionManager, 
-    r2d2::PooledConnection
-};
+use r2d2_postgres::PostgresConnectionManager;
 
 use self::schema::DatabaseSchema;
 
 pub type DatabasePool = deadpool_r2d2::Pool<PgManager>;
 //Pool<PostgresConnectionManager<NoTls>>;
-pub type DatabaseClient = postgres::Client;
+//pub type DatabaseClient = postgres::Client;
 //Object<Manager<PostgresConnectionManager<NoTls>>>;
 //PooledConnection<PostgresConnectionManager<NoTls>>;
 
@@ -87,7 +81,7 @@ impl Database {
         DatabasePool::builder(manager)
             .max_size(config.max_size)
             .build()
-            .map_err(|err| {
+            .map_err(|_| {
                 LemmySearchError::Unknown("".to_string())
             })
     }
@@ -143,7 +137,6 @@ impl Database {
             )
         ", table_name, columns, primary_key);
 
-        let pool = self.pool.clone();
         let log: bool = self.config.log;
 
         let client = self.pool.get().await?;
@@ -158,8 +151,6 @@ impl Database {
             }).map_err(|err| {
                 LemmySearchError::Database(err)
             }).log_error(format!("...table creation failed for table '{}'", S::get_table_name()).as_str(), log)
-        });
-
-        Ok(())
+        }).await?
     }
 }
