@@ -215,7 +215,7 @@ impl SearchHandler {
         // The preferred instance is sent without the https://, re-add it back.
         let preferred_instance_actor_id = format!("https://{}/", search_query.preferred_instance);
 
-        let page = search_query.page.unwrap_or(1);
+        let page = search_query.page.unwrap_or(1).max(1);
 
         let search = SearchDatabase::new(pool.lock().unwrap().clone());
         let search_results = search.search(
@@ -231,7 +231,7 @@ impl SearchHandler {
             })?;
 
         let len = search_results.len() as i32;
-        let skip = (Self::PAGE_LIMIT * page as usize) as usize;
+        let skip = (Self::PAGE_LIMIT * (page - 1) as usize) as usize;
         let total_pages = (len as f32 / Self::PAGE_LIMIT as f32).ceil() as i32;
 
         // Capture the duration that the search took so we can report it back
