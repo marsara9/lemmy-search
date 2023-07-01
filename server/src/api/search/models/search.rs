@@ -33,6 +33,7 @@ pub struct SearchPost {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchAuthor {
+    pub actor_id : String,
     pub avatar : Option<String>,
     pub name : String,
     pub display_name : Option<String>
@@ -40,6 +41,7 @@ pub struct SearchAuthor {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchCommunity {
+    pub actor_id : String,
     pub icon : Option<String>,
     pub name : String,
     pub title : Option<String>
