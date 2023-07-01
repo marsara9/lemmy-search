@@ -64,48 +64,27 @@ impl CrawlerDatabase {
             all_words.extend(words);
         }
 
+        self.update_authors(&authors).await?;
+        self.update_communities(&communities).await?;
+
         let words = all_words.into_iter().collect();
+        let posts2 = posts.into_iter().map(|p| {
+            p.clone()
+        }).collect();
         
-        self.update_words(&words).await.map(|c| {
-            if c == 0 {
-                println!("WARNING inserted 0 words.")
-            }
-        })?;
+        self.update_words(&words).await?;
+        self.update_posts(&posts2).await?;
 
         for post in posts {
             xrefs.extend(self.get_xrefs_for_post(post).await?);
         }
 
-        let posts = posts.into_iter().map(|p| {
-            p.clone()
-        }).collect();
+        self.update_lemmy_ids(&lemmy_ids).await?;
+        self.update_xref(&xrefs).await?;
 
-        self.update_authors(&authors).await.map(|c| {
-            if c == 0 {
-                println!("WARNING inserted 0 authors.")
-            }
-        })?;
-        self.update_communities(&communities).await.map(|c| {
-            if c == 0 {
-                println!("WARNING inserted 0 communities.")
-            }
-        })?;
-        self.update_posts(&posts).await.map(|c| {
-            if c == 0 {
-                println!("WARNING inserted 0 posts.")
-            }
-        })?;
-        self.update_lemmy_ids(&lemmy_ids).await.map(|c| {
-            if c == 0 {
-                println!("WARNING inserted 0 lemmy ids.")
-            }
-        })?;
-        
-        self.update_xref(&xrefs).await.map(|c| {
-            if c == 0 {
-                println!("WARNING inserted 0 xrefs.")
-            }
-        })?;
+        if xrefs.len() == 0 && words.len() != 0 {
+            println!("WARNING NO xrefs were calculated for posts!.")
+        }
 
         Ok(())
     }
