@@ -90,7 +90,7 @@ impl Crawler {
         if self.just_update_remote_ids {
             self.fetch_remote_ids(&site_actor_id)
                 .await?;
-        } else {
+        } else if !self.config.single_instance_only.unwrap_or(false) {
             self.fetch_posts(&site_actor_id)
                 .await?;
 
