@@ -118,8 +118,15 @@ function buildSearchResult(post, original_query_terms) {
         post_citation.append(post_author_avatar);
     }
 
-    let post_author = $("<a/>")
-        .attr("href", preferred_instance + "u/" + post.author.name);
+    let post_author = $("<a/>");
+    if(post.author.actor_id.startsWith(preferred_instance)) {
+        post_author.attr("href", post.author.actor_id);
+    } else {
+        let instance = new URL(post.author.actor_id).hostname;
+        let href = preferred_instance + "u/" + post.author.name + "@" + instance;
+
+        post_author.attr("href", href);
+    }
     post_author.text(post.author.display_name ?? post.author.name);
     post_citation.append(post_author);
 
@@ -133,8 +140,15 @@ function buildSearchResult(post, original_query_terms) {
         post_citation.append(post_community_icon);
     }
 
-    let post_community = $("<a/>")
-        .attr("href", preferred_instance + "c/" + post.community.name);
+    let post_community = $("<a/>");
+    if(post.community.actor_id.startsWith(preferred_instance)) {
+        post_community.attr("href", post.community.actor_id);
+    } else {
+        let instance = new URL(post.community.actor_id).hostname;
+        let href = preferred_instance + "c/" + post.community.name + "@" + instance;
+
+        post_community.attr("href", href);
+    }
     post_community.text(post.community.title ?? post.community.name);
     post_citation.append(post_community);
 
