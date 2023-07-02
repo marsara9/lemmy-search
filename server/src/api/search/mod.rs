@@ -231,15 +231,15 @@ impl SearchHandler {
             &instance, 
             &community, 
             &author, 
-            &preferred_instance_actor_id
+            &preferred_instance_actor_id,
+            page
         ).await
             .log_error("Error during search.", true)
             .map_err(|err| {
                 actix_web::error::ErrorInternalServerError(err)
             })?;
 
-        let len = search_results.len() as i32;
-        let skip = (Self::PAGE_LIMIT * (page - 1) as usize) as usize;
+        let len = search_results.1;
         let total_pages = (len as f32 / Self::PAGE_LIMIT as f32).ceil() as i32;
 
         // Capture the duration that the search took so we can report it back
@@ -248,10 +248,7 @@ impl SearchHandler {
 
         let results: SearchResult = SearchResult {
             original_query_terms : query_terms,
-            posts : search_results.into_iter()
-                .skip(skip)
-                .take(Self::PAGE_LIMIT)
-                .collect(),
+            posts : search_results.0,
             total_results : len,
             total_pages : total_pages,
             time_taken: duration
