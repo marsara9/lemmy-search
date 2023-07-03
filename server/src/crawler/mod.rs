@@ -47,7 +47,7 @@ impl Runner {
         let database2 = self.database.clone();
 
         scheduler.every(6.hours())            
-            .run(move || Self::run(config1.clone(), database1.clone()));
+            .run(move || Self::run_regular(config1.clone(), database1.clone()));
 
         scheduler.every(1.minutes())
             .run(move || Self::manual_check(config2.clone(), database2.clone()));
@@ -88,12 +88,23 @@ impl Runner {
         }
     }
 
-    async fn run(
+    async fn run_regular(
         config : config::Crawler,
         database : Database
     ) {
         if config.enabled {
-            println!("Crawler is starting to index '{}'...", config.seed_instance);
+            Self::run(config, database)
+                .await;
+        } else {
+            println!("Crawler is currently disabled; skipping...");
+        }
+    }
+
+    async fn run(
+        config : config::Crawler,
+        database : Database
+    ) {
+        println!("Crawler is starting to index '{}'...", config.seed_instance);
             let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database.pool, false)
                     .unwrap()
                     .crawl()
@@ -101,8 +112,5 @@ impl Runner {
                     .log_error(format!("The crawler for '{}' encountered an error.", config.seed_instance).as_str(), config.log);
 
             println!("Crawling complete.");
-        } else {
-            println!("Crawler is currently disabled; skipping...");
-        }
     }
 }

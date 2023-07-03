@@ -50,7 +50,7 @@ impl SearchDatabase {
             let temp = Vec::<String>::from_iter(query.into_iter());
 
             let instance_query = match instance {
-                Some(_) => "AND s.ap_id LIKE $2 || '%'",
+                Some(_) => "AND c.ap_id LIKE $2 || '%'",
                 None => "AND $2 = $2"
             };
             let community_query = match community {
