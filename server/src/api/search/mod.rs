@@ -63,6 +63,7 @@ impl SearchHandler {
             routes.insert("/heartbeat".to_string(), get().to(Self::heartbeat));
             routes.insert("/crawl".to_string(), get().to(Self::crawl));
         }
+        routes.insert("/version".to_string(), get().to(Self::version));
         routes.insert("/search".to_string(), get().to(Self::search));
         routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
