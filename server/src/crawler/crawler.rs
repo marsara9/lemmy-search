@@ -139,9 +139,12 @@ impl Crawler {
         let mut total_found = 0;
         let mut page = last_page;
         loop {
-            let posts = self.fetcher.fetch_posts(page+1)
+            let posts = match self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.config.log)?;
+                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.config.log) {
+                    Ok(value) => value,
+                    Err(_) => continue
+                };
 
             if posts.is_empty() {
                 break;
