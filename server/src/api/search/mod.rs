@@ -38,6 +38,8 @@ use crate::{
     config::Config
 };
 
+use self::models::search::Version;
+
 lazy_static! {
     static ref INSTANCE_MATCH : Regex = Regex::new(r" instance:(?P<instance>(https://)?[\w\-\.]+)").unwrap();
     static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>!\w+@[\w\-\.]+)").unwrap();
@@ -67,6 +69,19 @@ impl SearchHandler {
         Self {
             routes
         }
+    }
+
+    pub async fn version<'a>(
+
+    ) -> Result<impl Responder> {
+        Ok(
+            Json(
+                Version {
+                    version: env!("CARGO_PKG_VERSION").to_string()
+                }
+            ).customize()
+            .insert_header(("cache-control", "public, max-age=86400"))
+        )
     }
 
     /**

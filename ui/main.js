@@ -16,5 +16,6 @@ $(document).ready(function() {
         setCookie("preferred-instance", preferred_instance);
     });
 
+    getVersion();
     populateInstances();
 });

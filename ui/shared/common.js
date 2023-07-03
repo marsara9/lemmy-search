@@ -35,3 +35,9 @@ function onSearch() {
     
     window.location = "/results?" + new URLSearchParams(params).toString();
 }
+
+function getVersion() {
+    fetchJson("/version", result => {
+        $("#version").text(result.version);
+    });
+}
