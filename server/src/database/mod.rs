@@ -2,7 +2,7 @@ pub mod dbo;
 pub mod schema;
 
 use crate::{
-    config::Postgres, 
+    config::{Postgres, Config}, 
     database::{
         schema::{
             site::Site,
@@ -23,10 +23,7 @@ use crate::{
     }
 };
 use deadpool_r2d2::Runtime;
-use postgres::{
-    NoTls, 
-    Config
-};
+use postgres::NoTls;
 use r2d2_postgres::PostgresConnectionManager;
 
 use self::schema::DatabaseSchema;
@@ -38,22 +35,29 @@ pub type PgManager = deadpool_r2d2::Manager<
 >;
 
 #[derive(Clone)]
-pub struct Database {
-    pub config : Postgres,
+pub struct Context {
+    pub config : Config,
     pub pool : DatabasePool
+}
+
+#[derive(Clone)]
+pub struct Database {
+    pub context : Context
 }
 
 impl Database {
 
     pub async fn create(
-        config : &Postgres
+        config : &Config
     ) -> std::result::Result<Self, LemmySearchError> {
-        Self::create_database_pool(config)
+        Self::create_database_pool(&config.postgres)
             .await
             .map(|pool| {
                 Database {
-                    config : config.clone(),
-                    pool
+                    context : Context { 
+                        config : config.clone(),
+                        pool
+                     }
                 }
             })
     }
@@ -61,7 +65,7 @@ impl Database {
     async fn create_database_pool(
         config : &Postgres
     ) -> std::result::Result<DatabasePool, LemmySearchError> {
-        let db_config = Config::new()
+        let db_config = postgres::Config::new()
             .user(&config.user)
             .password(&config.password)
             .host(&config.hostname)
@@ -70,15 +74,15 @@ impl Database {
             .to_owned();
 
         let r2d2_manager = PostgresConnectionManager::new(
-            db_config, NoTls            
+            db_config, NoTls
         );
 
         let manager = PgManager::new(r2d2_manager, Runtime::Tokio1);
         DatabasePool::builder(manager)
             .max_size(config.max_size)
             .build()
-            .map_err(|_| {
-                LemmySearchError::Unknown("".to_string())
+            .map_err(|err| {
+                LemmySearchError::from(err)
             })
     }
 
@@ -140,9 +144,9 @@ impl Database {
             )
         ", table_name, columns, primary_key);
 
-        let log: bool = self.config.log;
+        let log: bool = self.context.config.postgres.log;
 
-        let client = self.pool.get()
+        let client = self.context.pool.get()
             .await?;
 
         client.interact(move |client| -> Result<()> {

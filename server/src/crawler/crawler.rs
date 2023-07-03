@@ -1,7 +1,6 @@
 use async_recursion::async_recursion;
 use reqwest::Client;
 use crate::{
-    config,
     error::{
         Result,
         LogError, 
@@ -16,19 +15,17 @@ use crate::{
             site::SiteDBO,
             crawler::CrawlerDatabase
         }, 
-        DatabasePool, 
         schema::{
             DatabaseSchema, 
             site::Site
-        }
+        }, Context
     }
 };
 
 pub struct Crawler {
     pub instance : String,
 
-    config : config::Crawler,
-    pool : DatabasePool,
+    context : Context,
     fetcher : Fetcher,
 
     just_update_remote_ids : bool
@@ -44,8 +41,7 @@ impl Crawler {
 
     pub fn new(
         instance : String,
-        config : config::Crawler,
-        pool : DatabasePool,
+        context : Context,
 
         just_update_remote_ids : bool
     ) -> Result<Self> {
@@ -56,8 +52,7 @@ impl Crawler {
 
         Ok(Self {
             instance: instance.clone(),
-            config,
-            pool,
+            context,
             fetcher: Fetcher::new(client, instance),
             just_update_remote_ids
         })
@@ -74,16 +69,16 @@ impl Crawler {
 
         let site_view = self.fetcher.fetch_site_data()
             .await
-            .log_error(format!("\t...unable to fetch site data for instance '{}'.", self.instance).as_str(), self.config.log)
+            .log_error(format!("\t...unable to fetch site data for instance '{}'.", self.instance).as_str(), self.context.config.crawler.log)
             ?.site_view;
 
         let site_actor_id = site_view.site.actor_id.clone();
 
-        let site_dbo = SiteDBO::new(self.pool.clone());
+        let site_dbo = SiteDBO::new(self.context.pool.clone());
 
         if !site_dbo.upsert(site_view.clone())
             .await
-            .log_error(format!("\t...error during update {} during crawl.", Site::get_table_name()).as_str(), self.config.log)? {
+            .log_error(format!("\t...error during update {} during crawl.", Site::get_table_name()).as_str(), self.context.config.crawler.log)? {
                 println!("\t...failed to update {} during crawl.", Site::get_table_name());
             }
 
@@ -94,7 +89,7 @@ impl Crawler {
             self.fetch_posts(&site_actor_id)
                 .await?;
 
-            if !self.config.single_instance_only.unwrap_or(false) {
+            if !self.context.config.crawler.single_instance_only.unwrap_or(false) {
                 let federated_instances = self.fetcher.fetch_instances()
                 .await?
                 .federated_instances
@@ -107,8 +102,7 @@ impl Crawler {
                     } {
                         let crawler = Crawler::new(
                             instance.domain, 
-                            self.config.clone(), 
-                            self.pool.clone(), 
+                            self.context.clone(), 
                             true
                         );
                         
@@ -131,7 +125,7 @@ impl Crawler {
         site_actor_id : &str
     ) -> Result<()> {
 
-        let site_dbo = SiteDBO::new(self.pool.clone());
+        let site_dbo = SiteDBO::new(self.context.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
@@ -141,7 +135,7 @@ impl Crawler {
         loop {
             let posts = match self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.config.log) {
+                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.context.config.crawler.log) {
                     Ok(value) => value,
                     Err(_) => continue
                 };
@@ -158,10 +152,9 @@ impl Crawler {
 
             let filtered_count = filtered_posts.len();
 
-            let pool = self.pool.clone();
             let site_actor_id_string = site_actor_id.to_string();
 
-            let mut crawler_database = CrawlerDatabase::init(pool.clone()).await?;
+            let mut crawler_database = CrawlerDatabase::init(self.context.pool.clone()).await?;
 
             crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
                 .await
@@ -186,18 +179,18 @@ impl Crawler {
         site_actor_id : &str
     ) -> Result<()> {
 
-        let site_dbo = SiteDBO::new(self.pool.clone());
+        let site_dbo = SiteDBO::new(self.context.pool.clone());
 
         let last_page = site_dbo.get_last_post_page(site_actor_id)
             .await?;
 
-        let mut crawler_database = CrawlerDatabase::init(self.pool.clone()).await?;
+        let mut crawler_database = CrawlerDatabase::init(self.context.pool.clone()).await?;
 
         let mut page = last_page;
         loop {
             let posts = self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error("\tfailed to fetch another page of 'post ids'...", self.config.log)?;
+                .log_error("\tfailed to fetch another page of 'post ids'...", self.context.config.crawler.log)?;
 
             if posts.is_empty() {
                 break;

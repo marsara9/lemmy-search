@@ -17,6 +17,8 @@ where
     F: FnOnce(&mut Client) -> std::result::Result<T, postgres::Error> + Send + 'static,
     T : Default + Send + 'static
 {
+    println!("Available DB connections: {}", pool.status().available);
+
     let client = pool.get().await.map_err(|_| {
         LemmySearchError::Unknown("".to_string())
     })?;
