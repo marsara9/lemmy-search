@@ -49,7 +49,7 @@ ol {
     max-width: 768px;
 }
 
-#search {
+#search, #submit {
     width: 100%;
     max-width: 768px;
 }
@@ -59,7 +59,7 @@ ol {
     max-width: 768px;
 }
 
-#content > #search {
+#content > #search, #submit {
     margin: 8px;
 }
 
@@ -84,6 +84,7 @@ input[type="search"] {
     max-width: 256px;
     width: 100%;
     box-sizing: border-box;
+    padding: 8px 16px;
 }
 
 #response-time {
