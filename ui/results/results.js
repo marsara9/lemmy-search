@@ -192,31 +192,6 @@ function isImage(url) {
     return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
 }
 
-$(document).ready(function() {
-
-    if (!checkQueryParameters()) {
-        window.location = "/";
-        return;
-    }
-
-    $("#submit").click(function() {
-        onSearch();
-    });
-
-    $("#search").keydown(function(e){
-        if(e.keyCode == 13) {
-            onSearch();
-        }
-    });
-
-
-    $("#instance-select").on("change", function() {
-        preferred_instance = this.value;
-        setCookie("preferred-instance", preferred_instance);
-    });
-
-    getVersion();
-    populateInstances();
-
+function onReady() {
     query(window.location.search);
-});
+}

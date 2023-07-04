@@ -53,3 +53,35 @@ function getVersion() {
         $("#version").text(result.version);
     });
 }
+
+function initializeUI() {
+    $("#submit").click(function() {
+        onSearch();
+    });
+
+    $("#search").keydown(function(e){
+        if(e.keyCode == 13) {
+            onSearch();
+        }
+    });
+
+    $("#instance-select").on("change", function() {
+        preferred_instance = this.value;
+        setCookie("preferred-instance", preferred_instance, 3652);
+    });
+}
+
+function populateInitialFields() {
+    getVersion();
+    populateInstances();
+}
+
+$(document).ready(function() {
+    initializeUI();
+
+    populateInitialFields();
+
+    if(onReady) {
+        onReady();
+    }
+});
