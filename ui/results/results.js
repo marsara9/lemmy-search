@@ -1,5 +1,3 @@
-var preferred_instance = null;
-
 function checkQueryParameters() {
     const urlParameters = new URLSearchParams(window.location.search);
     $("#search").val(urlParameters.get("query"));
@@ -39,7 +37,7 @@ function buildPageControls(total_pages) {
     if(page > 1) {
         let params = {
             "query" : query,
-            "preferred_instance" : dropSchema(preferred_instance),
+            "home_instance" : dropSchema(home_instance),
             "page" : page - 1
         };
         
@@ -58,7 +56,7 @@ function buildPageControls(total_pages) {
     if(page < total_pages) {
         let params = {
             "query" : query,
-            "preferred_instance" : dropSchema(preferred_instance),
+            "home_instance" : dropSchema(home_instance),
             "page" : page + 1
         };
         
@@ -85,7 +83,7 @@ function buildSearchResult(post, original_query_terms) {
 
     let post_name = $("<a/>")
         .addClass("post-name")
-        .attr("href", preferred_instance + "post/" + post.remote_id);
+        .attr("href", home_instance + "post/" + post.remote_id);
     post_name.text(post.name);
     item.append(post_name);
 
@@ -99,11 +97,11 @@ function buildSearchResult(post, original_query_terms) {
     }
 
     let post_author = $("<a/>");
-    if(post.author.actor_id.startsWith(preferred_instance)) {
+    if(post.author.actor_id.startsWith(home_instance)) {
         post_author.attr("href", post.author.actor_id);
     } else {
         let instance = new URL(post.author.actor_id).hostname;
-        let href = preferred_instance + "u/" + post.author.name + "@" + instance;
+        let href = home_instance + "u/" + post.author.name + "@" + instance;
 
         post_author.attr("href", href);
     }
@@ -121,11 +119,11 @@ function buildSearchResult(post, original_query_terms) {
     }
 
     let post_community = $("<a/>");
-    if(post.community.actor_id.startsWith(preferred_instance)) {
+    if(post.community.actor_id.startsWith(home_instance)) {
         post_community.attr("href", post.community.actor_id);
     } else {
         let instance = new URL(post.community.actor_id).hostname;
-        let href = preferred_instance + "c/" + post.community.name + "@" + instance;
+        let href = home_instance + "c/" + post.community.name + "@" + instance;
 
         post_community.attr("href", href);
     }

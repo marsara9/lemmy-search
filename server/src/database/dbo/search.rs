@@ -35,7 +35,7 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>,
-        preferred_instance : &str,
+        home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchPost>, i32)> {        
 
@@ -43,7 +43,7 @@ impl SearchDatabase {
         let instance = instance.to_owned();
         let community = community.to_owned();
         let author = author.to_owned();
-        let preferred_instance = preferred_instance.to_owned();
+        let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -116,7 +116,7 @@ impl SearchDatabase {
 
             let offset = (Self::PAGE_LIMIT * (page - 1)) as i64;
 
-            let results = client.query(&query_string, &[&temp, &instance, &community, &author, &preferred_instance, &offset])
+            let results = client.query(&query_string, &[&temp, &instance, &community, &author, &home_instance, &offset])
                 .map(|rows| {
                     rows.iter().map(|row| {
                         let temp : i64 = row.get(12);

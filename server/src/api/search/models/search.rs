@@ -13,7 +13,7 @@ pub struct Version {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SearchQuery {
     pub query : String,
-    pub preferred_instance : String,
+    pub home_instance : String,
     pub page : Option<i32>
 }
 
