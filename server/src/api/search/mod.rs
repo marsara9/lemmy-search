@@ -7,7 +7,6 @@ use std::{
         HashMap, 
         HashSet
     }, 
-    sync::Mutex, 
     time::Instant
 };
 use actix_web::{
@@ -32,7 +31,7 @@ use crate::{
             site::SiteDBO, 
             search::SearchDatabase
         }, 
-        DatabasePool
+        Context
     }, 
     crawler::crawler::Crawler, 
     config::Config
@@ -103,7 +102,7 @@ impl SearchHandler {
      * Temporary endpoint to allow for more easily testing the crawler.
      */
     pub async fn crawl<'a>(
-        pool : Data<Mutex<DatabasePool>>
+        context : Data<Context>
     ) -> Result<impl Responder> {
 
         tokio::spawn(async move {
@@ -112,8 +111,7 @@ impl SearchHandler {
 
             let crawler = Crawler::new(
                 config.crawler.seed_instance.clone(), 
-                config.crawler, 
-                pool.lock().unwrap().clone(), 
+                (*context.into_inner()).clone(), 
                 false
             ).unwrap();
 
@@ -136,7 +134,7 @@ impl SearchHandler {
      * the user before sending that information off to the Database to query.
      */
     pub async fn search<'a>(
-        pool : Data<Mutex<DatabasePool>>,
+        context : Data<Context>,
         search_query: Query<SearchQuery>
     ) -> Result<impl Responder> {
 
@@ -241,7 +239,7 @@ impl SearchHandler {
 
         let page = search_query.page.unwrap_or(1).max(1);
 
-        let search = SearchDatabase::new(pool.lock().unwrap().clone());
+        let search = SearchDatabase::new(context.pool.clone());
         let search_results = search.search(
             &query_terms, 
             &instance, 
@@ -284,11 +282,9 @@ impl SearchHandler {
      * the actual search method.
      */
     pub async fn get_instances<'a>(
-        pool : Data<Mutex<DatabasePool>>
+        context : Data<Context>
     ) -> Result<impl Responder> {
-        let pool = pool.lock().unwrap();
-
-        let sites = SiteDBO::new(pool.clone())
+        let sites = SiteDBO::new(context.pool.clone())
             .retrieve_all()
             .await.map_err(|err| {
                 actix_web::error::ErrorInternalServerError(err)

@@ -75,7 +75,7 @@ impl SearchDatabase {
             SELECT
                     p.url,
                     p.name,
-                    p.body,
+                    left(p.body, 300) as p_body,
                     
                     l.post_remote_id,
                     

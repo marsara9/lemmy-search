@@ -2,6 +2,7 @@ body {
     background-color: #222;
     font-family: Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
     color: #fff;
+    margin: 0;
 }
 
 #menu {
@@ -39,7 +40,7 @@ body {
 #content > * {
     padding: 12px;
     width: 100%;
-    box-sizing: border-box;
+    box-sizing: border-box;    
 }
 
 input, select {
@@ -61,18 +62,15 @@ input[type=button]:hover, input[type=submit]:hover {
 
 .header {
     background-color: #222;
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    padding: 12px;
 }
 
 .header > div {
     margin: 12px;
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-start;
 }
 
@@ -82,19 +80,19 @@ input[type=button]:hover, input[type=submit]:hover {
 
 .header #instance-select {
     margin-left: auto;
-    width: 120px;
+    width: 240px;
 }
 
 .header #submit {
     width: 200px;
+    padding: 12px;
+    flex-shrink: 0;
 }
 
 .footer {
     background-color: #222;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    position: sticky;
+    bottom: 0;    
     padding: 24px;
     display: flex;
     justify-content: center;
@@ -108,7 +106,7 @@ input[type=button]:hover, input[type=submit]:hover {
 }
 
 .header #search {
-    width: 80%;
+    flex-grow: 1;
 }
 
 a, a:visited {
@@ -120,7 +118,7 @@ a, a:visited {
 }
 
 #results {
-    max-width: 768px;
+    max-width: 768px;    
 }
 
 ol {

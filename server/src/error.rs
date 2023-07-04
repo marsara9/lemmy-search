@@ -1,3 +1,4 @@
+use deadpool::managed::BuildError;
 use deadpool_r2d2::{
     InteractError, 
     PoolError, 
@@ -14,6 +15,7 @@ pub enum LemmySearchError {
     Unknown(String),
     IO(std::io::Error),
     Database(postgres::Error),
+    DatabaseBuildError(BuildError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>),
     DatabaseConnection(r2d2_postgres::r2d2::Error),
     Network(reqwest::Error),
     JoinError(JoinError),
@@ -30,6 +32,7 @@ impl std::fmt::Display for LemmySearchError {
             Self::Unknown(string) => write!(f, "Unknown Error '{}'", string),
             Self::IO(err) => err.fmt(f),
             Self::Database(postgres) => postgres.fmt(f),
+            Self::DatabaseBuildError(err) => err.fmt(f),
             Self::DatabaseConnection(r2d2_postgres) => r2d2_postgres.fmt(f),
             Self::Network(reqwest) => reqwest.fmt(f),
             Self::JoinError(join_error) => join_error.fmt(f),
@@ -63,6 +66,11 @@ impl From<PoolError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::mana
     }
 }
 
+impl From<BuildError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>> for LemmySearchError {
+    fn from(value:BuildError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>) -> Self {
+        LemmySearchError::DatabaseBuildError(value)
+    }
+}
 
 impl From<r2d2_postgres::r2d2::Error> for LemmySearchError {
     fn from(value: r2d2_postgres::r2d2::Error) -> Self {

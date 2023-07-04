@@ -6,13 +6,12 @@ mod error;
 
 use std::{
     env, 
-    sync::Mutex, time::Duration
+    time::Duration
 };
 use actix_files as fs;
 use actix_web::{
     App, 
-    HttpServer,
-    web::Data
+    HttpServer, web::Data
 };
 use api::search::SearchHandler;
 use crawler::Runner;
@@ -33,7 +32,7 @@ async fn main() -> std::io::Result<()> {
     println!("Giving time for database to come online...");
     async_std::task::sleep(Duration::from_secs( 1 )).await;
 
-    let database = match Database::create(&config.postgres).await {
+    let database = match Database::create(&config).await {
         Ok(value) => value,
         Err(err) => {
             println!("Database pool creation failed...");
@@ -44,9 +43,7 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    let d = database.clone();
-
-    let init_result = d.init_database().await;
+    let init_result = database.init_database().await;
     
     match init_result {
         Ok(_) => {}
@@ -59,15 +56,15 @@ async fn main() -> std::io::Result<()> {
         }
     }
 
-    let mut cralwer_runner = Runner::new(&config.crawler, database.clone());
+    let mut cralwer_runner = Runner::new(database.context.clone());
     cralwer_runner.start();
 
-    let pool = Data::new(Mutex::new(database.pool.clone()));
+    let context = Data::new(database.context);
 
     let factory = move || {
         let search_handler = SearchHandler::new(&config);
         let mut app = App::new()
-            .app_data(pool.clone());
+            .app_data(context.clone());
         for (path, route) in search_handler.routes {
             app = app.route(path.as_str(), route);
         }

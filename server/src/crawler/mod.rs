@@ -2,12 +2,14 @@ pub mod analyzer;
 pub mod crawler;
 
 use self::crawler::Crawler;
-use std::{time::Duration, path::Path};
+use std::{
+    time::Duration, 
+    path::Path
+};
 use async_std::fs::remove_file;
 use tokio::task::JoinHandle;
 use crate::{
-    config, 
-    database::Database,
+    database::Context,
     error::{
         LogError,
         Result, LemmySearchError
@@ -19,20 +21,17 @@ use clokwerk::{
 };
 
 pub struct Runner {
-    config : config::Crawler,
+    context : Context,
     handle : Option<JoinHandle<()>>,
-    database : Database
 }
 
 impl Runner {
     pub fn new(
-        config : &config::Crawler,
-        database : Database
+        context : Context
     ) -> Self {
         Self { 
-            config : config.to_owned(),
-            handle : None,
-            database
+            context,
+            handle : None
         }
     }
 
@@ -41,16 +40,14 @@ impl Runner {
 
         let mut scheduler = AsyncScheduler::with_tz(chrono::Utc);
 
-        let config1 = self.config.clone();
-        let database1 = self.database.clone();
-        let config2 = self.config.clone();
-        let database2 = self.database.clone();
+        let context1 = self.context.clone();
+        let context2 = self.context.clone();
 
         scheduler.every(6.hours())            
-            .run(move || Self::run_regular(config1.clone(), database1.clone()));
+            .run(move || Self::run_regular(context1.clone()));
 
         scheduler.every(1.minutes())
-            .run(move || Self::manual_check(config2.clone(), database2.clone()));
+            .run(move || Self::manual_check(context2.clone()));
 
         self.handle = Some(tokio::spawn(async move {
             loop {
@@ -69,31 +66,29 @@ impl Runner {
     }
 
     async fn manual_check(
-        config : config::Crawler,
-        database : Database
+        context : Context
     ) {
         let file = Path::new("/lemmy/config/crawl");
         if file.exists() {
             match remove_file("/lemmy/config/crawl")
                 .await {
                     Ok(_) => {
-                        Self::run(config.clone(), database.clone())
+                        Self::run(context)
                             .await; 
                     },
                     Err(err) => {
                         let _ = Result::<()>::Err(LemmySearchError::from(err))
-                            .log_error("Failed to delete manual crawl trigger.", config.log);
+                            .log_error("Failed to delete manual crawl trigger.", context.config.crawler.log);
                     }
                 }
         }
     }
 
     async fn run_regular(
-        config : config::Crawler,
-        database : Database
+        context : Context
     ) {
-        if config.enabled {
-            Self::run(config, database)
+        if context.config.crawler.enabled {
+            Self::run(context)
                 .await;
         } else {
             println!("Crawler is currently disabled; skipping...");
@@ -101,15 +96,14 @@ impl Runner {
     }
 
     async fn run(
-        config : config::Crawler,
-        database : Database
+        context : Context
     ) {
-        println!("Crawler is starting to index '{}'...", config.seed_instance);
-            let _ = Crawler::new(config.seed_instance.clone(), config.clone(), database.pool, false)
+        println!("Crawler is starting to index '{}'...", context.config.crawler.seed_instance);
+            let _ = Crawler::new(context.config.crawler.seed_instance.clone(), context.clone(), false)
                     .unwrap()
                     .crawl()
                     .await
-                    .log_error(format!("The crawler for '{}' encountered an error.", config.seed_instance).as_str(), config.log);
+                    .log_error(format!("The crawler for '{}' encountered an error.", context.config.crawler.seed_instance).as_str(), context.config.crawler.log);
 
             println!("Crawling complete.");
     }
