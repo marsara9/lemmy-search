@@ -23,7 +23,7 @@ ol {
     padding: 8px;
 }
 
-#menu > #instance-select {
+#menu > #instance-select-div {
     float: right;
     clear: both;
 }
