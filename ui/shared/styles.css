@@ -1,149 +1,123 @@
 body {
     background-color: #222;
-    font-family: Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-    color: #fff;
-    margin: 0;
+    color: white;
+    padding: 8px;
 }
 
-#menu {
+a {
+    color: #1ed2ff;
+}
+
+ol {
+    padding: 0;
+    list-style-type: none;
+}
+
+#header, #footer {
+    position: sticky;
     display: flex;
     flex-direction: row;
+    align-items: baseline;
+    gap: 8px;
+    background-color: #222;
+    padding: 8px;
+}
+
+#menu > #instance-select-div {
+    float: right;
+    clear: both;
+}
+
+#header {
+    top: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+#footer {
+    bottom: 0;
     flex-wrap: nowrap;
-    justify-content: flex-end;
+    justify-content: center;  
+}
+
+#header > * {
+    margin: 8px 0;
+}
+
+#results {
+    width: 100%;
+    max-width: 768px;
+}
+
+#search, #submit {
+    width: 100%;
+    max-width: 768px;
 }
 
 #content {
-  margin: 15% auto;
-  max-width: 768px;
-  padding: 24px;
-  display: flex;
-  flex-flow: column wrap;
-  gap: 24px;
+    margin: 15% auto;
+    max-width: 768px;
 }
 
-#content > #logo > span {
+#content > #search, #submit {
+    margin: 8px;
+}
+
+input, select {
+    padding: 8px;
+    border: 1px solid white;
+    border-radius: 16px;  
+    background-color: white;
+    color: black;
+}
+
+label {
+    height: 32px;
+}
+
+input[type="search"] {
+    padding: 9px 4px 9px 40px;
+    background: white url("../imgs/search.svg") no-repeat 13px center;
+}
+
+#instance-select {
+    max-width: 256px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 16px;
+}
+
+#response-time {
+    width: 100%;
+}
+
+#page-control {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px;
+}
+
+#logo > span {
     font-size: 3rem;
     margin: 16px;
 }
 
-#content > #logo > img {
+#logo > img {
     vertical-align: bottom;
 }
 
-#content > #logo > img:nth-of-type(2) {
+#logo > img:nth-of-type(2) {
     margin-left: -80px;
     margin-bottom: 12px;
     width: 64px;
     height: 64px;
 }
 
-#content > * {
-    padding: 12px;
-    width: 100%;
-    box-sizing: border-box;    
-}
-
-input, select {
-    border: 1px solid #222;
-    border-radius: 4px;
-    background-color: #444;
-    color: #fff;
-    font-size: 1.3rem;
-}
-
-select {
-    padding: 12px;
-    border-right: 16px solid transparent;
-}
-
-input[type=button]:hover, input[type=submit]:hover {
-    background-color: #313131;
-}
-
-.header {
-    background-color: #222;
-    position: sticky;
-    top: 0;
-}
-
-.header > div {
-    margin: 12px;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-}
-
-.header > div > * {
-    margin: 12px;
-}
-
-.header #instance-select {
-    margin-left: auto;
-    width: 240px;
-}
-
-.header #submit {
-    width: 200px;
-    padding: 12px;
-    flex-shrink: 0;
-}
-
-.footer {
-    background-color: #222;
-    position: sticky;
-    bottom: 0;    
-    padding: 24px;
-    display: flex;
-    justify-content: center;
-    font-size: 1.2rem;
-    gap: 12px;
-}
-
-#search {
-    max-width: 768px;
-    padding: 12px;
-}
-
-.header #search {
-    flex-grow: 1;
-}
-
-a, a:visited {
-    color: #1ed2ff;
-}
-
-.a:hover {
-    color: white;
-}
-
-#results {
-    max-width: 768px;    
-}
-
-ol {
-    padding: 0;
-}
-
-li.search-result {
-    list-style-type: none;
-}
-
 .search-result {
-    margin: 12px;
-    padding: 12px;
-}
-
-.search-result > * {
-    margin: 8px;
-}
-
-.post-url {
-    float: right;
-    background: white;
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
+    padding: 8px;
 }
 
 .post-citation > img {
@@ -156,15 +130,12 @@ li.search-result {
 
 .post-name {
     font-size: 1.3rem;
-    font-weight: bold;
+}
+
+.post-body {
+    margin: 4px;
 }
 
 .post-body > .search-term {
     font-weight: bold;
-}
-
-#page-control {
-    padding: 12px;
-    text-align: center;
-    font-size: 1.2rem;
 }

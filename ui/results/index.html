@@ -3,7 +3,7 @@
     <head>
         <title>Lemmy Search</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="./shared/styles.css" />
+        <link rel="stylesheet" href="/shared/styles.css" />
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
         <script type="text/javascript" src="/shared/rest.js"></script>
         <script type="text/javascript" src="/shared/cookies.js"></script>
@@ -11,26 +11,30 @@
         <script type="text/javascript" src="/results/results.js"></script>
     </head>
     <body>
-        <div class="header">
-            <div>
-                <input type="search" id="search" />
-                <input type="submit" id="submit" value="Search" />
-                <select id="instance-select"></select>
-            </div>
-            <div>
-                <span id="response-time"></span>
-            </div>
-        </div>
-        <div id="results">
+        <div id="header">
+            <input type="search" id="search" />
+            <div id="instance-select-div">
+                <input type="text" list="instance-list" placeholder="Select Instance" id="instance-select" />
+                <datalist id="instance-list">
 
-        </div>
-        <div id="page-control">
+                </datalist>
+            </div>
+            <!-- <div>
+              <input type="checkbox" id="safe-search" />
+              <label for="safe-search">Safe Search</label>
+            </div> -->
+            <span id="response-time">Found 300 results in 0.42 seconds</span>
+          </div>
+          <div id="results">
             
-        </div>
-        <div class="footer">
+          </div>
+          <div id="page-control">
+
+          </div>
+          <div id="footer">
             <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
-            <span> | </span>
-            <span id="version">v0.0.0</span>
-        </div>
+            <span>|</span>
+            <span id="version">v1.2.3</span>
+          </div>
     </body>
 </html>
