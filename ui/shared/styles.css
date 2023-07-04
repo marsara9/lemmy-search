@@ -81,7 +81,7 @@ input[type="search"] {
     background: white url("../imgs/search.svg") no-repeat 13px center;
 }
 
-#instance-select > input {
+#instance-select {
     max-width: 256px;
     width: 100%;
     box-sizing: border-box;

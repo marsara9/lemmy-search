@@ -9,8 +9,7 @@ function populateInstances() {
         }
 
         let select = $("#instance-list");
-        result
-            .sort(instanceCompare)
+        result.sort(instanceCompare)
             .forEach(instance => {
                 let option = $("<option />")
                     .attr("value", instance.site.actor_id)
@@ -19,6 +18,7 @@ function populateInstances() {
 
                 select.append(option);
             })
+        $("#instance-select").val(home_instance);
     })
 }
 
