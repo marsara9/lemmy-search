@@ -9,15 +9,27 @@ function populateInstances() {
         }
 
         let select = $("#instance-select");
-        result.forEach(instance => {
-            let option = $("<option />")
-                .attr("value", instance.site.actor_id)
-                .prop("selected", instance.site.actor_id == preferred_instance);
-            option.text(instance.site.name);
+        result
+            .sort(instanceCompare)
+            .forEach(instance => {
+                let option = $("<option />")
+                    .attr("value", instance.site.actor_id)
+                    .prop("selected", instance.site.actor_id == preferred_instance);
+                option.text(instance.site.name + "(" + dropSchema(instance.site.name) + ")");
 
-            select.append(option);
-        })
+                select.append(option);
+            })
     })
+}
+
+function instanceCompare(lhs, rhs) {
+    if (lhs.site.name.toLowerCase() < rhs.site.name.toLowerCase()){
+        return -1;
+    }
+    if (lhs.site.name.toLowerCase() > rhs.site.name.toLowerCase()){
+        return 1;
+    }
+    return 0;
 }
 
 function dropSchema(instance_actor_id) {
