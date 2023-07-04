@@ -144,30 +144,43 @@ function buildSearchResult(post, original_query_terms) {
     return item;
 }
 
+const MAX_DESCRIPTION_LENGTH = 200;
+
 function getPostQueryBody(queryTerms, body) {
-    let regex = "(\s" + queryTerms.join("\s)|(\s") + "\s)";
+    let regex = "(\\s" + queryTerms.join("\\s)|(\\s") + "\\s)";
     let split_body = body.split(new RegExp(regex, "ig"))
         .filter(token => token != null);
     var length = 0;
     let spans = split_body.map(token => {
 
-        if (length >= 200) {
+        if (length >= MAX_DESCRIPTION_LENGTH) {
             return null;
         }
 
         let span = $("<span />");
-        if (queryTerms.includes(token)) {
+        if (queryTerms.includes(token.trim())) {
             span.addClass("search-term");
         }
 
-        let sub = Math.min(200 - length, token.length);
-        span.text(token.substring(0, sub));
-        length += sub;
+        if (token.length + length > MAX_DESCRIPTION_LENGTH) {
+            let max_remaining = Math.min(200 - length, token.length);
+            let substring = token.substring(0, max_remaining);
+            let text = substring.substring(0, substring.lastIndexOf(" "));
 
+            span.text(text);
+
+            length += text.length;
+        } else {
+            span.text(token);
+
+            length += token.length;
+        }
+        
         return span;
     }).filter(span => span != null);
 
-    if(spans.length < split_body.length) {
+    // if(spans.length < split_body.length) {
+    if(body.length > 200) {
         let more = $("<span />");
         more.text("...");
         spans.push(more);
@@ -180,13 +193,6 @@ function isImage(url) {
 }
 
 $(document).ready(function() {
-    let header = $(".header");
-    let headerPlacement = header.position().top + header.outerHeight();
-    $('#results').css('margin-top',headerPlacement);
-
-    let footer = $(".footer");
-    let footerPlacement = footer.outerHeight();
-    $('#page-control').css('margin-bottom',footerPlacement);
 
     if (!checkQueryParameters()) {
         window.location = "/";
