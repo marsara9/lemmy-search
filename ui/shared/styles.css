@@ -70,7 +70,7 @@ input[type=button]:hover, input[type=submit]:hover {
     margin: 12px;
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     justify-content: flex-start;
 }
 
@@ -80,11 +80,13 @@ input[type=button]:hover, input[type=submit]:hover {
 
 .header #instance-select {
     margin-left: auto;
-    width: 120px;
+    width: 240px;
 }
 
 .header #submit {
     width: 200px;
+    padding: 12px;
+    flex-shrink: 0;
 }
 
 .footer {
@@ -104,7 +106,7 @@ input[type=button]:hover, input[type=submit]:hover {
 }
 
 .header #search {
-    width: 80%;
+    flex-grow: 1;
 }
 
 a, a:visited {
