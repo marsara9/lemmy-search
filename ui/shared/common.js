@@ -15,7 +15,7 @@ function populateInstances() {
                 let option = $("<option />")
                     .attr("value", instance.site.actor_id)
                     .prop("selected", instance.site.actor_id == preferred_instance);
-                option.text(instance.site.name + "(" + dropSchema(instance.site.name) + ")");
+                option.text(instance.site.name + " (" + dropSchema(instance.site.actor_id) + ")");
 
                 select.append(option);
             })
