@@ -191,5 +191,10 @@ function isImage(url) {
 }
 
 function onReady() {
+
+    if(!checkQueryParameters()) {
+        window.location = "/";
+    }
+
     query(window.location.search);
 }

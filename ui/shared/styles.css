@@ -41,7 +41,6 @@ ol {
 }
 
 #header > * {
-    height: 32px;
     margin: 8px 0;
 }
 
@@ -91,8 +90,9 @@ input[type="search"] {
     width: 100%;
 }
 
-#page-controls {
+#page-control {
     display: flex;
+    flex-direction: row;
     flex-wrap: nowrap;
     justify-content: center;
     gap: 8px;
@@ -113,4 +113,28 @@ input[type="search"] {
     margin-bottom: 12px;
     width: 64px;
     height: 64px;
+}
+
+.search-result {
+    padding: 8px;
+}
+
+.post-citation > img {
+    width: 16px;
+    height: 16px;
+    margin: 4px;
+    vertical-align: middle;
+    border-radius: 8px;
+}
+
+.post-name {
+    font-size: 1.3rem;
+}
+
+.post-body {
+    margin: 4px;
+}
+
+.post-body > .search-term {
+    font-weight: bold;
 }
