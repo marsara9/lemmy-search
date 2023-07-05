@@ -19,10 +19,6 @@ function populateInstances() {
                 select.append(option);
             })
         $("#instance-select").val(home_instance);
-
-        if(onReady) {
-            onReady();
-        }
     })
 }
 
@@ -81,7 +77,13 @@ function populateInitialFields() {
 }
 
 $(document).ready(function() {
-    initializeUI();
 
+    initializeUI();
     populateInitialFields();
+
+    home_instance = getCookie("home-instance");
+
+    if(onReady) {
+        onReady();
+    }
 });
