@@ -60,7 +60,7 @@ ol {
     max-width: 768px;
 }
 
-#content > #search, #submit {
+#search-form input {
     margin: 8px;
 }
 
