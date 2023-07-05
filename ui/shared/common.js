@@ -19,6 +19,10 @@ function populateInstances() {
                 select.append(option);
             })
         $("#instance-select").val(home_instance);
+
+        if(onReady) {
+            onReady();
+        }
     })
 }
 
@@ -80,8 +84,4 @@ $(document).ready(function() {
     initializeUI();
 
     populateInitialFields();
-
-    if(onReady) {
-        onReady();
-    }
 });
