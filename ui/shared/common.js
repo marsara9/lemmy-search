@@ -1,24 +1,24 @@
-var preferred_instance = null;
+var home_instance = null;
 
 function populateInstances() {
     fetchJson("/instances", result => {
 
-        preferred_instance = getCookie("preferred-instance") || result[0].site.actor_id;
-        if(!result.map(instance => instance.site.actor_id).includes(preferred_instance)) {
-            preferred_instance = result[0].site.actor_id;
+        home_instance = getCookie("home-instance") || result[0].site.actor_id;
+        if(!result.map(instance => instance.site.actor_id).includes(home_instance)) {
+            home_instance = result[0].site.actor_id;
         }
 
-        let select = $("#instance-select");
-        result
-            .sort(instanceCompare)
+        let select = $("#instance-list");
+        result.sort(instanceCompare)
             .forEach(instance => {
                 let option = $("<option />")
                     .attr("value", instance.site.actor_id)
-                    .prop("selected", instance.site.actor_id == preferred_instance);
+                    .prop("selected", instance.site.actor_id == home_instance);
                 option.text(instance.site.name + " (" + dropSchema(instance.site.actor_id) + ")");
 
                 select.append(option);
             })
+        $("#instance-select").val(home_instance);
     })
 }
 
@@ -41,7 +41,7 @@ function onSearch() {
 
     let params = {
         "query" : query,
-        "preferred_instance" : dropSchema(preferred_instance),
+        "home_instance" : dropSchema(home_instance),
         "page" : 1
     };
     
@@ -53,3 +53,35 @@ function getVersion() {
         $("#version").text(result.version);
     });
 }
+
+function initializeUI() {
+    $("#submit").click(function() {
+        onSearch();
+    });
+
+    $("#search").keydown(function(e){
+        if(e.keyCode == 13) {
+            onSearch();
+        }
+    });
+
+    $("#instance-select").on("change", function() {
+        home_instance = this.value;
+        setCookie("home-instance", home_instance, 3652);
+    });
+}
+
+function populateInitialFields() {
+    getVersion();
+    populateInstances();
+}
+
+$(document).ready(function() {
+    initializeUI();
+
+    populateInitialFields();
+
+    if(onReady) {
+        onReady();
+    }
+});

@@ -235,7 +235,7 @@ impl SearchHandler {
             }).collect::<HashSet<String>>();
 
         // The preferred instance is sent without the https://, re-add it back.
-        let preferred_instance_actor_id = format!("https://{}/", search_query.preferred_instance);
+        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
 
         let page = search_query.page.unwrap_or(1).max(1);
 
@@ -245,7 +245,7 @@ impl SearchHandler {
             &instance, 
             &community, 
             &author, 
-            &preferred_instance_actor_id,
+            &home_instance_actor_id,
             page
         ).await
             .log_error("Error during search.", true)
