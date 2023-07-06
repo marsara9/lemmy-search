@@ -6,7 +6,6 @@ use std::{
     time::Duration, 
     path::Path
 };
-use async_std::fs::remove_file;
 use tokio::task::JoinHandle;
 use crate::{
     database::Context,
@@ -70,7 +69,7 @@ impl Runner {
     ) {
         let file = Path::new("/lemmy/config/crawl");
         if file.exists() {
-            match remove_file("/lemmy/config/crawl")
+            match tokio::fs::remove_file("/lemmy/config/crawl")
                 .await {
                     Ok(_) => {
                         Self::run(context)
