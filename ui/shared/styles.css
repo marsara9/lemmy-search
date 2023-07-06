@@ -2,6 +2,7 @@ body {
     background-color: #222;
     color: white;
     padding: 8px;
+    font-family: Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
 }
 
 a {
@@ -17,7 +18,7 @@ ol {
     position: sticky;
     display: flex;
     flex-direction: row;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     background-color: #222;
     padding: 8px;
@@ -26,6 +27,8 @@ ol {
 #menu > #instance-select-div {
     float: right;
     clear: both;
+    width: 100%;
+    max-width: 256px;
 }
 
 #header {
@@ -49,9 +52,13 @@ ol {
     max-width: 768px;
 }
 
-#search, #submit {
+#search-form, #submit {
     width: 100%;
     max-width: 768px;
+}
+
+#search {
+    width: 100%;
 }
 
 #content {
@@ -59,8 +66,8 @@ ol {
     max-width: 768px;
 }
 
-#content > #search, #submit {
-    margin: 8px;
+#search-form input {
+    margin: 8px 0;
 }
 
 input, select {
@@ -138,4 +145,17 @@ input[type="search"] {
 
 .post-body > .search-term {
     font-weight: bold;
+}
+
+.selectize-input {
+    border-radius: 16px;
+    padding-right: 40px;
+}
+
+.selectize-input.input-active {
+    border-radius: 16px;
+}
+
+.selectize-dropdown {
+    border-radius: 16px;
 }

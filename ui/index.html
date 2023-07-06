@@ -3,8 +3,10 @@
     <head>
         <title>Lemmy Search</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" />
         <link rel="stylesheet" href="/shared/styles.css" />
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"></script>
         <script type="text/javascript" src="/shared/rest.js"></script>
         <script type="text/javascript" src="/shared/cookies.js"></script>
         <script type="text/javascript" src="/shared/common.js"></script>
@@ -13,10 +15,9 @@
     <body>
         <div id="menu">
             <div id="instance-select-div">
-                <input type="text" list="instance-list" placeholder="Select Instance" id="instance-select" />
-                <datalist id="instance-list">
-
-                </datalist>
+                <select id="instance-select">
+              
+                </select>
             </div>
         </div>
         <div id="content">
@@ -25,8 +26,10 @@
                 <img src="imgs/search.svg" />
                 <span>Lemmy</span>
             </div>
-            <input type="search" id="search" />
-            <input type="submit" id="submit" value="Search" />
+            <form id="search-form">
+                <input type="search" id="search" required />
+                <input type="submit" id="submit" value="Search" />
+            </form>
         </div>
         <div id="footer">
             <a href="https://github.com/marsara9/lemmy-search">GitHub</a>

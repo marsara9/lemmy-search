@@ -3,30 +3,33 @@ var home_instance = null;
 function populateInstances() {
     fetchJson("/instances", result => {
 
-        home_instance = getCookie("home-instance") || result[0].site.actor_id;
-        if(!result.map(instance => instance.site.actor_id).includes(home_instance)) {
-            home_instance = result[0].site.actor_id;
+        home_instance = getCookie("home-instance") || result[0].actor_id;
+        if(!result.map(instance => instance.actor_id).includes(home_instance)) {
+            home_instance = result[0].actor_id;
         }
 
-        let select = $("#instance-list");
+        let select = $("#instance-select");
         result.sort(instanceCompare)
             .forEach(instance => {
                 let option = $("<option />")
-                    .attr("value", instance.site.actor_id)
-                    .prop("selected", instance.site.actor_id == home_instance);
-                option.text(instance.site.name + " (" + dropSchema(instance.site.actor_id) + ")");
+                    .attr("value", instance.actor_id)
+                    .prop("selected", instance.actor_id == home_instance);
+                option.text(instance.name + " (" + dropSchema(instance.actor_id) + ")");
 
                 select.append(option);
             })
-        $("#instance-select").val(home_instance);
+        // $("#instance-select").val(home_instance);
+        $("#instance-select").selectize({
+            sortField: 'text'
+        });
     })
 }
 
 function instanceCompare(lhs, rhs) {
-    if (lhs.site.name.toLowerCase() < rhs.site.name.toLowerCase()){
+    if (lhs.name.toLowerCase() < rhs.name.toLowerCase()){
         return -1;
     }
-    if (lhs.site.name.toLowerCase() > rhs.site.name.toLowerCase()){
+    if (lhs.name.toLowerCase() > rhs.name.toLowerCase()){
         return 1;
     }
     return 0;
@@ -55,15 +58,14 @@ function getVersion() {
 }
 
 function initializeUI() {
-    $("#submit").click(function() {
+    $( "#search-form" ).on( "submit", function( event ) {
         onSearch();
-    });
+        event.preventDefault();
+      });
 
-    $("#search").keydown(function(e){
-        if(e.keyCode == 13) {
-            onSearch();
-        }
-    });
+    // $("#instance-select").selectize({
+    //     sortField: 'text'
+    // });
 
     $("#instance-select").on("change", function() {
         home_instance = this.value;
@@ -77,9 +79,11 @@ function populateInitialFields() {
 }
 
 $(document).ready(function() {
-    initializeUI();
 
+    initializeUI();
     populateInitialFields();
+
+    home_instance = getCookie("home-instance");
 
     if(onReady) {
         onReady();
