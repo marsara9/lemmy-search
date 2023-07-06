@@ -96,21 +96,27 @@ impl Crawler {
                 .linked;
     
                 for instance in federated_instances {
-                    if match instance.software {
-                        Some(value) => value == "lemmy",
+                    if !match instance.software {
+                        Some(value) => value.to_lowercase() == "lemmy",
                         None => false
                     } {
-                        let crawler = Crawler::new(
-                            instance.domain, 
-                            self.context.clone(), 
-                            true
-                        );
-                        
-                        let _ = match crawler {
-                            Ok(crawler) => crawler.crawl().await,
-                            Err(_) => Ok(())
-                        };         
+                        continue;
                     }
+
+                    if instance.domain == self.context.config.crawler.seed_instance {
+                        continue;
+                    }
+
+                    let crawler = Crawler::new(
+                        instance.domain, 
+                        self.context.clone(), 
+                        true
+                    );
+                    
+                    let _ = match crawler {
+                        Ok(crawler) => crawler.crawl().await,
+                        Err(_) => Ok(())
+                    };
                 }
             }
         }

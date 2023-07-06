@@ -18,7 +18,6 @@ function populateInstances() {
 
                 select.append(option);
             })
-        // $("#instance-select").val(home_instance);
         $("#instance-select").selectize({
             sortField: 'text'
         });
@@ -44,7 +43,6 @@ function onSearch() {
 
     let params = {
         "query" : query,
-        "home_instance" : dropSchema(home_instance),
         "page" : 1
     };
     
@@ -61,11 +59,7 @@ function initializeUI() {
     $( "#search-form" ).on( "submit", function( event ) {
         onSearch();
         event.preventDefault();
-      });
-
-    // $("#instance-select").selectize({
-    //     sortField: 'text'
-    // });
+    });
 
     $("#instance-select").on("change", function() {
         home_instance = this.value;
