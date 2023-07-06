@@ -1,11 +1,20 @@
-function checkQueryParameters() {
+function getQueryParameters() {
     const urlParameters = new URLSearchParams(window.location.search);
-    $("#search").val(urlParameters.get("query"));
-    return urlParameters.has("query");
+    return {
+        "query": urlParameters.get("query"),
+        "page":  urlParameters.get("page") || 1
+    };
 }
 
-function query(queryString) {
-    fetchJson("/search" + queryString, result => {
+function query(queryString, page, instance) {
+
+    queryParameters = new URLSearchParams({
+        "query" : queryString,
+        "page" : page,
+        "home_instance" : instance
+    }).toString()
+
+    fetchJson("/search?" + queryParameters, result => {
 
         let response_time = Math.round((result.time_taken.secs + (result.time_taken.nanos / 1_000_000_000)) * 100) / 100;
 
@@ -177,7 +186,6 @@ function getPostQueryBody(queryTerms, body) {
         return span;
     }).filter(span => span != null);
 
-    // if(spans.length < split_body.length) {
     if(body.length > 200) {
         let more = $("<span />");
         more.text("...");
@@ -192,9 +200,14 @@ function isImage(url) {
 
 function onReady() {
 
-    if(!checkQueryParameters()) {
+    const queryParameters = getQueryParameters();
+    if(!queryParameters["query"]) {
         window.location = "/";
     }
 
-    query(window.location.search);
+    query(
+        queryParameters["query"],
+        queryParameters["page"],
+        home_instance
+    );
 }
