@@ -11,7 +11,7 @@ function query(queryString, page, instance) {
     queryParameters = new URLSearchParams({
         "query" : queryString,
         "page" : page,
-        "home_instance" : instance
+        "home_instance" : dropSchema(instance)
     }).toString()
 
     fetchJson("/search?" + queryParameters, result => {
@@ -204,6 +204,8 @@ function onReady() {
     if(!queryParameters["query"]) {
         window.location = "/";
     }
+
+    $("#search").val(queryParameters["query"]);
 
     query(
         queryParameters["query"],
