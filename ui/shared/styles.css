@@ -2,6 +2,7 @@ body {
     background-color: #222;
     color: white;
     padding: 8px;
+    font-family: Lato,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
 }
 
 a {
@@ -51,9 +52,13 @@ ol {
     max-width: 768px;
 }
 
-#search, #submit {
+#search-form, #submit {
     width: 100%;
     max-width: 768px;
+}
+
+#search {
+    width: 100%;
 }
 
 #content {
@@ -61,8 +66,8 @@ ol {
     max-width: 768px;
 }
 
-#content > #search, #submit {
-    margin: 8px;
+#search-form input {
+    margin: 8px 0;
 }
 
 input, select {
