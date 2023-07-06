@@ -18,7 +18,7 @@ ol {
     position: sticky;
     display: flex;
     flex-direction: row;
-    align-items: baseline;
+    align-items: center;
     gap: 8px;
     background-color: #222;
     padding: 8px;
