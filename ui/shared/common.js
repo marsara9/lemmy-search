@@ -59,15 +59,10 @@ function getVersion() {
 }
 
 function initializeUI() {
-    $("#submit").click(function() {
+    $( "#search-form" ).on( "submit", function( event ) {
         onSearch();
-    });
-
-    $("#search").keydown(function(e){
-        if(e.keyCode == 13) {
-            onSearch();
-        }
-    });
+        event.preventDefault();
+      });
 
     $("#instance-select").on("change", function() {
         home_instance = this.value;
