@@ -50,23 +50,20 @@ impl SiteDBO {
 
     pub async fn retrieve_all(
         &self
-    ) -> Result<Vec<SiteView>> {
+    ) -> Result<Vec<Site>> {
 
         get_database_client(&self.pool, move |client| {
 
             client.query("
-                SELECT actor_id, name 
+                SELECT actor_id, name
                     FROM sites
                 ",
                 &[] 
             ).map(|rows| {
                 rows.iter().map(|row| {
-                    SiteView {
-                        site: Site { 
-                            actor_id: row.get(0),
-                            name: row.get(1)
-                        },
-                        ..Default::default()
+                    Site { 
+                        actor_id: row.get(0),
+                        name: row.get(1)
                     }
                 }).collect()
             })

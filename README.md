@@ -83,3 +83,11 @@ Due note that crawling of your seed instance is a process that only runs at a re
 |latest|This tag will always match the master branch.  It should be the most stable apart from actual releases.  Note that this tag will be updated when a release goes out.|
 |dev|This tag will always align with the develop branch.  I cannot guarantee that everything will work on this tag as feature development is on-going.|
 |test|This is my local testing tag.  It can be updated multiple times per day and may not align to any particular code in the repository.  I recommend that no-one uses this, or if they do, do so at your own risk.|
+
+## Contributors
+
+<a href="https://github.com/marsara9/lemmy-search/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=marsara9/lemmy-search" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
