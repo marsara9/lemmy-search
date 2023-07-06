@@ -55,7 +55,7 @@ impl SiteDBO {
         get_database_client(&self.pool, move |client| {
 
             client.query("
-                SELECT actor_id 
+                SELECT actor_id, name
                     FROM sites
                 ",
                 &[] 

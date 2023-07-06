@@ -26,6 +26,8 @@ ol {
 #menu > #instance-select-div {
     float: right;
     clear: both;
+    width: 100%;
+    max-width: 256px;
 }
 
 #header {
@@ -138,4 +140,17 @@ input[type="search"] {
 
 .post-body > .search-term {
     font-weight: bold;
+}
+
+.selectize-input {
+    border-radius: 16px;
+    padding-right: 40px;
+}
+
+.selectize-input.input-active {
+    border-radius: 16px;
+}
+
+.selectize-dropdown {
+    border-radius: 16px;
 }

@@ -22,21 +22,6 @@ pub struct Site {
     pub last_update : DateTime<Utc>
 }
 
-// impl Site {
-//     pub fn fromLemmy(
-//         site_view : SiteView
-//     ) -> Self {
-//         Self {
-//             id : Uuid::new_v4(),
-//             name : site_view.site.name,
-//             actor_id : site_view.site.actor_id,
-//             last_post_page : 0,
-//             last_comment_page : 0,
-//             last_update : Utc::now()
-//         }
-//     }
-// }
-
 impl DatabaseSchema for Site {
 
     fn get_table_name(
