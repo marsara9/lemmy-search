@@ -30,7 +30,7 @@ async fn main() -> std::io::Result<()> {
     let config = config::Config::load();
 
     println!("Giving time for database to come online...");
-    async_std::task::sleep(Duration::from_secs( 1 )).await;
+    tokio::time::sleep(Duration::from_secs( 1 )).await;
 
     let database = match Database::create(&config).await {
         Ok(value) => value,
