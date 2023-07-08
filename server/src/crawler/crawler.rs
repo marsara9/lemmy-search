@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use async_recursion::async_recursion;
 use reqwest::Client;
 use crate::{
@@ -47,6 +49,8 @@ impl Crawler {
     ) -> Result<Self> {
         let client = Client::builder()
             .user_agent(APP_USER_AGENT)
+            .connect_timeout(Duration::from_secs(1))
+            .timeout(Duration::from_secs(10))
             .connection_verbose(true)
             .build()?;
 
@@ -100,10 +104,12 @@ impl Crawler {
                         Some(value) => value.to_lowercase() == "lemmy",
                         None => false
                     } {
+                        // Federated instance isn't a lemmy instance; skip.
                         continue;
                     }
 
-                    if instance.domain == self.context.config.crawler.seed_instance {
+                    if instance.domain == self.instance {
+                        // Federated instance is self; skip.
                         continue;
                     }
 
@@ -143,7 +149,12 @@ impl Crawler {
                 .await
                 .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.context.config.crawler.log) {
                     Ok(value) => value,
-                    Err(_) => continue
+                    Err(_) => {
+                        // Fetch failed wait for 1 second and then try again.
+                        tokio::time::sleep(Duration::from_secs(1))
+                            .await;
+                        continue
+                    }
                 };
 
             if posts.is_empty() {
