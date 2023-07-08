@@ -9,6 +9,7 @@ function populateInstances() {
         }
 
         let select = $("#instance-select");
+        select.empty();
         result.sort(instanceCompare)
             .forEach(instance => {
                 let option = $("<option />")

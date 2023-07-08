@@ -52,13 +52,9 @@ ol {
     max-width: 768px;
 }
 
-#search-form, #submit {
+#search-form {
     width: 100%;
     max-width: 768px;
-}
-
-#search {
-    width: 100%;
 }
 
 #content {
@@ -66,25 +62,8 @@ ol {
     max-width: 768px;
 }
 
-#search-form input {
-    margin: 8px 0;
-}
-
-input, select {
-    padding: 8px;
-    border: 1px solid white;
-    border-radius: 16px;  
-    background-color: white;
-    color: black;
-}
-
 label {
     height: 32px;
-}
-
-input[type="search"] {
-    padding: 9px 4px 9px 40px;
-    background: white url("../imgs/search.svg") no-repeat 13px center;
 }
 
 #instance-select {
@@ -158,4 +137,100 @@ input[type="search"] {
 
 .selectize-dropdown {
     border-radius: 16px;
+}
+
+.search {
+    border: 1px solid black;
+    border-radius: 16px;
+    background: white;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    padding: 8px;
+    margin: 8px 0;
+}
+
+.search > img, .tooltip {
+    flex-grow: 0;
+    flex-shrink: 0;
+    padding: 0 8px;
+}
+
+.search img {
+    width: 16px;
+    height: 16px;
+}
+
+.search > input[type="text"], input[type="text"]:focus {
+    flex-grow: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+}
+
+input[type="submit"] {
+    border-radius: 16px;
+    height: 32px;
+    width: 100%;
+    max-width: 768px;
+}
+
+.tooltip {
+    position: relative;
+}
+
+.tooltip > .tooltip-text {
+    visibility: hidden;
+    width: 300px;
+    background-color: white;
+    color: black;
+    text-align: center;
+    padding: 8px 0;
+    border-radius: 8px;
+
+    position: absolute;
+    z-index: 1;
+}
+
+.tooltip > .tooltip-text.top {
+    bottom: 150%;
+    left: 50%;
+    margin-left: -150px;
+}
+
+.tooltip > .tooltip-text.bottom {
+    top: 150%;
+    left: 50%;
+    margin-left: -150px;
+}
+
+.tooltip:hover > .tooltip-text {
+    visibility: visible;
+}
+
+.tooltip .tooltip-text::after {
+    content: " ";
+    position: absolute;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+}
+
+.tooltip .tooltip-text.top::after {
+    top: 100%;
+    left: 50%;
+    border-color: white transparent transparent transparent;
+}
+
+.tooltip .tooltip-text.bottom::after {
+    bottom: 100%;
+    left: 50%;
+    border-color: transparent transparent white transparent;
+}
+
+.highlight {
+    display: block;
+    font-weight: bold;
+    /* color: #007aa0; */
 }
