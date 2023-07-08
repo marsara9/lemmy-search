@@ -9,6 +9,7 @@ function populateInstances() {
         }
 
         let select = $("#instance-select");
+        select.empty();
         result.sort(instanceCompare)
             .forEach(instance => {
                 let option = $("<option />")
@@ -64,6 +65,10 @@ function initializeUI() {
     $("#instance-select").on("change", function() {
         home_instance = this.value;
         setCookie("home-instance", home_instance, 3652);
+
+        if(typeof onInstanceChanged === "function") {
+            onInstanceChanged();
+        }
     });
 }
 
@@ -79,7 +84,7 @@ $(document).ready(function() {
 
     home_instance = getCookie("home-instance");
 
-    if(onReady) {
+    if(typeof onReady === "function") {
         onReady();
     }
 });

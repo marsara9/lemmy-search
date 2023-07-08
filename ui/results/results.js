@@ -198,6 +198,10 @@ function isImage(url) {
     return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
 }
 
+function onInstanceChanged() {
+    onSearch();
+}
+
 function onReady() {
 
     const queryParameters = getQueryParameters();
