@@ -40,7 +40,8 @@ ol {
 #footer {
     bottom: 0;
     flex-wrap: nowrap;
-    justify-content: center;  
+    justify-content: center;
+    z-index: -1;
 }
 
 #header > * {
@@ -137,6 +138,7 @@ label {
 
 .selectize-dropdown {
     border-radius: 16px;
+    z-index: 2;
 }
 
 .search {
@@ -194,13 +196,13 @@ input[type="submit"] {
 }
 
 .tooltip > .tooltip-text.top {
-    bottom: 150%;
+    bottom: 170%;
     left: 50%;
     margin-left: -150px;
 }
 
 .tooltip > .tooltip-text.bottom {
-    top: 150%;
+    top: 170%;
     left: 50%;
     margin-left: -150px;
 }
@@ -232,5 +234,22 @@ input[type="submit"] {
 .highlight {
     display: block;
     font-weight: bold;
-    /* color: #007aa0; */
+}
+
+@media screen and (max-width: 960px) {
+    .tooltip > .tooltip-text.top {
+        margin-left: -275px;
+    }
+    
+    .tooltip > .tooltip-text.bottom {
+        margin-left: -275px;
+    }
+
+    .tooltip .tooltip-text.top::after {
+        left: 92%;
+    }
+    
+    .tooltip .tooltip-text.bottom::after {
+        left: 92%;
+    }
 }
