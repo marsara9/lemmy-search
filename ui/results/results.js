@@ -14,7 +14,7 @@ function query(queryString, page, instance) {
         "home_instance" : dropSchema(instance)
     }).toString()
 
-    fetchJson("/search?" + queryParameters, result => {
+    fetchJson("https://search-lemmy.com/search?" + queryParameters, result => {
 
         let response_time = Math.round((result.time_taken.secs + (result.time_taken.nanos / 1_000_000_000)) * 100) / 100;
 
