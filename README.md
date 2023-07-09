@@ -20,7 +20,9 @@ Lemmy-Search, ya I need a better name, will uniquely search any Lemmy instance a
   * Community -- You can also filter search results by just the particular community.
   * Author -- You can also just search for posts that were made by a particular user.
 
-![search results page](https://i.ibb.co/kySD4qM/lemmy-search-results.png)
+![landing page](https://i.ibb.co/nrz4m81/lemmy-search-home.png)
+
+![search results page](https://i.ibb.co/WWmPqvS/lemmy-search-results.png)
 
 ## How it Works
 
