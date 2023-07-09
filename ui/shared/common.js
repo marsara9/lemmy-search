@@ -19,9 +19,7 @@ function populateInstances() {
 
                 select.append(option);
             })
-        $("#instance-select").selectize({
-            sortField: 'text'
-        });
+        NiceSelect.bind(document.getElementById("instance-select"), {searchable: true, placeholder: 'Select your home instance', searchtext: 'Search for instances'});
     })
 }
 
