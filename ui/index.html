@@ -1,55 +1,48 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <title>Lemmy Search</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/css/selectize.bootstrap3.min.css" />
-        <link rel="stylesheet" href="/shared/styles.css" />
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.12.6/js/standalone/selectize.min.js"></script>
-        <script type="text/javascript" src="/shared/rest.js"></script>
-        <script type="text/javascript" src="/shared/cookies.js"></script>
-        <script type="text/javascript" src="/shared/common.js"></script>
-        <script type="text/javascript" src="/main.js"></script>
-    </head>
-    <body>
-        <div id="menu">
-            <div id="instance-select-div">
-                <select id="instance-select">
-                    <option>None</option>
-                </select>
-            </div>
-        </div>
-        <div id="content">
+<head>
+    <title>Lemmy Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/shared/styles.css" />
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script type="text/javascript" src="/shared/rest.js"></script>
+    <script type="text/javascript" src="/shared/cookies.js"></script>
+    <script type="text/javascript" src="/shared/common.js"></script>
+    <script type="text/javascript" src="/main.js"></script>
+    <script type="text/javascript" src="/shared/nice-select2.js"></script>
+</head>
+<body class="homepage">
+    <main>
+        <div id="main-search">
             <div id="logo">
-                <img src="imgs/lemmy.svg" alt="lemmy logo" width="128" height="128" />
-                <img src="imgs/search.svg" alt="search logo" />
+                <img src="imgs/lemmy-search.svg" width="100" height="auto" alt="Search Lemmy logo"/>
                 <span>Lemmy</span>
             </div>
-            <form id="search-form" action="">
-                <div class="search">
-                    <img src="imgs/search.svg" alt="search icon" />
-                    <input type="text" id="search" />
-                    <div class="tooltip">
-                        <img src="imgs/help.svg" alt="help">
-                        <span class="tooltip-text top">
-                            <span>Filters:</span>
-                            <hr />
-                            <span class="highlight">instance:&lt;domain&gt;</span>
-                            <span class="highlight">community:!&lt;name&gt;@&lt;domain&gt;</span>
-                            <span class="highlight">author:@&lt;name&gt;@&lt;domain&gt;</span>
-                        </span>
-                    </div>
-                </div>
-                <div>
-                    <input type="submit" id="submit" value="Search" />
-                </div>
+            <div id="instance-selector">
+                <select id="instance-select">
+
+                </select>
+            </div>
+            <form role="search" id="search-form">
+                <input type="search" id="search" required placeholder="Search Lemmy" />
+                <input type="submit" id="submit" class="button" value="Search" />
             </form>
         </div>
-        <div id="footer">
-            <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
-            <span> | </span>
-            <span id="version">v0.0.0</span>
+        <label for="showTips" class="show-tips">Search tips</label>
+        <input type="checkbox" id="showTips" />
+        <div class="tips">
+            Filters you can add to your search query:<br>
+            <ul>
+                <li>instance: &lt;domain&gt;</li>
+                <li>community: !&lt;name&gt;@&lt;domain&gt;</li>
+                <li>author: @&lt;name&gt;@&lt;domain&gt;</li>
+            </ul>
         </div>
-    </body>
+    </main>
+    <footer id="footer">
+        <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
+        <span> | </span>
+        <span id="version">v0.0.0</span>
+    </footer>
+</body>
 </html>

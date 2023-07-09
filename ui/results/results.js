@@ -165,7 +165,7 @@ function getPostQueryBody(queryTerms, body) {
         }
 
         let span = $("<span />");
-        if (queryTerms.includes(token.trim())) {
+        if (queryTerms.includes(token.toLowerCase().trim())) {
             span.addClass("search-term");
         }
 
