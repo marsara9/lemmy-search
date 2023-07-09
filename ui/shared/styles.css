@@ -188,7 +188,7 @@ header.search-box {
     flex-wrap: wrap;
     justify-content: stretch;
     display: grid; 
-    grid-template-columns: var(--results-whitespace) var(--max-content-width) 1fr auto; 
+    grid-template-columns: var(--results-whitespace) 1fr auto; 
     grid-template-rows: auto auto; 
     grid-template-areas:
         "logo search instances"
@@ -220,6 +220,7 @@ header.search-box {
 
 .info {
     width: 100%;
+    max-width: var(--max-content-width);
     grid-area: info;
     display: flex;
 }
