@@ -12,7 +12,8 @@ use crate::{
         schema::{
             site::Site,
             word::Word, 
-            xref::Search
+            xref::Search, 
+            posts::Post
         }
     }, 
     error::{
@@ -23,7 +24,6 @@ use crate::{
     api::lemmy::models::{
         author::Author, 
         community::Community, 
-        post::PostData, 
         id::LemmyId
     }
 };
@@ -54,7 +54,7 @@ impl Database {
 
     pub async fn create(
         config : &Config
-    ) -> std::result::Result<Self, LemmySearchError> {
+    ) -> Result<Self> {
         Self::create_database_pool(&config.postgres)
             .await
             .map(|pool| {
@@ -69,7 +69,7 @@ impl Database {
 
     async fn create_database_pool(
         config : &Postgres
-    ) -> std::result::Result<DatabasePool, LemmySearchError> {
+    ) -> Result<DatabasePool> {
         let db_config = postgres::Config::new()
             .user(&config.user)
             .password(&config.password)
@@ -104,7 +104,7 @@ impl Database {
             .await?;
         self.create_table_from_schema::<Community>(drop_table)
             .await?;
-        self.create_table_from_schema::<PostData>(drop_table)
+        self.create_table_from_schema::<Post>(drop_table)
             .await?;
         self.create_table_from_schema::<LemmyId>(drop_table)
             .await?;

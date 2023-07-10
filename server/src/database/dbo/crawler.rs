@@ -13,13 +13,16 @@ use crate::{
         schema::{
             DatabaseSchema, 
             word::Word, 
-            xref::Search
+            xref::Search, 
+            posts::Post
         }
     }, 
     error::Result,
     api::lemmy::models::{
         post::PostData, 
-        id::LemmyId, author::Author, community::Community,
+        id::LemmyId, 
+        author::Author, 
+        community::Community,
     }, 
     crawler::analyzer::Analyzer
 };
@@ -30,7 +33,9 @@ pub struct CrawlerDatabase {
 
 impl CrawlerDatabase {
 
-    pub async fn init(pool : DatabasePool) -> Result<Self> {
+    pub async fn init(
+        pool : DatabasePool
+    ) -> Result<Self> {
         let client = pool.get().await?;
 
         Ok(Self {
@@ -69,7 +74,7 @@ impl CrawlerDatabase {
 
         let words = all_words.into_iter().collect();
         let posts2 = posts.into_iter().map(|p| {
-            p.clone()
+            Post::from(p)
         }).collect();
         
         self.update_words(&words).await?;
@@ -256,7 +261,7 @@ impl CrawlerDatabase {
 
     async fn update_posts(
         &mut self,
-        objects : &HashSet<PostData>
+        objects : &HashSet<Post>
     ) -> Result<u64> {
         let objects = objects.clone();
         

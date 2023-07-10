@@ -8,10 +8,7 @@ use crate::{
         LogError, 
         LemmySearchError
     },
-    api::lemmy::{
-        fetcher::Fetcher, 
-        models::post::PostData
-    }, 
+    api::lemmy::fetcher::Fetcher, 
     database::{  
         dbo::{
             site::SiteDBO,
@@ -19,7 +16,8 @@ use crate::{
         }, 
         schema::{
             DatabaseSchema, 
-            site::Site
+            site::Site,
+            posts::Post
         }, Context
     }
 };
@@ -147,7 +145,7 @@ impl Crawler {
         loop {
             let posts = match self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error(format!("\tfailed to fetch another page of {}...", PostData::get_table_name()).as_str(), self.context.config.crawler.log) {
+                .log_error(format!("\tfailed to fetch another page of {}...", Post::get_table_name()).as_str(), self.context.config.crawler.log) {
                     Ok(value) => value,
                     Err(_) => {
                         // Fetch failed wait for 1 second and then try again.
@@ -161,7 +159,7 @@ impl Crawler {
                 break;
             }
             let count = posts.len();
-            println!("\tfetched another {} {}...", count, PostData::get_table_name());
+            println!("\tfetched another {} {}...", count, Post::get_table_name());
 
             let filtered_posts = posts.into_iter().filter(|post_data| {
                 !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
@@ -179,7 +177,7 @@ impl Crawler {
 
             total_found += filtered_count;
 
-            println!("\tinserted {} {}...", total_found, PostData::get_table_name());
+            println!("\tinserted {} {}...", total_found, Post::get_table_name());
 
             site_dbo.set_last_post_page(&site_actor_id, page)
                 .await?;

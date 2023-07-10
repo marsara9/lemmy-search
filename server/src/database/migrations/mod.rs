@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use crate::{
     error::Result, 
     api::lemmy::models::{
-        post::PostData, 
         author::Author, 
         community::Community, 
         id::LemmyId
@@ -11,7 +10,13 @@ use crate::{
 use super::{
     Context, 
     dbo::get_database_client, 
-    schema::{DatabaseSchema, site::Site, word::Word, xref::Search}
+    schema::{
+        DatabaseSchema,
+        site::Site, 
+        word::Word, 
+        xref::Search, 
+        posts::Post
+    }
 };
 
 pub struct DatabaseMigrations {
@@ -34,7 +39,7 @@ impl DatabaseMigrations {
             .await?;
         self.update_table_column::<Community>()
             .await?;
-        self.update_table_column::<PostData>()
+        self.update_table_column::<Post>()
             .await?;
         self.update_table_column::<LemmyId>()
             .await?;
