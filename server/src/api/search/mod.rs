@@ -173,6 +173,8 @@ impl SearchHandler {
 
         let page = search_query.page.unwrap_or(1).max(1);
 
+        println!("\tpage: {}", page);
+
         let search = SearchDatabase::new(context.pool.clone());
         let search_results = search.search(
             &query_terms, 
