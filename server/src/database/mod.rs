@@ -11,7 +11,6 @@ use crate::{
         migrations::DatabaseMigrations,
         schema::{
             site::Site,
-            version::Version,
             word::Word, 
             xref::Search
         }
@@ -99,8 +98,6 @@ impl Database {
 
         let drop_table = false;
 
-        self.create_table_from_schema::<Version>(drop_table)
-            .await?;
         self.create_table_from_schema::<Site>(drop_table)
             .await?;
         self.create_table_from_schema::<Author>(drop_table)
@@ -117,7 +114,7 @@ impl Database {
             .await?;
 
         let database_migrations = DatabaseMigrations::new(self.context.clone());
-        database_migrations.to0_4_0()
+        database_migrations.update_table_columns()
             .await?;
 
         Ok(())

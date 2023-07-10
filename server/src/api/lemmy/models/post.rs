@@ -1,3 +1,7 @@
+use chrono::{
+    DateTime, 
+    Utc
+};
 use serde::{
     Serialize, 
     Deserialize
@@ -43,7 +47,10 @@ pub struct Post {
     pub body : Option<String>,
     pub removed : Option<bool>,
     pub deleted : Option<bool>,
-    pub language_id : i32
+    pub language_id : i32,
+    pub published : DateTime<Utc>,
+    pub updated : Option< DateTime<Utc>>,
+    pub nsfw : bool
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

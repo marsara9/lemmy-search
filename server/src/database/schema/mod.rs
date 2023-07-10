@@ -3,7 +3,6 @@ pub mod community;
 pub mod id;
 pub mod posts;
 pub mod site;
-pub mod version;
 pub mod word;
 pub mod xref;
 
@@ -107,6 +106,7 @@ impl<T> DatabaseSchema for HashSet<T> where T : DatabaseSchema {
 }
 
 #[allow(unused)]
+#[derive(Clone)]
 pub enum DatabaseType {
     Bool,
     I8,
@@ -122,6 +122,7 @@ pub enum DatabaseType {
     DefaultValue(Box<DatabaseType>, String)
 }
 
+#[allow(unused)]
 impl DatabaseType {
     pub fn to_sql_type_name(
         &self
@@ -153,6 +154,25 @@ impl DatabaseType {
             DatabaseType::DefaultValue(type_, value) => {
                 format!("{} DEFAULT {}", type_.to_sql_type_name(), value)
             }
+        }
+    }
+
+    pub fn get_default_value(
+        &self
+    ) -> Box<&(dyn ToSql + Sync)> {
+        match self {
+            DatabaseType::Bool => Box::new(&false),
+            DatabaseType::I8 => Box::new(&0i8),
+            DatabaseType::I16 => Box::new(&0i16),
+            DatabaseType::I32 => Box::new(&0i32),
+            DatabaseType::I64 => Box::new(&0i64),
+            DatabaseType::String(_) => Box::new(&""),
+            DatabaseType::Uuid => Box::new(&"00000000-0000-0000-0000-000000000000"),
+            DatabaseType::DateTime => Box::new(&"1970-01-01T00:00:00Z"),
+            DatabaseType::Optional(type_) => type_.get_default_value(),
+            DatabaseType::Required(type_) => type_.get_default_value(),
+            DatabaseType::Unique(type_) => type_.get_default_value(),
+            DatabaseType::DefaultValue(type_, _) => type_.get_default_value()
         }
     }
 
