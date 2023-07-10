@@ -35,6 +35,7 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>,
+        nsfw : &Option<bool>,
         home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchPost>, i32)> {        
@@ -43,6 +44,7 @@ impl SearchDatabase {
         let instance = instance.to_owned();
         let community = community.to_owned();
         let author = author.to_owned();
+        let nsfw = nsfw.to_owned();
         let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
@@ -60,6 +62,10 @@ impl SearchDatabase {
             let author_query = match author {
                 Some(_) => "AND p.author_actor_id = $4",
                 None => "AND $4 = $4"
+            };
+            let nsfw_query: &str = match nsfw {
+                Some(_) => "AND p.nsfw = $5",
+                None => "AND $5 = $5"
             };
 
             let instance = instance.unwrap_or("".to_string());
@@ -105,12 +111,13 @@ impl SearchDatabase {
                     {}
                     {}
                     {}
+                    {}
                 ORDER BY
                     matches DESC,
                     p.score DESC
                 LIMIT {}
                 OFFSET $6
-            ", instance_query, community_query, author_query, Self::PAGE_LIMIT);
+            ", instance_query, community_query, author_query, nsfw_query, Self::PAGE_LIMIT);
 
             let mut total_results = 0;
 

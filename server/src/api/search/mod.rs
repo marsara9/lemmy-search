@@ -1,7 +1,6 @@
 pub mod models;
+pub mod filters;
 
-use regex::Regex;
-use lazy_static::lazy_static;
 use std::{
     collections::{
         HashMap, 
@@ -22,9 +21,17 @@ use actix_web::{
 };
 use crate::{
     error::LogError,
-    api::search::models::search::{
-        SearchQuery,
-        SearchResult
+    api::search::{
+        models::search::{
+            SearchQuery,
+            SearchResult
+        }, 
+        filters::{
+            instance::InstanceFilter, 
+            community::CommunityFilter, 
+            author::AuthorFilter, 
+            nsfw::NSFWFilter
+        }
     }, 
     database::{
         dbo::{
@@ -38,15 +45,6 @@ use crate::{
 };
 
 use self::models::search::Version;
-
-lazy_static! {
-    static ref INSTANCE_MATCH : Regex = Regex::new(r" instance:(?P<instance>(https://)?[\w\-\.]+)").unwrap();
-    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>!\w+@[\w\-\.]+)").unwrap();
-    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>@\w+@[\w\-\.]+)").unwrap();
-
-    static ref COMMUNITY_FORMAT : Regex = Regex::new(r"!(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
-    static ref AUTHOR_FORMAT : Regex = Regex::new(r"@(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
-}
 
 pub struct SearchHandler {
     pub routes : HashMap<String, Route>
@@ -142,59 +140,11 @@ impl SearchHandler {
 
         let query = search_query.query.to_owned();
         let mut modified_query = query.clone();
-        
-        // Extract filters
-        let instance = match INSTANCE_MATCH.captures(&query) {
-            Some(caps) => {
-                let cap = &caps["instance"].to_lowercase();
-                modified_query = modified_query.replace(cap, "")
-                    .replace("instance:", "");
-                Some(if cap.starts_with("https://") {
-                    cap.to_string()
-                } else {
-                    format!("https://{}/", cap)
-                })
-            },
-            None => None
-        };
-        let community = match COMMUNITY_MATCH.captures(&query) {
-            Some(caps) => {
-                let cap = &caps["community"].to_lowercase();
-                modified_query = modified_query.replace(cap, "")
-                    .replace("community:", "");
 
-                // Change the format from the user format of !name@instance
-                // to match the actor_id format of a URL https://instance/c/name.
-                match COMMUNITY_FORMAT.captures(&cap) {
-                    Some(caps2) => {
-                        let name = caps2["name"].to_lowercase();
-                        let instance = caps2["instance"].to_lowercase();
-                        Some(format!("https://{}/c/{}", instance, name))
-                    },
-                    None => None
-                }
-            },
-            None => None
-        };
-        let author = match AUTHOR_MATCH.captures(&query) {
-            Some(caps) => {
-                let cap = &caps["author"].to_lowercase();
-                modified_query = modified_query.replace(cap, "")
-                    .replace("author:", "");
-                
-                // Change the format from the user format of @name@instance
-                // to match the actor_id format of a URL https://instance/c/name.
-                match AUTHOR_FORMAT.captures(&cap) {
-                    Some(caps2) => {
-                        let name = caps2["name"].to_lowercase();
-                        let instance = caps2["instance"].to_lowercase();
-                        Some(format!("https://{}/u/{}", instance, name))
-                    },
-                    None => None
-                }
-            },
-            None => None
-        };
+        let instance = modified_query.get_instance_filter();
+        let community = modified_query.get_community_filter();
+        let author = modified_query.get_author_filter();
+        let nsfw = modified_query.get_nsfw_filter();
 
         // normalize the query string to lowercase.
         modified_query = modified_query.to_lowercase()
@@ -245,6 +195,7 @@ impl SearchHandler {
             &instance, 
             &community, 
             &author, 
+            &nsfw,
             &home_instance_actor_id,
             page
         ).await
