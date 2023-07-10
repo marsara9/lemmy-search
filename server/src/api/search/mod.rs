@@ -138,6 +138,8 @@ impl SearchHandler {
 
         let start = Instant::now();
 
+        println!("Searching...");
+
         let query = search_query.query.to_owned();
         let mut modified_query = query.clone();
 
@@ -152,25 +154,7 @@ impl SearchHandler {
             .to_string();
 
         // Log search query
-        println!("Searching for '{}'", modified_query);
-        match &instance {
-            Some(value) => {
-                println!("\tInstance: '{}'", value);
-            },
-            None => {}
-        }
-        match &community {
-            Some(value) => {
-                println!("\tCommunity: '{}'", value);
-            },
-            None => {}
-        }
-        match &author {
-            Some(value) => {
-                println!("\tAuthor: '{}'", value);
-            },
-            None => {}
-        }
+        println!("\tfor '{}'", modified_query);
 
         // tokenize the search query, remove any non-alphanumeric characters from the string
         // and remove any words that are less than 3 characters long.

@@ -26,6 +26,9 @@ impl AuthorFilter for String {
                 Some(format!("https://{}/u/{}", instance, name))
             },
             None => None
-        }        
+        }.map(|value| {
+            println!("\tauthor: '{}'", value);
+            value
+        })
     }
 }

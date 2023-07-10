@@ -25,6 +25,9 @@ impl NSFWFilter for String {
                 Some(yes_no == "yes")
             },
             None => None
-        }        
+        }.map(|value| {
+            println!("\tnsfw:{}", value);
+            value
+        })
     }
 }

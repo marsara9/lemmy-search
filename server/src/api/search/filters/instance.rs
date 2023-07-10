@@ -29,6 +29,9 @@ impl InstanceFilter for String {
                 })
             },
             None => None
-        }        
+        }.map(|value| {
+            println!("\tinstance: '{}'", value);
+            value
+        })
     }
 }
