@@ -3,6 +3,7 @@ pub mod community;
 pub mod id;
 pub mod posts;
 pub mod site;
+pub mod version;
 pub mod word;
 pub mod xref;
 
@@ -118,6 +119,7 @@ pub enum DatabaseType {
     Optional(Box<DatabaseType>),
     Required(Box<DatabaseType>),
     Unique(Box<DatabaseType>),
+    DefaultValue(Box<DatabaseType>, String)
 }
 
 impl DatabaseType {
@@ -147,6 +149,9 @@ impl DatabaseType {
             },
             DatabaseType::Unique(type_) => {
                 format!("{} UNIQUE", type_.to_sql_type_name())
+            },
+            DatabaseType::DefaultValue(type_, value) => {
+                format!("{} DEFAULT {}", type_.to_sql_type_name(), value)
             }
         }
     }
@@ -167,5 +172,12 @@ impl DatabaseType {
         self
     ) -> DatabaseType {
         DatabaseType::Unique(Box::new(self))
+    }
+
+    pub fn default_value(
+        self,
+        value : String
+    ) -> DatabaseType {
+        DatabaseType::DefaultValue(Box::new(self), value)
     }
 }

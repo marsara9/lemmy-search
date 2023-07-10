@@ -1,11 +1,17 @@
 pub mod dbo;
 pub mod schema;
+pub mod migrations;
 
 use crate::{
-    config::{Postgres, Config}, 
+    config::{
+        Postgres, 
+        Config
+    }, 
     database::{
+        migrations::DatabaseMigrations,
         schema::{
             site::Site,
+            version::Version,
             word::Word, 
             xref::Search
         }
@@ -93,6 +99,8 @@ impl Database {
 
         let drop_table = false;
 
+        self.create_table_from_schema::<Version>(drop_table)
+            .await?;
         self.create_table_from_schema::<Site>(drop_table)
             .await?;
         self.create_table_from_schema::<Author>(drop_table)
@@ -106,6 +114,10 @@ impl Database {
         self.create_table_from_schema::<Word>(drop_table)
             .await?;
         self.create_table_from_schema::<Search>(drop_table)
+            .await?;
+
+        let database_migrations = DatabaseMigrations::new(self.context.clone());
+        database_migrations.to0_4_0()
             .await?;
 
         Ok(())
