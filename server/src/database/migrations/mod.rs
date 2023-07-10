@@ -68,9 +68,8 @@ impl DatabaseMigrations {
             let new_columns = T::get_column_types()
                 .into_iter()
                 .filter(|column| {
-                    existing_columns.contains(&column.0)
+                    !existing_columns.contains(&column.0)
                 })
-                .into_iter()
                 .map(|column| {
 
                     let add_column = format!("

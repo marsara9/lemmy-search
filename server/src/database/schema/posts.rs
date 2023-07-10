@@ -25,7 +25,7 @@ impl DatabaseSchema for PostData {
             "url".to_string(),
             "name".to_string(),
             "body".to_string(),
-            "published".to_string(),
+            //"published".to_string(),
             "updated".to_string(),
             "nsfw".to_string(),
             "score".to_string(),
@@ -42,7 +42,7 @@ impl DatabaseSchema for PostData {
             ("url".to_string(), DatabaseType::String(0).nullable()),
             ("name".to_string(), DatabaseType::String(0).not_null()),
             ("body".to_string(), DatabaseType::String(0).nullable()),
-            ("published".to_string(), DatabaseType::DateTime.not_null()),
+            //("published".to_string(), DatabaseType::DateTime.not_null()),
             ("updated".to_string(), DatabaseType::DateTime.nullable()),
             ("nsfw".to_string(), DatabaseType::Bool.not_null()),
             ("score".to_string(), DatabaseType::I32.not_null()),
@@ -54,13 +54,13 @@ impl DatabaseSchema for PostData {
     fn get_values(
         &self
     ) -> Vec<&(dyn ToSql + Sync)> {
+        
         vec![
             &self.post.ap_id,
             &self.post.url,
             &self.post.name,
             &self.post.body,
             &self.post.published,
-            &self.post.updated,
             &self.post.nsfw,
             &self.counts.score,
             &self.creator.actor_id,

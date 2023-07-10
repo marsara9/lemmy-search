@@ -113,9 +113,13 @@ impl Database {
         self.create_table_from_schema::<Search>(drop_table)
             .await?;
 
+        println!("Performing table migrations...");
+
         let database_migrations = DatabaseMigrations::new(self.context.clone());
         database_migrations.update_table_columns()
             .await?;
+
+        println!("...done");
 
         Ok(())
     }
