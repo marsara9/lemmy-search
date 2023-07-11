@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 lazy_static! {
-    static ref INSTANCE_MATCH : Regex = Regex::new(r" instance:(?P<instance>(https://)?[\w\-\.]+)").unwrap();
+    static ref INSTANCE_MATCH : Regex = Regex::new(r"(^| )?instance:(?P<instance>(https://)?[\w\-\.]+)").unwrap();
 }
 
 pub trait InstanceFilter {

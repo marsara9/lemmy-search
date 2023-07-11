@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 lazy_static! {
-    static ref NSFW_MATCH : Regex = Regex::new(r" nsfw:(?P<yes_no>(yes)|(no))").unwrap();
+    static ref NSFW_MATCH : Regex = Regex::new(r"(^| )?nsfw:(?P<yes_no>(yes)|(no))").unwrap();
 }
 
 pub trait NSFWFilter {
