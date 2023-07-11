@@ -1,4 +1,6 @@
 use std::collections::HashSet;
+use postgres::types::ToSql;
+
 use super::{
     get_database_client
 };
@@ -97,7 +99,7 @@ impl SearchDatabase {
 
                     COUNT(*) OVER() AS total_results
                     FROM (
-                        SELECT COUNT(p.ap_id) AS matches, p.ap_id, p.url, p.name, p.body, p.author_actor_id, p.community_ap_id, p.score
+                        SELECT COUNT(p.ap_id) AS matches, p.ap_id, p.url, p.name, p.body, p.author_actor_id, p.community_ap_id, p.score, p.nsfw, p.updated
                             FROM xref AS x
                                 INNER JOIN words AS w ON w.id = x.word_id
                                 INNER JOIN posts AS p ON p.ap_id = x.post_ap_id
@@ -107,7 +109,7 @@ impl SearchDatabase {
                 INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                 INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                 INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
-                WHERE l.instance_actor_id = $5
+                WHERE l.instance_actor_id = $6
                     {}
                     {}
                     {}
@@ -116,14 +118,24 @@ impl SearchDatabase {
                     matches DESC,
                     p.score DESC
                 LIMIT {}
-                OFFSET $6
+                OFFSET $7
             ", instance_query, community_query, author_query, nsfw_query, Self::PAGE_LIMIT);
 
             let mut total_results = 0;
 
             let offset = (Self::PAGE_LIMIT * (page - 1)) as i64;
 
-            let results = client.query(&query_string, &[&temp, &instance, &community, &author, &home_instance, &offset])
+            let params : Vec<&(dyn ToSql + Sync)> = vec![
+                &temp,          // $1
+                &instance,      // $2
+                &community,     // $3
+                &author,        // $4
+                &nsfw,          // $5
+                &home_instance, // $6
+                &offset         // $7
+            ];
+
+            let results = client.query(&query_string, &params)
                 .map(|rows| {
                     rows.iter().map(|row| {
                         let temp : i64 = row.get(12);
