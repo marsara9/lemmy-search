@@ -1,6 +1,8 @@
 pub mod models;
 pub mod filters;
 
+use self::models::search::Version;
+use super::lemmy::crawler::LemmyCrawler;
 use std::{
     collections::{
         HashMap, 
@@ -39,12 +41,9 @@ use crate::{
             search::SearchDatabase
         }, 
         Context
-    }, 
-    crawler::crawler::Crawler, 
+    },
     config::Config
 };
-
-use self::models::search::Version;
 
 pub struct SearchHandler {
     pub routes : HashMap<String, Route>
@@ -107,7 +106,7 @@ impl SearchHandler {
 
             let config = Config::load();
 
-            let crawler = Crawler::new(
+            let crawler = LemmyCrawler::new(
                 config.crawler.seed_instance.clone(), 
                 (*context.into_inner()).clone(), 
                 false

@@ -1,14 +1,16 @@
+pub mod fetcher;
+
 use std::time::Duration;
 
 use async_recursion::async_recursion;
 use reqwest::Client;
+use self::fetcher::Fetcher;
 use crate::{
     error::{
         Result,
         LogError, 
         LemmySearchError
     },
-    api::lemmy::fetcher::Fetcher, 
     database::{  
         dbo::{
             site::SiteDBO,
@@ -22,7 +24,7 @@ use crate::{
     }
 };
 
-pub struct Crawler {
+pub struct LemmyCrawler {
     pub instance : String,
 
     context : Context,
@@ -37,7 +39,7 @@ static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_VERSION"),
 );
 
-impl Crawler {
+impl LemmyCrawler {
 
     pub fn new(
         instance : String,
@@ -111,7 +113,7 @@ impl Crawler {
                         continue;
                     }
 
-                    let crawler = Crawler::new(
+                    let crawler = LemmyCrawler::new(
                         instance.domain, 
                         self.context.clone(), 
                         true

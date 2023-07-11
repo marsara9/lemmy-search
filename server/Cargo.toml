@@ -22,6 +22,6 @@ clokwerk = "0.4.*"
 chrono = { version = "0.4.*", features = ["serde"] }
 config-file = { version = "0.2.3", features = ["yaml"] }
 uuid = { version = "1.4.*", features = ["v4"] }
-postgres = { version = "0.19.*", features = ["with-uuid-1", "with-chrono-0_4"] }
+postgres = { version = "0.19.5", features = ["with-uuid-1", "with-chrono-0_4"] }
 r2d2_postgres = { version = "0.18.*", features = [] }
 regex = { version  = "1.9.*", features = [] }

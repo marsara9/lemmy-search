@@ -18,13 +18,15 @@ use crate::{
         }
     }, 
     error::Result,
-    api::lemmy::models::{
-        post::PostData, 
-        id::LemmyId, 
-        author::Author, 
-        community::Community,
-    }, 
-    crawler::analyzer::Analyzer
+    api::{
+        common::analyzer::Analyzer,
+        lemmy::models::{
+            post::PostData, 
+            id::LemmyId, 
+            author::Author, 
+            community::Community,
+        }
+    }
 };
 
 pub struct CrawlerDatabase {
