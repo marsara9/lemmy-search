@@ -50,7 +50,7 @@ pub struct Post {
     pub language_id : i32,
     pub published : DateTime<Utc>,
     pub updated : Option< DateTime<Utc>>,
-    pub nsfw : bool
+    pub nsfw : Option<bool>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

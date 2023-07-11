@@ -10,6 +10,12 @@ use std::collections::{
     HashSet, 
     HashMap
 };
+use chrono::{
+    DateTime, 
+    Utc, 
+    NaiveDate
+};
+use once_cell::sync::Lazy;
 use postgres::types::ToSql;
 
 pub trait DatabaseSchema {
@@ -122,6 +128,14 @@ pub enum DatabaseType {
     DefaultValue(Box<DatabaseType>, String)
 }
 
+static MIN_DATE_TIME : Lazy<DateTime<Utc>> = Lazy::new(|| {
+    NaiveDate::from_ymd_opt(1970, 1, 1)
+        .unwrap()
+        .and_hms_micro_opt(0, 0, 0, 0)
+        .unwrap()
+        .and_utc()
+});
+
 #[allow(unused)]
 impl DatabaseType {
     pub fn to_sql_type_name(
@@ -160,6 +174,7 @@ impl DatabaseType {
     pub fn get_default_value(
         &self
     ) -> Box<&(dyn ToSql + Sync)> {
+        
         match self {
             DatabaseType::Bool => Box::new(&false),
             DatabaseType::I8 => Box::new(&0i8),
@@ -168,7 +183,7 @@ impl DatabaseType {
             DatabaseType::I64 => Box::new(&0i64),
             DatabaseType::String(_) => Box::new(&""),
             DatabaseType::Uuid => Box::new(&"00000000-0000-0000-0000-000000000000"),
-            DatabaseType::DateTime => Box::new(&"1970-01-01T00:00:00Z"),
+            DatabaseType::DateTime => Box::new(&*MIN_DATE_TIME),
             DatabaseType::Optional(type_) => type_.get_default_value(),
             DatabaseType::Required(type_) => type_.get_default_value(),
             DatabaseType::Unique(type_) => type_.get_default_value(),
@@ -199,5 +214,24 @@ impl DatabaseType {
         value : String
     ) -> DatabaseType {
         DatabaseType::DefaultValue(Box::new(self), value)
+    }
+
+    pub fn is_nullable(
+        &self
+    ) -> bool {
+        match self {
+            DatabaseType::Bool => false,
+            DatabaseType::I8 => false,
+            DatabaseType::I16 => false,
+            DatabaseType::I32 => false,
+            DatabaseType::I64 => false,
+            DatabaseType::String(_) => false,
+            DatabaseType::Uuid => false,
+            DatabaseType::DateTime => false,
+            DatabaseType::Optional(type_) => true,
+            DatabaseType::Required(type_) => false,
+            DatabaseType::Unique(type_) => type_.is_nullable(),
+            DatabaseType::DefaultValue(type_, _) => type_.is_nullable()
+        }
     }
 }

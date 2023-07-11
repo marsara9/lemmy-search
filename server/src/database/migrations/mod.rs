@@ -62,7 +62,7 @@ impl DatabaseMigrations {
             let existing_columns = client.query(
                 "SELECT column_name
                     FROM information_schema.columns 
-                    WHERE table_name = '%1'
+                    WHERE table_name = $1
                 ", &[&T::get_table_name()]
             ).map(|rows| {
                 rows.into_iter().map(|row| {
@@ -70,31 +70,48 @@ impl DatabaseMigrations {
                 }).collect::<HashSet<String>>()
             })?;
 
+            let mut transaction = client.transaction()?;
+
             let new_columns = T::get_column_types()
                 .into_iter()
                 .filter(|column| {
                     !existing_columns.contains(&column.0)
-                })
-                .map(|column| {
-
-                    let add_column = format!("
-                        ALTER TABLE {0} ADD COLUMN {1} {2} DEFAULT %1;
-                    ", T::get_table_name(), column.0, column.1.to_sql_type_name());
-
-                    let drop_default = format!("
-                        ALTER TABLE {0} ALTER COLUMN {1} DROP DEFAULT;
-                    ", T::get_table_name(), column.0);
-
-                    (add_column, drop_default, column.1.clone())
                 }).collect::<Vec<_>>();
 
-            let mut transaction = client.transaction()?;
-            for (add_column, drop_default, default_value) in new_columns {
-                transaction.execute(&add_column, &[*default_value.get_default_value()])?;
-                transaction.execute(&drop_default, &[])?;
-            }
-            transaction.commit()?;
+            println!("\tadding {} columns to '{}'", new_columns.len(), T::get_table_name());
 
+            for (name, type_) in new_columns {
+
+                let column_type = type_.to_sql_type_name()
+                    .replace("NOT NULL", "");
+                let is_nullable = type_.is_nullable();
+
+                let add_column = format!("
+                    ALTER TABLE {} ADD COLUMN {} {};
+                ", T::get_table_name(), name, column_type);
+
+                transaction.execute(&add_column, &[])?;
+
+                if !is_nullable {
+
+                    let set_default = format!("
+                        UPDATE {} SET {} = $1
+                    ", T::get_table_name(), name);
+
+                    let default_value = *type_.get_default_value();
+
+                    transaction.execute(&set_default, &[default_value])?;
+
+                    let set_not_null = format!("
+                        ALTER TABLE {0} ALTER COLUMN {1} SET NOT NULL;
+                    ", T::get_table_name(), name);
+
+                    transaction.execute(&set_not_null, &[])?;
+                }
+            }
+
+            transaction.commit()?;
+        
             Ok(())
 
         }).await?;
