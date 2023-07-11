@@ -1,5 +1,6 @@
 use std::{time::Duration, collections::HashSet};
 
+use chrono::{DateTime, Utc};
 use serde::{
     Serialize, 
     Deserialize
@@ -31,6 +32,7 @@ pub struct SearchPost {
     pub url : Option<String>,
     pub name : String,
     pub body : Option<String>,
+    pub updated : DateTime<Utc>,
     pub remote_id : i64,
     pub author : SearchAuthor,
     pub community: SearchCommunity,
