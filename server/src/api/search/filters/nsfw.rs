@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 lazy_static! {
-    static ref NSFW_MATCH : Regex = Regex::new(r"(^| )?nsfw:(?P<yes_no>(yes)|(no))").unwrap();
+    static ref NSFW_MATCH : Regex = Regex::new(r"(^| )?nsfw:(?P<enabled>(only)|(none))").unwrap();
 }
 
 pub trait NSFWFilter {
@@ -17,12 +17,18 @@ impl NSFWFilter for String {
     ) -> Option<bool> {
         match NSFW_MATCH.captures(&self) {
             Some(caps) => {
-                let yes_no = &caps["yes_no"].to_lowercase();
-                let format = format!("nsfw:{}", yes_no);
+                let enabled = &caps["enabled"].to_lowercase();
+                let format = format!("nsfw:{}", enabled);
 
                 *self = self.replace(&format, "");
 
-                Some(yes_no == "yes")
+                if enabled == "only" {
+                    Some(true)
+                } else if enabled == "none" {
+                    Some(false)
+                } else {
+                    None
+                }
             },
             None => None
         }.map(|value| {
