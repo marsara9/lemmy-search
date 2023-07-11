@@ -23,7 +23,7 @@ impl CommunityFilter for String {
 
                 *self = self.replace(&format, "");
 
-                Some(format!("https://{}/u/{}", instance, name))
+                Some(format!("https://{}/c/{}", instance, name))
             },
             None => None
         }.map(|value| {
