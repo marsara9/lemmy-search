@@ -25,15 +25,15 @@ pub struct Post {
     pub community_ap_id : String,
 }
 
-impl Post {
-    pub fn from(
+impl From<&PostData> for Post {
+    fn from(
         post_data : &PostData
     ) -> Self {
         Self {
             ap_id : post_data.post.ap_id.clone(),
             name : post_data.post.name.clone(),
             body : post_data.post.body.clone(),
-            updated : post_data.post.updated.unwrap_or(post_data.post.published),
+            updated : post_data.post.updated.unwrap_or(post_data.post.published).and_utc(),
             nsfw : post_data.post.nsfw.unwrap_or(false),
             score : post_data.counts.score.clone(),
             author_actor_id: post_data.creator.actor_id.clone(),

@@ -119,6 +119,9 @@ impl Database {
         database_migrations.update_table_columns()
             .await?;
 
+        database_migrations.migrate()
+            .await?;
+
         println!("...done");
 
         Ok(())

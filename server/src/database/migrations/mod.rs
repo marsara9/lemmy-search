@@ -1,3 +1,5 @@
+pub mod to_0_4_0;
+
 use std::collections::HashSet;
 use crate::{
     error::Result, 
@@ -28,6 +30,15 @@ impl DatabaseMigrations {
         Self {
             context
         }
+    }
+
+    pub async fn migrate(
+        &self
+    ) -> Result<()> {
+        to_0_4_0::migrate(self.context.pool.clone())
+            .await?;
+
+        Ok(())
     }
 
     pub async fn update_table_columns(
