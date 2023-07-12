@@ -75,11 +75,11 @@ impl SearchDatabase {
             };
             let since_query: &str = match since {
                 Some(_) => "AND p.updated > $6",
-                None => "AND $6 = $6"
+                None => "AND $6::TIMESTAMPTZ = $6::TIMESTAMPTZ"
             };
             let until_query: &str = match until {
                 Some(_) => "AND p.updated < $7",
-                None => "AND $7 = $7"
+                None => "AND $7::TIMESTAMPTZ = $7::TIMESTAMPTZ"
             };
 
             let instance = instance.unwrap_or("".to_string());

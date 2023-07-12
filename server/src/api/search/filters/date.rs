@@ -31,7 +31,7 @@ impl DateFilter for String {
 
                 *self = self.replace(&format, "");
 
-                NaiveDate::parse_from_str(date, "YYYY-MM-DDDD")
+                NaiveDate::parse_from_str(date, "%F")
                     .ok()
                     .map(|n| {
                         n.and_hms_opt(0, 0, 0)
@@ -58,7 +58,7 @@ impl DateFilter for String {
 
                 *self = self.replace(&format, "");
 
-                NaiveDate::parse_from_str(date, "YYYY-MM-DDDD")
+                NaiveDate::parse_from_str(date, "%F")
                     .ok()
                     .map(|n| {
                         n.and_hms_opt(0, 0, 0)
