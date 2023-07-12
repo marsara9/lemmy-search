@@ -32,7 +32,7 @@ use crate::{
             instance::InstanceFilter, 
             community::CommunityFilter, 
             author::AuthorFilter, 
-            nsfw::NSFWFilter
+            nsfw::NSFWFilter, date::DateFilter
         }
     }, 
     database::{
@@ -144,6 +144,8 @@ impl SearchHandler {
         let community = modified_query.get_community_filter();
         let author = modified_query.get_author_filter();
         let nsfw = modified_query.get_nsfw_filter();
+        let since = modified_query.get_since_filter();
+        let until = modified_query.get_until_filter();
 
         // normalize the query string to lowercase.
         modified_query = modified_query.to_lowercase()
@@ -179,6 +181,8 @@ impl SearchHandler {
             &community, 
             &author, 
             &nsfw,
+            &since,
+            &until,
             &home_instance_actor_id,
             page
         ).await

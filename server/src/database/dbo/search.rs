@@ -1,18 +1,18 @@
 use std::collections::HashSet;
+use chrono::{
+    DateTime, 
+    Utc
+};
 use postgres::types::ToSql;
 
-use super::{
-    get_database_client
-};
+use super::get_database_client;
 use crate::{
     error::Result,    
     database::DatabasePool,
-    api::{
-        search::models::search::{
-            SearchPost, 
-            SearchAuthor, 
-            SearchCommunity
-        }
+    api::search::models::search::{
+        SearchPost, 
+        SearchAuthor, 
+        SearchCommunity
     }
 };
 
@@ -38,6 +38,8 @@ impl SearchDatabase {
         community : &Option<String>,
         author : &Option<String>,
         nsfw : &Option<bool>,
+        since: &Option<DateTime<Utc>>,
+        until: &Option<DateTime<Utc>>,
         home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchPost>, i32)> {        
@@ -47,6 +49,8 @@ impl SearchDatabase {
         let community = community.to_owned();
         let author = author.to_owned();
         let nsfw = nsfw.to_owned();
+        let since = since.to_owned();
+        let until = until.to_owned();
         let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
@@ -69,11 +73,21 @@ impl SearchDatabase {
                 Some(_) => "AND p.nsfw = $5",
                 None => "AND $5 = TRUE"
             };
+            let since_query: &str = match since {
+                Some(_) => "AND p.updated > $6",
+                None => "AND $6 = $6"
+            };
+            let until_query: &str = match until {
+                Some(_) => "AND p.updated < $7",
+                None => "AND $7 = $7"
+            };
 
             let instance = instance.unwrap_or("".to_string());
             let community = community.unwrap_or("".to_string());
             let author = author.unwrap_or("".to_string());
             let nsfw = nsfw.unwrap_or(true);
+            let since = since.unwrap_or(Utc::now());
+            let until = until.unwrap_or(Utc::now());
 
             // Finds all words that match the search criteria, then filter those results
             // by any additional criteria that the user may have, such as instance, 
@@ -120,16 +134,18 @@ impl SearchDatabase {
                 INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                 INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                 INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
-                WHERE l.instance_actor_id = $6
+                WHERE l.instance_actor_id = $8
                     {instance_query}
                     {community_query}
                     {author_query}
                     {nsfw_query}
+                    {since_query}
+                    {until_query}
                 ORDER BY
                     matches DESC,
                     p.score DESC
                 LIMIT {}
-                OFFSET $7
+                OFFSET $9
             ", Self::PAGE_LIMIT);
 
             let mut total_results = 0;
@@ -142,8 +158,10 @@ impl SearchDatabase {
                 &community,     // $3
                 &author,        // $4
                 &nsfw,          // $5
-                &home_instance, // $6
-                &offset         // $7
+                &since,         // $6
+                &until,         // $7
+                &home_instance, // $8
+                &offset         // $9
             ];
 
             let results = client.query(
