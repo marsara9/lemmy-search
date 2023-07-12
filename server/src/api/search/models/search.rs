@@ -28,8 +28,7 @@ pub struct SearchResult {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchPost {
-    pub url : Option<String>,
+pub struct SearchPost {    
     pub name : String,
     pub body : Option<String>,
     pub updated : DateTime<Utc>,

@@ -96,7 +96,6 @@ impl SearchDatabase {
             // by the total number of upvotes that the post has.
             let query_string = format!("
                 SELECT
-                    p.url as p_url,
                     p.name as p_name,
                     left(p.body, 300) as p_body,
                     p.updated as p_updated,
@@ -117,7 +116,6 @@ impl SearchDatabase {
                     FROM (
                         SELECT COUNT(p.ap_id) AS matches, 
                                 p.ap_id, 
-                                p.url, 
                                 p.name, 
                                 p.body, 
                                 p.author_actor_id, 
@@ -172,8 +170,7 @@ impl SearchDatabase {
                     let temp : i64 = row.get("total_results");
                     total_results = temp as i32;
 
-                    SearchPost {
-                        url : row.get("p_url"),
+                    SearchPost {                        
                         name : row.get("p_name"),
                         body : row.get("p_body"),
                         updated: row.get("p_updated"),
