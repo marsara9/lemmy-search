@@ -48,6 +48,21 @@ impl DatabaseMigrations {
         self.update_table_column::<Search>()
             .await?;
 
+        self.drop_table_column::<Site>()
+            .await?;
+        self.drop_table_column::<Author>()
+            .await?;
+        self.drop_table_column::<Community>()
+            .await?;
+        self.drop_table_column::<Post>()
+            .await?;
+        self.drop_table_column::<LemmyId>()
+            .await?;
+        self.drop_table_column::<Word>()
+            .await?;
+        self.drop_table_column::<Search>()
+            .await?;
+
         Ok(())
     }
 
@@ -112,6 +127,48 @@ impl DatabaseMigrations {
 
             transaction.commit()?;
         
+            Ok(())
+
+        }).await?;
+
+        Ok(())
+    }
+
+    pub async fn drop_table_column<T : DatabaseSchema>(
+        &self
+    ) -> Result<()> {
+        get_database_client(&self.context.pool, |client| {
+
+            let existing_columns = client.query(
+                "SELECT column_name
+                    FROM information_schema.columns 
+                    WHERE table_name = $1
+                ", &[&T::get_table_name()]
+            ).map(|rows| {
+                rows.into_iter().map(|row| {
+                    row.get(0)
+                }).collect::<HashSet<String>>()
+            })?;
+
+            let mut transaction = client.transaction()?;
+
+            let old_columns = existing_columns.into_iter()
+                .filter(|column| {
+                    !T::get_column_names().contains(column)
+                }).collect::<Vec<_>>();
+
+            println!("\tdropping {} columns from '{}'", old_columns.len(), T::get_table_name());
+
+            for column in old_columns {
+                let drop_column = format!("
+                    ALTER TABLE {} DROP COLUMN {}
+                ", T::get_table_name(), column);
+
+                transaction.execute(&drop_column, &[])?;
+            }
+
+            transaction.commit()?;
+
             Ok(())
 
         }).await?;

@@ -42,7 +42,6 @@ pub struct  PostData {
 pub struct Post {
     pub id : i64,
     pub ap_id : String,
-    pub url : Option<String>,
     pub name : String,
     pub body : Option<String>,
     pub removed : Option<bool>,

@@ -15,8 +15,7 @@ use super::{
 
 #[derive(Debug, Clone)]
 pub struct Post {
-    pub ap_id : String,
-    pub url : Option<String>,
+    pub ap_id : String,    
     pub name : String,
     pub body : Option<String>,
     pub updated : DateTime<Utc>,
@@ -32,7 +31,6 @@ impl Post {
     ) -> Self {
         Self {
             ap_id : post_data.post.ap_id.clone(),
-            url : post_data.post.url.clone(),
             name : post_data.post.name.clone(),
             body : post_data.post.body.clone(),
             updated : post_data.post.updated.unwrap_or(post_data.post.published),
@@ -57,7 +55,6 @@ impl DatabaseSchema for Post {
     ) -> Vec<String> {
         vec![
             "ap_id".to_string(),
-            "url".to_string(),
             "name".to_string(),
             "body".to_string(),
             "updated".to_string(),
@@ -73,7 +70,6 @@ impl DatabaseSchema for Post {
     ) -> HashMap<String, DatabaseType> {
         HashMap::from([
             ("ap_id".to_string(), DatabaseType::String(0).not_null()),
-            ("url".to_string(), DatabaseType::String(0).nullable()),
             ("name".to_string(), DatabaseType::String(0).not_null()),
             ("body".to_string(), DatabaseType::String(0).nullable()),
             ("updated".to_string(), DatabaseType::DateTime.not_null()),
@@ -89,8 +85,7 @@ impl DatabaseSchema for Post {
     ) -> Vec<&(dyn ToSql + Sync)> {
         
         vec![
-            &self.ap_id,
-            &self.url,
+            &self.ap_id,            
             &self.name,
             &self.body,
             &self.updated,
