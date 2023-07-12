@@ -7,7 +7,7 @@ use postgres::types::ToSql;
 
 use super::get_database_client;
 use crate::{
-    error::Result,    
+    error::Result,
     database::DatabasePool,
     api::search::models::search::{
         SearchPost, 
@@ -42,7 +42,7 @@ impl SearchDatabase {
         until: &Option<DateTime<Utc>>,
         home_instance : &str,
         page : i32
-    ) -> Result<(Vec<SearchPost>, i32)> {        
+    ) -> Result<(Vec<SearchPost>, i32)> {
 
         let query = query.to_owned();
         let instance = instance.to_owned();

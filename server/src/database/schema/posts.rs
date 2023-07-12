@@ -15,7 +15,7 @@ use super::{
 
 #[derive(Debug, Clone)]
 pub struct Post {
-    pub ap_id : String,    
+    pub ap_id : String,
     pub name : String,
     pub body : Option<String>,
     pub updated : DateTime<Utc>,
@@ -85,7 +85,7 @@ impl DatabaseSchema for Post {
     ) -> Vec<&(dyn ToSql + Sync)> {
         
         vec![
-            &self.ap_id,            
+            &self.ap_id,
             &self.name,
             &self.body,
             &self.updated,

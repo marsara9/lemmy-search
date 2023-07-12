@@ -242,7 +242,7 @@ impl CrawlerDatabase {
     }
 
     async fn update_communities(
-        &mut self,        
+        &mut self,
         objects : &HashSet<Community>
     ) -> Result<u64> {
         let objects = objects.clone();
