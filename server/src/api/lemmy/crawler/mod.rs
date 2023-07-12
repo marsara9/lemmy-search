@@ -78,9 +78,11 @@ impl LemmyCrawler {
 
         let site_actor_id = site_view.site.actor_id.clone();
 
-        let site_dbo = SiteDBO::new(self.context.pool.clone());
+        //let site_dbo = SiteDBO::new(self.context.pool.clone());
 
-        if !site_dbo.upsert(site_view.clone())
+        let site = Site::from(site_view);
+
+        if !Site::upsert(self.context.pool.clone(), &site)
             .await
             .log_error(format!("\t...error during update {} during crawl.", Site::get_table_name()).as_str(), self.context.config.crawler.log)? {
                 println!("\t...failed to update {} during crawl.", Site::get_table_name());

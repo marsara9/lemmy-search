@@ -14,7 +14,6 @@ pub struct SiteResponse {
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
 pub struct SiteView {
     pub site : Site,
-    pub local_site_rate_limit : Option<LocalSiteRateLimit>,
     pub counts : Counts
 }
 

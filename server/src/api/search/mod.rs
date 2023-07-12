@@ -36,11 +36,9 @@ use crate::{
         }
     }, 
     database::{
-        dbo::{
-            site::SiteDBO, 
-            search::SearchDatabase
-        }, 
-        Context
+        dbo::search::SearchDatabase,
+        Context, 
+        schema::site::Site
     },
     config::Config
 };
@@ -220,10 +218,13 @@ impl SearchHandler {
     pub async fn get_instances<'a>(
         context : Data<Context>
     ) -> Result<impl Responder> {
-        let sites = SiteDBO::new(context.pool.clone())
-            .retrieve_all()
+        let sites = Site::retrieve_all(context.pool.clone())
             .await.map_err(|err| {
                 actix_web::error::ErrorInternalServerError(err)
+            }).map(|sites| {
+                sites.into_iter().map(|site| {
+                    crate::api::lemmy::models::site::Site::from(site)
+                }).collect::<Vec<_>>()
             })?;
 
         Ok(
