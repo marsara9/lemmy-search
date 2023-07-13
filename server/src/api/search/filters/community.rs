@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 lazy_static! {
-    static ref COMMUNITY_MATCH : Regex = Regex::new(r"(^| )?community:!(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
+    static ref COMMUNITY_MATCH : Regex = Regex::new(r"(^| )community:!(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
 }
 
 pub trait CommunityFilter {

@@ -2,7 +2,7 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 lazy_static! {
-    static ref AUTHOR_MATCH : Regex = Regex::new(r"(^| )?author:@(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
+    static ref AUTHOR_MATCH : Regex = Regex::new(r"(^| )author:@(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
 }
 
 pub trait AuthorFilter {

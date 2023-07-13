@@ -2,38 +2,27 @@ use lazy_static::lazy_static;
 use regex::Regex;
 
 lazy_static! {
-    static ref NSFW_MATCH : Regex = Regex::new(r"(^| )?nsfw:(?P<enabled>(only)|(none))").unwrap();
+    static ref NSFW_MATCH : Regex = Regex::new(r"(^| )!safeoff").unwrap();
 }
 
 pub trait NSFWFilter {
     fn get_nsfw_filter(
         &mut self
-    ) -> Option<bool>;
+    ) -> bool;
 }
 
 impl NSFWFilter for String {
     fn get_nsfw_filter(
         &mut self
-    ) -> Option<bool> {
-        match NSFW_MATCH.captures(&self) {
-            Some(caps) => {
-                let enabled = &caps["enabled"].to_lowercase();
-                let format = format!("nsfw:{}", enabled);
+    ) -> bool {
+        let result = NSFW_MATCH.is_match(&self);
 
-                *self = self.replace(&format, "");
+        if result {
+            *self = self.replace("!safeoff", "");
 
-                if enabled == "only" {
-                    Some(true)
-                } else if enabled == "none" {
-                    Some(false)
-                } else {
-                    None
-                }
-            },
-            None => None
-        }.map(|value| {
-            println!("\tnsfw:{}", value);
-            value
-        })
+            println!("\tnsfw:on");
+        }
+
+        result
     }
 }

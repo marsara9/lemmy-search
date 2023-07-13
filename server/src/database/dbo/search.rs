@@ -36,7 +36,7 @@ impl SearchDatabase {
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>,
-        nsfw : &Option<bool>,
+        nsfw : &bool,
         since: &Option<DateTime<Utc>>,
         until: &Option<DateTime<Utc>>,
         home_instance : &str,
@@ -66,10 +66,11 @@ impl SearchDatabase {
                 Some(_) => "AND p.author_actor_id = $4",
                 None => "AND $4 = $4"
             };
-            let nsfw_query: &str = match nsfw {
-                Some(_) => "AND p.nsfw = $5",
-                None => "AND $5 = TRUE"
-            };
+            let nsfw_query: &str = if nsfw {
+                ""
+            } else {
+                "AND p.nsfw = FALSE"
+            };            
             let since_query: &str = match since {
                 Some(_) => "AND p.updated > $6",
                 None => "AND $6::TIMESTAMPTZ = $6::TIMESTAMPTZ"
@@ -82,7 +83,6 @@ impl SearchDatabase {
             let instance = instance.unwrap_or("".to_string());
             let community = community.unwrap_or("".to_string());
             let author = author.unwrap_or("".to_string());
-            let nsfw = nsfw.unwrap_or(true);
             let since = since.unwrap_or(Utc::now());
             let until = until.unwrap_or(Utc::now());
 
@@ -111,7 +111,7 @@ impl SearchDatabase {
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                     INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
-                        AND l.instance_actor_id = $8
+                        AND l.instance_actor_id = $7
                         {instance_query}
                         {community_query}
                         {author_query}
@@ -122,7 +122,7 @@ impl SearchDatabase {
                     rank DESC,
                     p.score DESC
                 LIMIT {}
-                OFFSET $9
+                OFFSET $8
             ", Self::PAGE_LIMIT);
 
             let mut total_results = 0;
@@ -134,11 +134,10 @@ impl SearchDatabase {
                 &instance,      // $2
                 &community,     // $3
                 &author,        // $4
-                &nsfw,          // $5
-                &since,         // $6
-                &until,         // $7
-                &home_instance, // $8
-                &offset         // $9
+                &since,         // $5
+                &until,         // $6
+                &home_instance, // $7
+                &offset         // $8
             ];
 
             let results = client.query(
