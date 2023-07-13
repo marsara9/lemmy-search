@@ -14,7 +14,10 @@ use crate::{
             DatabaseSchema, 
             author::Author, 
             community::Community,
-            posts::Post
+            posts::{
+                Post, 
+                Comment
+            }
         }
     }, 
     error::Result,
@@ -40,7 +43,8 @@ impl CrawlerDatabase {
     pub async fn bulk_update_post(
         &mut self,
         instance_actor_id : &str,
-        posts : &HashMap<i64, Post>
+        posts : &HashMap<i64, Post>,
+        comments: &HashMap::<String, Vec<Comment>>
     ) -> Result<()> {
 
         let mut authors = HashSet::<_>::new();

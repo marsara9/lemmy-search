@@ -2,7 +2,8 @@ pub mod fetcher;
 
 use std::{
     time::Duration, 
-    collections::HashMap
+    collections::HashMap, 
+    vec
 };
 
 use async_recursion::async_recursion;
@@ -22,7 +23,10 @@ use crate::{
         schema::{
             DatabaseSchema, 
             site::Site,
-            posts::Post
+            posts::{
+                Post, 
+                Comment
+            }
         }, Context
     }
 };
@@ -164,24 +168,38 @@ impl LemmyCrawler {
                 break;
             }
 
-            let all_comments = futures::future::join_all(posts.iter()
-                .map(|post| {
-                    self.fetcher.fetch_comments(post.post.id)
-                }).collect::<Vec<_>>())
-                    .await
-                    .into_iter()
-                    .collect::<Result<Vec<_>>>();
-            
-
             let count = posts.len();
             println!("\tfetched another {} {}...", count, Post::get_table_name());
 
             let filtered_posts = posts.into_iter()
                 .filter(|post_data| {
-                    !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
+                    !post_data.post.deleted && !post_data.post.removed
                 }).map(|post_data| {
                     (post_data.post.id, Post::from(&post_data))
                 }).collect::<HashMap<_, _>>();
+
+            let all_comments = futures::future::join_all(filtered_posts.keys()
+                .into_iter()
+                .map(|remote_id| {
+                    self.fetcher.fetch_comments(remote_id.clone())
+                }).collect::<Vec<_>>())
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<_>>>()?
+                    .into_iter()
+                    .flatten()
+                    .filter(|comment| {
+                        !comment.comment.deleted && !comment.comment.removed
+                    }).collect::<Vec<_>>();
+
+            let mut grouped_comments = HashMap::<String, Vec<Comment>>::new();
+
+            for comment in all_comments {
+                let group = grouped_comments.entry(comment.post.ap_id.clone())
+                    .or_insert(vec![]);
+
+                group.push(Comment::from(&comment));
+            }
 
             let filtered_count = filtered_posts.len();
 
@@ -189,8 +207,11 @@ impl LemmyCrawler {
 
             let mut crawler_database = CrawlerDatabase::init(self.context.pool.clone()).await?;
 
-            crawler_database.bulk_update_post(&site_actor_id_string, &filtered_posts)
-                .await
+            crawler_database.bulk_update_post(
+                &site_actor_id_string, 
+                &filtered_posts,
+                &grouped_comments
+            ).await
                 .log_error("\t...Bulk insert failed.", true)?;
 
             total_found += filtered_count;
@@ -201,8 +222,6 @@ impl LemmyCrawler {
                 .await?;
             page += 1;
         }
-
-        // TODO: Need to fetch comments and index their content.
 
         Ok(())
     }

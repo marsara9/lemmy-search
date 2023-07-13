@@ -7,7 +7,10 @@ use chrono::{
     Utc
 };
 use postgres::types::ToSql;
-use crate::api::lemmy::models::post::PostData;
+use crate::api::lemmy::models::{
+    post::PostData, 
+    comment::CommentData
+};
 use super::{
     DatabaseSchema, 
     DatabaseType, 
@@ -25,6 +28,18 @@ pub struct Post {
     pub score : i32,
     pub author : Author,
     pub community : Community,
+}
+
+pub struct Comment {
+    pub content : String
+}
+
+impl From<&CommentData> for Comment {
+    fn from(value: &CommentData) -> Self {
+        Self {
+            content: value.comment.content.clone()
+        }
+    }
 }
 
 impl From<&PostData> for Post {
