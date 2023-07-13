@@ -10,6 +10,8 @@ use crate::{
     database::{
         migrations::DatabaseMigrations,
         schema::{
+            author::Author,
+            community::Community,
             site::Site,
             posts::Post
         }
@@ -19,11 +21,7 @@ use crate::{
         LemmySearchError, 
         LogError
     }, 
-    api::lemmy::models::{
-        author::Author, 
-        community::Community, 
-        id::LemmyId
-    }
+    api::lemmy::models::id::LemmyId
 };
 use deadpool_r2d2::Runtime;
 use postgres::NoTls;

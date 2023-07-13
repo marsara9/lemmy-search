@@ -1,5 +1,5 @@
 use std::{
-    collections::HashSet, 
+    collections::{HashSet, HashMap}, 
     fmt::Debug,
 };
 use deadpool::managed::Object;
@@ -12,16 +12,13 @@ use crate::{
         DatabasePool, 
         schema::{
             DatabaseSchema, 
+            author::Author, 
+            community::Community,
             posts::Post
         }
     }, 
     error::Result,
-    api::lemmy::models::{
-        post::PostData, 
-        id::LemmyId, 
-        author::Author, 
-        community::Community,
-    }
+    api::lemmy::models::id::LemmyId
 };
 
 pub struct CrawlerDatabase {
@@ -43,19 +40,19 @@ impl CrawlerDatabase {
     pub async fn bulk_update_post(
         &mut self,
         instance_actor_id : &str,
-        posts : &Vec<PostData>
+        posts : &HashMap<i64, Post>
     ) -> Result<()> {
 
         let mut authors = HashSet::<_>::new();
         let mut communities = HashSet::<_>::new();
         let mut lemmy_ids = HashSet::<_>::new();
 
-        for post in posts {
-            authors.insert(post.creator.clone());
+        for (remote_id, post) in posts {
+            authors.insert(post.author.clone());
             communities.insert(post.community.clone());
             lemmy_ids.insert(LemmyId {
-                post_remote_id : post.post.id.clone(),
-                post_actor_id : post.post.ap_id.clone(),
+                post_remote_id : remote_id.clone(),
+                post_actor_id : post.ap_id.clone(),
                 instance_actor_id : instance_actor_id.to_string()
             });
         }
@@ -63,9 +60,9 @@ impl CrawlerDatabase {
         self.update_authors(&authors).await?;
         self.update_communities(&communities).await?;
 
-        let posts2 = posts.into_iter().map(|p| {
-            Post::from(p)
-        }).collect();
+        let posts2 = posts.values().map(|v| {
+            v.to_owned()
+        }).collect::<HashSet<_>>();
         
         self.update_posts(&posts2).await?;
 
@@ -77,15 +74,15 @@ impl CrawlerDatabase {
     pub async fn bulk_update_lemmy_ids(
         &mut self,
         instance_actor_id : &str,
-        posts : &Vec<PostData>
+        posts : &HashMap<i64, Post>
     ) -> Result<u64> {
 
         let mut lemmy_ids = HashSet::<_>::new();
 
-        for post in posts {
+        for (remote_id, post) in posts {
             lemmy_ids.insert(LemmyId {
-                post_remote_id : post.post.id.clone(),
-                post_actor_id : post.post.ap_id.clone(),
+                post_remote_id : remote_id.clone(),
+                post_actor_id : post.ap_id.clone(),
                 instance_actor_id : instance_actor_id.to_string()
             });
         }

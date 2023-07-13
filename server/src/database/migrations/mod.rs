@@ -3,17 +3,15 @@ pub mod to_0_4_0;
 use std::collections::HashSet;
 use crate::{
     error::Result, 
-    api::lemmy::models::{
-        author::Author, 
-        community::Community, 
-        id::LemmyId
-    }
+    api::lemmy::models::id::LemmyId
 };
 use super::{
     Context, 
     dbo::get_database_client, 
     schema::{
         DatabaseSchema,
+        author::Author,
+        community::Community,
         site::Site, 
         posts::Post
     }

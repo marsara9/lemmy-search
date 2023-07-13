@@ -10,7 +10,9 @@ use postgres::types::ToSql;
 use crate::api::lemmy::models::post::PostData;
 use super::{
     DatabaseSchema, 
-    DatabaseType
+    DatabaseType, 
+    author::Author, 
+    community::Community
 };
 
 #[derive(Debug, Clone)]
@@ -21,8 +23,8 @@ pub struct Post {
     pub updated : DateTime<Utc>,
     pub nsfw : bool,
     pub score : i32,
-    pub author_actor_id : String,
-    pub community_ap_id : String,
+    pub author : Author,
+    pub community : Community,
 }
 
 impl From<&PostData> for Post {
@@ -36,8 +38,8 @@ impl From<&PostData> for Post {
             updated : post_data.post.updated.unwrap_or(post_data.post.published).and_utc(),
             nsfw : post_data.post.nsfw.unwrap_or(false),
             score : post_data.counts.score.clone(),
-            author_actor_id: post_data.creator.actor_id.clone(),
-            community_ap_id: post_data.community.actor_id.clone(),
+            author: Author::from(&post_data.creator),
+            community: Community::from(&post_data.community)
         }
     }
 }
@@ -91,8 +93,8 @@ impl DatabaseSchema for Post {
             &self.updated,
             &self.nsfw,
             &self.score,
-            &self.author_actor_id,
-            &self.community_ap_id,
+            &self.author.actor_id,
+            &self.community.actor_id,
         ]
     }
 }

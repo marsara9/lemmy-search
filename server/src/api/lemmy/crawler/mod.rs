@@ -1,6 +1,9 @@
 pub mod fetcher;
 
-use std::time::Duration;
+use std::{
+    time::Duration, 
+    collections::HashMap
+};
 
 use async_recursion::async_recursion;
 use reqwest::Client;
@@ -77,8 +80,6 @@ impl LemmyCrawler {
             ?.site_view;
 
         let site_actor_id = site_view.site.actor_id.clone();
-
-        //let site_dbo = SiteDBO::new(self.context.pool.clone());
 
         let site = Site::from(site_view);
 
@@ -165,9 +166,12 @@ impl LemmyCrawler {
             let count = posts.len();
             println!("\tfetched another {} {}...", count, Post::get_table_name());
 
-            let filtered_posts = posts.into_iter().filter(|post_data| {
-                !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
-            }).collect::<Vec<_>>();
+            let filtered_posts = posts.into_iter()
+                .filter(|post_data| {
+                    !post_data.post.deleted.unwrap_or(false) && !post_data.post.removed.unwrap_or(false)
+                }).map(|post_data| {
+                    (post_data.post.id, Post::from(&post_data))
+                }).collect::<HashMap<_, _>>();
 
             let filtered_count = filtered_posts.len();
 
@@ -209,7 +213,11 @@ impl LemmyCrawler {
         loop {
             let posts = self.fetcher.fetch_posts(page+1)
                 .await
-                .log_error("\tfailed to fetch another page of 'post ids'...", self.context.config.crawler.log)?;
+                .log_error("\tfailed to fetch another page of 'post ids'...", self.context.config.crawler.log)?
+                .into_iter()
+                .map(|post_data| {
+                    (post_data.post.id, Post::from(&post_data))
+                }).collect::<HashMap<_, _>>();
 
             if posts.is_empty() {
                 break;
