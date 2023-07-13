@@ -9,10 +9,21 @@ pub async fn migrate(
 
     get_database_client(&pool, |client| {
 
-        client.execute("
+        client.batch_execute("
             UPDATE sites SET software = 'lemmy'
-                WHERE software = ''
-        ", &[])?;
+                WHERE software = '';
+
+            ALTER TABLE posts 
+                ADD COLUMN IF NOT EXISTS com_search TSVECTOR
+                GENERATED ALWAYS AS	(
+                    to_tsvector('english', \"name\") || ' ' || to_tsvector('english', coalesce(body, ''))
+                ) stored;
+            
+            CREATE INDEX IF NOT EXISTS idx_search ON posts USING GIN(com_search);
+
+            DROP TABLE IF EXISTS words;
+            DROP TABLE IF EXISTS xref;
+        ")?;
 
         Ok(())
     }).await?;

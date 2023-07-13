@@ -12,20 +12,15 @@ use crate::{
         DatabasePool, 
         schema::{
             DatabaseSchema, 
-            word::Word, 
-            xref::Search, 
             posts::Post
         }
     }, 
     error::Result,
-    api::{
-        common::analyzer::Analyzer,
-        lemmy::models::{
-            post::PostData, 
-            id::LemmyId, 
-            author::Author, 
-            community::Community,
-        }
+    api::lemmy::models::{
+        post::PostData, 
+        id::LemmyId, 
+        author::Author, 
+        community::Community,
     }
 };
 
@@ -54,8 +49,6 @@ impl CrawlerDatabase {
         let mut authors = HashSet::<_>::new();
         let mut communities = HashSet::<_>::new();
         let mut lemmy_ids = HashSet::<_>::new();
-        let mut all_words = HashSet::<Word>::new();
-        let mut xrefs = HashSet::<_>::new();
 
         for post in posts {
             authors.insert(post.creator.clone());
@@ -65,66 +58,20 @@ impl CrawlerDatabase {
                 post_actor_id : post.post.ap_id.clone(),
                 instance_actor_id : instance_actor_id.to_string()
             });
-            let words = post.post.get_distinct_words().into_iter().map(|word| {
-                Word::from(word)
-            }).collect::<HashSet<_>>();
-            all_words.extend(words);
         }
 
         self.update_authors(&authors).await?;
         self.update_communities(&communities).await?;
 
-        let words = all_words.into_iter().collect();
         let posts2 = posts.into_iter().map(|p| {
             Post::from(p)
         }).collect();
         
-        self.update_words(&words).await?;
         self.update_posts(&posts2).await?;
 
-        for post in posts {
-            xrefs.extend(self.get_xrefs_for_post(post).await?);
-        }
-
         self.update_lemmy_ids(&lemmy_ids).await?;
-        self.update_xref(&xrefs).await?;
-
-        if xrefs.len() == 0 && words.len() != 0 {
-            println!("WARNING NO xrefs were calculated for posts!.")
-        }
 
         Ok(())
-    }
-
-    pub async fn get_xrefs_for_post(
-        &mut self,
-        post_data : &PostData
-    ) -> Result<HashSet<Search>> {
-
-        let words = post_data.post.get_distinct_words()
-            .into_iter()
-            .collect::<Vec<_>>();
-
-        let query = "
-            SELECT w.id, p.ap_id FROM posts AS p
-            JOIN words AS w ON w.id = w.id
-            WHERE w.word = any($1)
-                AND p.ap_id = $2
-        ".to_string();
-
-        let post_data = post_data.clone();
-
-        Ok(self.client.interact(move |client| {
-            client.query(&query, &[&words, &post_data.post.ap_id])
-                .map(|rows| {
-                    rows.into_iter().map(|row| {
-                        Search {
-                            word_id : row.get(0),
-                            post_ap_id : row.get(1)
-                        }
-                    }).collect::<HashSet<_>>()
-                })
-        }).await??)
     }
 
     pub async fn bulk_update_lemmy_ids(
@@ -298,62 +245,6 @@ impl CrawlerDatabase {
                 },
                 None => Ok(0)
             }
-        }).await??)
-    }
-
-    async fn update_xref(
-        &mut self,
-        objects : &HashSet<Search>
-    ) -> Result<u64> {
-        let objects = objects.clone();
-        
-        Ok(self.client.interact(move |client| {
-            let q = Self::bulk_get_query(&objects);
-
-            let params = objects.get_values();
-
-            match q {
-                Some(query) => {
-                    client.execute(&query, &params)
-                },
-                None => Ok(0)
-            }
-        }).await??)
-    }
-
-    async fn update_words(
-        &mut self,
-        objects : &HashSet<Word>
-    ) -> Result<u64> {
-        let objects = objects.clone();
-        
-        Ok(self.client.interact(move |client| {
-
-            let params = objects.get_values();
-
-            let mut values = Vec::<String>::new();
-            let mut index = 1;
-            for item in &objects {
-                let t = item.get_values().into_iter().enumerate().map(|(i, _)| {
-                    format!("${}", index + i)
-                }).collect::<Vec<_>>();
-                values.push(format!("({})", t.join(", ")));
-                index += t.len();
-            }
-
-            let query = format!("
-                INSERT INTO {} ({})
-                    VALUES 
-                        {}
-                ON CONFLICT (word) 
-                    DO NOTHING
-            ", 
-                Word::get_table_name(),
-                Word::get_column_names().join(", "),
-                values.join(",\n\t\t\t\t")
-            );
-
-            client.execute(&query, &params)
         }).await??)
     }
 

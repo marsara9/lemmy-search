@@ -11,8 +11,6 @@ use crate::{
         migrations::DatabaseMigrations,
         schema::{
             site::Site,
-            word::Word, 
-            xref::Search, 
             posts::Post
         }
     }, 
@@ -107,10 +105,6 @@ impl Database {
         self.create_table_from_schema::<Post>(drop_table)
             .await?;
         self.create_table_from_schema::<LemmyId>(drop_table)
-            .await?;
-        self.create_table_from_schema::<Word>(drop_table)
-            .await?;
-        self.create_table_from_schema::<Search>(drop_table)
             .await?;
 
         println!("Performing table migrations...");
