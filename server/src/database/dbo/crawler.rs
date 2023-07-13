@@ -229,6 +229,27 @@ impl CrawlerDatabase {
         }).await??)
     }
 
+    // async fn update_comments(
+    //     &mut self,
+    //     post_ap_id : &String,
+    //     objects : &HashSet<Comment>
+    // ) -> Result<u64> {
+    //     let objects = objects.clone();
+
+    //     Ok(self.client.interact(move |client| {
+    //         let q = Self::bulk_get_query(&objects);
+
+    //         let params = objects.get_values();
+
+    //         match q {
+    //             Some(query) => {
+    //                 client.execute(&query, &params)
+    //             },
+    //             None => Ok(0)
+    //         }
+    //     }).await??)
+    // }
+
     async fn update_lemmy_ids(
         &mut self,
         objects : &HashSet<LemmyId>
