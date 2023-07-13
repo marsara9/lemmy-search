@@ -37,3 +37,6 @@ postgres:
   # The maximum number of concurrent connections to the database that should be
   # maintained.
   max_size: 15
+donations:
+  text: "Buy me a Coffee"
+  url: "https://bmc.link/marsara9z"

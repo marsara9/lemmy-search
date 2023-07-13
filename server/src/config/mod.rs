@@ -1,11 +1,15 @@
 use config_file::FromConfigFile;
-use serde::Deserialize;
+use serde::{
+    Serialize,
+    Deserialize
+};
 
 #[derive(Debug, Deserialize, Default, Clone)]
 pub struct Config {
     pub development_mode : bool,
     pub crawler : Crawler,
     pub postgres : Postgres,
+    pub donations : Donations
 }
 
 #[derive(Debug, Deserialize, Default, Clone)]
@@ -25,6 +29,12 @@ pub struct Postgres {
     pub database : String,
     pub log : bool,
     pub max_size : usize
+}
+
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
+pub struct Donations {
+    pub text : Option<String>,
+    pub url : Option<String>
 }
 
 impl Config {
