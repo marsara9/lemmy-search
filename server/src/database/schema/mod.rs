@@ -3,8 +3,6 @@ pub mod community;
 pub mod id;
 pub mod posts;
 pub mod site;
-pub mod word;
-pub mod xref;
 
 use std::collections::{
     HashSet, 

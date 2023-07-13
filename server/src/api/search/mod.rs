@@ -32,7 +32,8 @@ use crate::{
             instance::InstanceFilter, 
             community::CommunityFilter, 
             author::AuthorFilter, 
-            nsfw::NSFWFilter, date::DateFilter
+            nsfw::NSFWFilter, 
+            date::DateFilter
         }
     }, 
     database::{
@@ -155,18 +156,6 @@ impl SearchHandler {
         // Log search query
         println!("\tfor '{}'", modified_query);
 
-        // tokenize the search query, remove any non-alphanumeric characters from the string
-        // and remove any words that are less than 3 characters long.
-        let query_terms = modified_query.replace(|c : char| {
-            !c.is_alphanumeric() && !c.is_whitespace()
-        }, " ")
-            .split_whitespace()
-            .map(|word| {
-                word.trim().to_string()
-            }).filter(|word| {
-                word.len() > 2
-            }).collect::<HashSet<String>>();
-
         // The preferred instance is sent without the https://, re-add it back.
         let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
 
@@ -176,7 +165,7 @@ impl SearchHandler {
 
         let search = SearchDatabase::new(context.pool.clone());
         let search_results = search.search(
-            &query_terms, 
+            &modified_query, 
             &instance, 
             &community, 
             &author, 
@@ -193,6 +182,18 @@ impl SearchHandler {
 
         let len = search_results.1;
         let total_pages = (len as f32 / Self::PAGE_LIMIT as f32).ceil() as i32;
+
+        // tokenize the search query, remove any non-alphanumeric characters from the string
+        // and remove any words that are less than 3 characters long.
+        let query_terms = modified_query.replace(|c : char| {
+            !c.is_alphanumeric() && !c.is_whitespace()
+        }, " ")
+            .split_whitespace()
+            .map(|word| {
+                word.trim().to_string()
+            }).filter(|word| {
+                word.len() > 2
+            }).collect::<HashSet<String>>();
 
         // Capture the duration that the search took so we can report it back
         // to the user.

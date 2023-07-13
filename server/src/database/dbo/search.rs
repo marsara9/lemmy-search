@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use chrono::{
     DateTime, 
     Utc
@@ -33,7 +32,7 @@ impl SearchDatabase {
 
     pub async fn search(
         &self,
-        query : &HashSet<String>,
+        query : &String,
         instance : &Option<String>,
         community : &Option<String>,
         author : &Option<String>,
@@ -54,8 +53,6 @@ impl SearchDatabase {
         let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
-
-            let query_terms = Vec::<String>::from_iter(query.into_iter());
 
             let instance_query = match instance {
                 Some(_) => "AND c.ap_id LIKE $2 || '%'",
@@ -89,13 +86,8 @@ impl SearchDatabase {
             let since = since.unwrap_or(Utc::now());
             let until = until.unwrap_or(Utc::now());
 
-            // Finds all words that match the search criteria, then filter those results
-            // by any additional criteria that the user may have, such as instance, 
-            // community, or author.  Next, count the number of matches each post has
-            // and sort first by the number of matches and then if there's a conflict
-            // by the total number of upvotes that the post has.
             let query_string = format!("
-                SELECT
+            SELECT 
                     p.name as p_name,
                     left(p.body, 300) as p_body,
                     p.updated as p_updated,
@@ -112,35 +104,22 @@ impl SearchDatabase {
                     c.name as c_name,
                     c.title as c_title,
 
-                    COUNT(*) OVER() AS total_results
-                    FROM (
-                        SELECT COUNT(p.ap_id) AS matches, 
-                                p.ap_id, 
-                                p.name, 
-                                p.body, 
-                                p.author_actor_id, 
-                                p.community_ap_id, 
-                                p.score, 
-                                p.nsfw, 
-                                p.updated
-                            FROM xref AS x
-                                INNER JOIN words AS w ON w.id = x.word_id
-                                INNER JOIN posts AS p ON p.ap_id = x.post_ap_id
-                            WHERE w.word = any($1)
-                            GROUP BY p.ap_id
-                    ) AS p
-                INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
-                INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
-                INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
-                WHERE l.instance_actor_id = $8
-                    {instance_query}
-                    {community_query}
-                    {author_query}
-                    {nsfw_query}
-                    {since_query}
-                    {until_query}
-                ORDER BY
-                    matches DESC,
+                    COUNT(*) OVER() AS total_results,
+                    ts_rank(p.srch, websearch_to_tsquery($1)) AS rank 
+                FROM posts AS p
+                    INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
+                    INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
+                    INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
+                    WHERE p.srch @@ websearch_to_tsquery($1)
+                        AND l.instance_actor_id = $8
+                        {instance_query}
+                        {community_query}
+                        {author_query}
+                        {nsfw_query}
+                        {since_query}
+                        {until_query}
+                ORDER BY 
+                    rank DESC,
                     p.score DESC
                 LIMIT {}
                 OFFSET $9
@@ -151,7 +130,7 @@ impl SearchDatabase {
             let offset = (Self::PAGE_LIMIT * (page - 1)) as i64;
 
             let params : Vec<&(dyn ToSql + Sync)> = vec![
-                &query_terms,   // $1
+                &query,         // $1
                 &instance,      // $2
                 &community,     // $3
                 &author,        // $4

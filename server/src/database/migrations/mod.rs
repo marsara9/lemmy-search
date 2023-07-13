@@ -15,8 +15,6 @@ use super::{
     schema::{
         DatabaseSchema,
         site::Site, 
-        word::Word, 
-        xref::Search, 
         posts::Post
     }
 };
@@ -54,10 +52,6 @@ impl DatabaseMigrations {
             .await?;
         self.update_table_column::<LemmyId>()
             .await?;
-        self.update_table_column::<Word>()
-            .await?;
-        self.update_table_column::<Search>()
-            .await?;
 
         self.drop_table_column::<Site>()
             .await?;
@@ -68,10 +62,6 @@ impl DatabaseMigrations {
         self.drop_table_column::<Post>()
             .await?;
         self.drop_table_column::<LemmyId>()
-            .await?;
-        self.drop_table_column::<Word>()
-            .await?;
-        self.drop_table_column::<Search>()
             .await?;
 
         Ok(())
