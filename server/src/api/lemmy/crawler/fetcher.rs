@@ -131,8 +131,14 @@ impl Fetcher {
             .send()
             .await {
                 Ok(response) => {
+                    println!("\t\tgot response...");
                     response.json()
-                        .await.map_err(|err| {
+                        .await
+                        .map(|json| {
+                            println!("\t\tparsed json...");
+                            json
+                        })
+                        .map_err(|err| {
                             LemmySearchError::Network(err)
                         })
                 }
