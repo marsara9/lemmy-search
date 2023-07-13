@@ -21,6 +21,10 @@ use crate::{
             PostData, 
             PostListRequest, 
             PostListResponse, 
+        }, comment::{
+            CommentListRequest, 
+            CommentListResponse, 
+            CommentData
         }
     }
 };
@@ -29,6 +33,7 @@ use serde::{
     de::DeserializeOwned
 };
 
+#[derive(Clone)]
 pub struct Fetcher {
     instance : String,
     client : Client
@@ -110,6 +115,24 @@ impl Fetcher {
             .await
             .map(|view: PostListResponse| {
                 view.posts
+            })
+    }
+
+    pub async fn fetch_comments(
+        &self,
+        remote_post_id : i64
+    ) -> Result<Vec<CommentData>> {
+        let params = CommentListRequest {
+            post_id: Some(remote_post_id),
+            ..Default::default()
+        };
+
+        let url = self.get_url("/api/v3/post/list");
+
+        self.fetch_json(&url, params)
+            .await
+            .map(|view: CommentListResponse| {
+                view.comments
             })
     }
 

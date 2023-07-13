@@ -163,6 +163,16 @@ impl LemmyCrawler {
             if posts.is_empty() {
                 break;
             }
+
+            let all_comments = futures::future::join_all(posts.iter()
+                .map(|post| {
+                    self.fetcher.fetch_comments(post.post.id)
+                }).collect::<Vec<_>>())
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<_>>>();
+            
+
             let count = posts.len();
             println!("\tfetched another {} {}...", count, Post::get_table_name());
 
