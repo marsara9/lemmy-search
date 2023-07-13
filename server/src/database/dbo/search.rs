@@ -105,12 +105,12 @@ impl SearchDatabase {
                     c.title as c_title,
 
                     COUNT(*) OVER() AS total_results,
-                    ts_rank(p.srch, websearch_to_tsquery($1)) AS rank 
+                    ts_rank_cd(p.com_search, websearch_to_tsquery($1), 12) AS rank 
                 FROM posts AS p
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                     INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
-                    WHERE p.srch @@ websearch_to_tsquery($1)
+                    WHERE p.com_search @@ websearch_to_tsquery($1)
                         AND l.instance_actor_id = $8
                         {instance_query}
                         {community_query}
@@ -118,7 +118,7 @@ impl SearchDatabase {
                         {nsfw_query}
                         {since_query}
                         {until_query}
-                ORDER BY 
+                ORDER BY
                     rank DESC,
                     p.score DESC
                 LIMIT {}

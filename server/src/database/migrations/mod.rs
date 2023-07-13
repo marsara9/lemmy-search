@@ -155,6 +155,8 @@ impl DatabaseMigrations {
 
             let old_columns = existing_columns.into_iter()
                 .filter(|column| {
+                    !column.starts_with("com_")
+                }).filter(|column| {
                     !T::get_column_names().contains(column)
                 }).collect::<Vec<_>>();
 

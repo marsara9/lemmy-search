@@ -14,12 +14,12 @@ pub async fn migrate(
                 WHERE software = '';
 
             ALTER TABLE posts 
-                ADD COLUMN IF NOT EXISTS srch TSVECTOR
+                ADD COLUMN IF NOT EXISTS com_search TSVECTOR
                 GENERATED ALWAYS AS	(
                     to_tsvector('english', \"name\") || ' ' || to_tsvector('english', coalesce(body, ''))
                 ) stored;
             
-            CREATE INDEX IF NOT EXISTS idx_search ON posts USING GIN(srch);
+            CREATE INDEX IF NOT EXISTS idx_search ON posts USING GIN(com_search);
 
             DROP TABLE IF EXISTS words;
             DROP TABLE IF EXISTS xref;
