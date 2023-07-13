@@ -59,6 +59,7 @@ impl SearchHandler {
             routes.insert("/crawl".to_string(), get().to(Self::crawl));
         }
         routes.insert("/version".to_string(), get().to(Self::version));
+        routes.insert("/donate".to_string(), get().to(Self::donate));
         routes.insert("/search".to_string(), get().to(Self::search));
         routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
@@ -76,7 +77,18 @@ impl SearchHandler {
                     version: env!("CARGO_PKG_VERSION").to_string()
                 }
             ).customize()
-            .insert_header(("cache-control", "public, max-age=86400"))
+                .insert_header(("cache-control", "public, max-age=86400"))
+        )
+    }
+
+    pub async fn donate<'a>(
+        context : Data<Context>
+    ) -> Result<impl Responder> {
+        let donations = context.config.clone().donations;
+        Ok(
+            Json(donations)
+                .customize()
+                .insert_header(("cache-control", "public, max-age=86400"))
         )
     }
 
@@ -101,10 +113,9 @@ impl SearchHandler {
         context : Data<Context>
     ) -> Result<impl Responder> {
 
+        let config = context.config.clone();
+
         tokio::spawn(async move {
-
-            let config = Config::load();
-
             let crawler = LemmyCrawler::new(
                 config.crawler.seed_instance.clone(), 
                 (*context.into_inner()).clone(), 
