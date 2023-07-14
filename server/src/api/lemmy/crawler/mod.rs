@@ -4,7 +4,6 @@ use std::{
     time::Duration, 
     collections::HashMap
 };
-
 use async_recursion::async_recursion;
 use reqwest::Client;
 use self::fetcher::Fetcher;
@@ -23,7 +22,8 @@ use crate::{
             DatabaseSchema, 
             site::Site,
             posts::Post
-        }, Context
+        }, 
+        Context
     }
 };
 
@@ -54,7 +54,6 @@ impl LemmyCrawler {
             .user_agent(APP_USER_AGENT)
             .connect_timeout(Duration::from_secs(1))
             .timeout(Duration::from_secs(10))
-            .connection_verbose(true)
             .build()?;
 
         Ok(Self {
