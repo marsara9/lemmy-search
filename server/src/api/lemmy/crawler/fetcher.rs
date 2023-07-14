@@ -2,10 +2,7 @@ use std::fmt::Debug;
 use reqwest::Client;
 use robotstxt::DefaultMatcher;
 use crate::{
-    error::{
-        Result,
-        LemmySearchError
-    }, 
+    error::Result,
     api::lemmy::models::{
         common::{
             ListingType, 
@@ -148,26 +145,14 @@ impl Fetcher {
         println!("Connecting to {}...", url);
         println!("\twith params {:?}...", params);
     
-        return match self.client
+        let result = self.client
             .get(url)
             .query(&params)
             .send()
-            .await {
-                Ok(response) => {
-                    println!("\t\tgot response...");
-                    response.json()
-                        .await
-                        .map(|json| {
-                            println!("\t\tparsed json...");
-                            json
-                        })
-                        .map_err(|err| {
-                            LemmySearchError::Network(err)
-                        })
-                }
-                Err(err) => {
-                    Err(LemmySearchError::Network(err))
-                }
-            }
+            .await?
+            .json()
+            .await?;
+
+        Ok(result)
     }
 }

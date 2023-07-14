@@ -5,7 +5,6 @@ use std::{
     collections::HashMap, 
     vec
 };
-
 use async_recursion::async_recursion;
 use reqwest::Client;
 use self::fetcher::Fetcher;
@@ -27,7 +26,8 @@ use crate::{
                 Post, 
                 Comment
             }
-        }, Context
+        }, 
+        Context
     }
 };
 
@@ -58,7 +58,6 @@ impl LemmyCrawler {
             .user_agent(APP_USER_AGENT)
             .connect_timeout(Duration::from_secs(1))
             .timeout(Duration::from_secs(10))
-            .connection_verbose(true)
             .build()?;
 
         Ok(Self {

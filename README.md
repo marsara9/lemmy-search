@@ -14,24 +14,33 @@ If anyone wants to help contribute to this, please feel free to reach out to me.
 
 The fediverse creates some unique problems when it comes to searching.  Mostly that existing search engines can't deal with the concept that multiple servers may exist that are ultimately hosting the same content.  These same search engines also aren't aware that you only have an account on one, or maybe a select few of these instances.
 
-Lemmy-Search, ya I need a better name, will uniquely search any Lemmy instance and attempt to index the entire ferdiverse and then present a familiar search interface that will allow users to:
+Lemmy-Search will uniquely search any Lemmy instance and attempt to index the entire ferdiverse and then present a familiar search interface that will allow users to:
 
 * Users can choose a preferred instance.  Such that all links that you open from the search results will automatically open with that user's instance, where they should already be logged in.
 * The big search engines let you filter by a particular website, but this doesn't make sense for the fediverse. Instead you can still refine your searches by:
   * Instance -- This will limit your search to just communities that were created on that particular instance.
   * Community -- You can also filter search results by just the particular community.
   * Author -- You can also just search for posts that were made by a particular user.
+  * NSFW -- You can choose to include or exclude NSFW (disabled by default) posts.
 
 ![landing page](https://i.ibb.co/nrz4m81/lemmy-search-home.png)
 
 ![search results page](https://i.ibb.co/WWmPqvS/lemmy-search-results.png)
 
+## Available Filters:
+
+As mentioned above there are several filters that can be used inside your queries, these can be combined together, but you may not reuse the same one multiple times.
+
+* Instance: `instance:<domain>` (Only show posts that belong to communities on the mentioned instance)
+* Community: `community:!<name>@<domain>` (Only show posts from the given community)
+* Author: `author:@<user>@<domain>` (Only show posts by the given user)
+* NSFW: `!safeoff` (allows NSFW results to be included)
+* Since: `since:YYYY-MM-DD` (Only show posts that have been made since the provided date)
+* Until: `until:YYYY-MM-DD` (Only show posts that have been made up until the provided date)
+
 ## How it Works
 
-For any given post that is found, all non-alphanumeric characters are removed a distinct list of words (anything that has a space between it) is taken from both the post title and body.  Then when the user performs a search a similar process is applied to the query and all of those distinct words are then queried from the database.  Posts that then have the highest number of matches are returned first and then those are sorted by the total score of said post.  As it is assumed that if there are more matches from your query the post is more relevant to you, and that posts with a higher score are more trust-worthy.
-
-Note that a post that just contains the same word repeated over and over will still only count for a single match compared to a post that only mentions the word once.
-
+Periodically a crawler will index the posts from a given seed-instance.  These posts will be storied in a local database and the title and body of the post will be converted to a `tsvector`.  This then allows the search engine to use postgres's built-in text-searching (https://www.postgresql.org/docs/current/datatype-textsearch.html).  Searches that the users then perform are converted to a `tsquery` and compared to the data stored in the database.  Postgres automatically ranks and orders the search results based on various factors from the number of matches and how close the words are etc... This is then returned directly to the client and presented back to the user.
 
 ## Road map
 
@@ -48,8 +57,7 @@ For the first release I expect to have the following features:
 Eventually some ideas I'd like to support (in no particular order):
 
 - [ ] Incorporate other fediverse type servers, including Mastodon, Kbin, etc...
-- [ ] Include comment data in the index as well.
-- [ ] Refine searches by comment authors instead of just post authors.
+- [ ] Include comment data in the index as well. (BOCKED until a Lemmy bug can be fixed).
 - [ ] Explore other options of indexing and/or sharing data with other search engine instances.  Essentially have the individual search engines participate in their own mini-fediverse.  This way I can lighten the load on the actual Lemmy instances during a crawl.
 - [ ] Language selection.  For now queries don't account for language at all and will just match on what you type.
 
