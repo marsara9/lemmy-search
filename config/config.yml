@@ -37,3 +37,8 @@ postgres:
   # The maximum number of concurrent connections to the database that should be
   # maintained.
   max_size: 15
+donations:
+  # Set this to text that you want to appear at the bottom of each page for your donation link.
+  text: "Buy me a Coffee"
+  # Set this to your actual donation link.
+  url: "https://bmc.link/marsara9z"

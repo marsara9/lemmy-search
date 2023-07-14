@@ -72,7 +72,16 @@ function initializeUI() {
 
 function populateInitialFields() {
     getVersion();
+    getDonationLink();
     populateInstances();
+}
+
+function getDonationLink() {
+    fetchJson("/donate", result => {
+        $("#donate")
+            .attr("href", result.url)
+            .text(result.text);
+    })
 }
 
 $(document).ready(function() {

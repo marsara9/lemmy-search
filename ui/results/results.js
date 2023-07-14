@@ -139,6 +139,16 @@ function buildSearchResult(post, original_query_terms) {
     post_community.text(post.community.title ?? post.community.name);
     post_citation.append(post_community);
 
+    let divider2 = $("<span/>");
+    divider2.text(" | ");
+    post_citation.append(divider2);
+
+    let updated = $("<span/>")
+        .addClass("date");
+    let date = new Date(post.updated);
+    updated.text(date.toLocaleString());
+    post_citation.append(updated);
+
     item.append(post_citation);
 
     let post_body = $("<p>/")

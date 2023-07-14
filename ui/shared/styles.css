@@ -253,6 +253,9 @@ header.search-box {
     vertical-align: middle;
     border-radius: var(--border-radius);
 }
+.post-citation>.date{
+    color:#999;
+}
 
 .post-name {
     font-size: 1.3rem;

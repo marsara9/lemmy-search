@@ -1,6 +1,5 @@
 mod api;
 mod config;
-mod crawler;
 mod database;
 mod error;
 
@@ -13,8 +12,10 @@ use actix_web::{
     App, 
     HttpServer, web::Data
 };
-use api::search::SearchHandler;
-use crawler::Runner;
+use api::{
+    common::crawler::Runner,
+    search::SearchHandler
+};
 use database::Database;
 
 #[actix_web::main]

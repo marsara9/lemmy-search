@@ -5,7 +5,7 @@
   <title>Lemmy Search</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="/shared/styles.css" />
-  <script type="text/javascript" src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
   <script type="text/javascript" src="/shared/rest.js"></script>
   <script type="text/javascript" src="/shared/cookies.js"></script>
   <script type="text/javascript" src="/shared/common.js"></script>
@@ -32,9 +32,10 @@
         <div class="tips">
           Filters you can add to your search query:<br>
           <ul>
-            <li>instance: &lt;domain&gt;</li>
-            <li>community: !&lt;name&gt;@&lt;domain&gt;</li>
-            <li>author: @&lt;name&gt;@&lt;domain&gt;</li>
+            <li>instance:&lt;domain&gt;</li>
+            <li>community:!&lt;name&gt;@&lt;domain&gt;</li>
+            <li>author:@&lt;name&gt;@&lt;domain&gt;</li>
+            <li>!safeoff</li>
           </ul>
         </div>
       </div>
@@ -50,6 +51,8 @@
     <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
     <span>|</span>
     <span id="version">v1.2.3</span>
+    <span> | </span>
+    <a id="donate">Donate</span>
   </footer>
 </body>
 </html>

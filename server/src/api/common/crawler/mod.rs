@@ -1,7 +1,3 @@
-pub mod analyzer;
-pub mod crawler;
-
-use self::crawler::Crawler;
 use std::{
     time::Duration, 
     path::Path
@@ -9,6 +5,7 @@ use std::{
 use tokio::task::JoinHandle;
 use crate::{
     database::Context,
+    api::lemmy::crawler::LemmyCrawler,
     error::{
         LogError,
         Result, LemmySearchError
@@ -98,7 +95,7 @@ impl Runner {
         context : Context
     ) {
         println!("Crawler is starting to index '{}'...", context.config.crawler.seed_instance);
-            let _ = Crawler::new(context.config.crawler.seed_instance.clone(), context.clone(), false)
+            let _ = LemmyCrawler::new(context.config.crawler.seed_instance.clone(), context.clone(), false)
                     .unwrap()
                     .crawl()
                     .await

@@ -1,7 +1,8 @@
 pub mod models;
+pub mod filters;
 
-use regex::Regex;
-use lazy_static::lazy_static;
+use self::models::search::Version;
+use super::lemmy::crawler::LemmyCrawler;
 use std::{
     collections::{
         HashMap, 
@@ -22,31 +23,26 @@ use actix_web::{
 };
 use crate::{
     error::LogError,
-    api::search::models::search::{
-        SearchQuery,
-        SearchResult
+    api::search::{
+        models::search::{
+            SearchQuery,
+            SearchResult
+        }, 
+        filters::{
+            instance::InstanceFilter, 
+            community::CommunityFilter, 
+            author::AuthorFilter, 
+            nsfw::NSFWFilter, 
+            date::DateFilter
+        }
     }, 
     database::{
-        dbo::{
-            site::SiteDBO, 
-            search::SearchDatabase
-        }, 
-        Context
-    }, 
-    crawler::crawler::Crawler, 
+        dbo::search::SearchDatabase,
+        Context, 
+        schema::site::Site
+    },
     config::Config
 };
-
-use self::models::search::Version;
-
-lazy_static! {
-    static ref INSTANCE_MATCH : Regex = Regex::new(r" instance:(?P<instance>(https://)?[\w\-\.]+)").unwrap();
-    static ref COMMUNITY_MATCH : Regex = Regex::new(r" community:(?P<community>!\w+@[\w\-\.]+)").unwrap();
-    static ref AUTHOR_MATCH : Regex = Regex::new(r" author:(?P<author>@\w+@[\w\-\.]+)").unwrap();
-
-    static ref COMMUNITY_FORMAT : Regex = Regex::new(r"!(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
-    static ref AUTHOR_FORMAT : Regex = Regex::new(r"@(?P<name>\w+)@(?P<instance>[\w\-\.]+)").unwrap();
-}
 
 pub struct SearchHandler {
     pub routes : HashMap<String, Route>
@@ -63,6 +59,7 @@ impl SearchHandler {
             routes.insert("/crawl".to_string(), get().to(Self::crawl));
         }
         routes.insert("/version".to_string(), get().to(Self::version));
+        routes.insert("/donate".to_string(), get().to(Self::donate));
         routes.insert("/search".to_string(), get().to(Self::search));
         routes.insert("/instances".to_string(), get().to(Self::get_instances));
 
@@ -80,7 +77,18 @@ impl SearchHandler {
                     version: env!("CARGO_PKG_VERSION").to_string()
                 }
             ).customize()
-            .insert_header(("cache-control", "public, max-age=86400"))
+                .insert_header(("cache-control", "public, max-age=86400"))
+        )
+    }
+
+    pub async fn donate<'a>(
+        context : Data<Context>
+    ) -> Result<impl Responder> {
+        let donations = context.config.clone().donations;
+        Ok(
+            Json(donations)
+                .customize()
+                .insert_header(("cache-control", "public, max-age=86400"))
         )
     }
 
@@ -105,11 +113,10 @@ impl SearchHandler {
         context : Data<Context>
     ) -> Result<impl Responder> {
 
+        let config = context.config.clone();
+
         tokio::spawn(async move {
-
-            let config = Config::load();
-
-            let crawler = Crawler::new(
+            let crawler = LemmyCrawler::new(
                 config.crawler.seed_instance.clone(), 
                 (*context.into_inner()).clone(), 
                 false
@@ -140,61 +147,17 @@ impl SearchHandler {
 
         let start = Instant::now();
 
+        println!("Searching...");
+
         let query = search_query.query.to_owned();
         let mut modified_query = query.clone();
-        
-        // Extract filters
-        let instance = match INSTANCE_MATCH.captures(&query) {
-            Some(caps) => {
-                let cap = &caps["instance"].to_lowercase();
-                modified_query = modified_query.replace(cap, "")
-                    .replace("instance:", "");
-                Some(if cap.starts_with("https://") {
-                    cap.to_string()
-                } else {
-                    format!("https://{}/", cap)
-                })
-            },
-            None => None
-        };
-        let community = match COMMUNITY_MATCH.captures(&query) {
-            Some(caps) => {
-                let cap = &caps["community"].to_lowercase();
-                modified_query = modified_query.replace(cap, "")
-                    .replace("community:", "");
 
-                // Change the format from the user format of !name@instance
-                // to match the actor_id format of a URL https://instance/c/name.
-                match COMMUNITY_FORMAT.captures(&cap) {
-                    Some(caps2) => {
-                        let name = caps2["name"].to_lowercase();
-                        let instance = caps2["instance"].to_lowercase();
-                        Some(format!("https://{}/c/{}", instance, name))
-                    },
-                    None => None
-                }
-            },
-            None => None
-        };
-        let author = match AUTHOR_MATCH.captures(&query) {
-            Some(caps) => {
-                let cap = &caps["author"].to_lowercase();
-                modified_query = modified_query.replace(cap, "")
-                    .replace("author:", "");
-                
-                // Change the format from the user format of @name@instance
-                // to match the actor_id format of a URL https://instance/c/name.
-                match AUTHOR_FORMAT.captures(&cap) {
-                    Some(caps2) => {
-                        let name = caps2["name"].to_lowercase();
-                        let instance = caps2["instance"].to_lowercase();
-                        Some(format!("https://{}/u/{}", instance, name))
-                    },
-                    None => None
-                }
-            },
-            None => None
-        };
+        let instance = modified_query.get_instance_filter();
+        let community = modified_query.get_community_filter();
+        let author = modified_query.get_author_filter();
+        let nsfw = modified_query.get_nsfw_filter();
+        let since = modified_query.get_since_filter();
+        let until = modified_query.get_until_filter();
 
         // normalize the query string to lowercase.
         modified_query = modified_query.to_lowercase()
@@ -202,25 +165,34 @@ impl SearchHandler {
             .to_string();
 
         // Log search query
-        println!("Searching for '{}'", modified_query);
-        match &instance {
-            Some(value) => {
-                println!("\tInstance: '{}'", value);
-            },
-            None => {}
-        }
-        match &community {
-            Some(value) => {
-                println!("\tCommunity: '{}'", value);
-            },
-            None => {}
-        }
-        match &author {
-            Some(value) => {
-                println!("\tAuthor: '{}'", value);
-            },
-            None => {}
-        }
+        println!("\tfor '{}'", modified_query);
+
+        // The preferred instance is sent without the https://, re-add it back.
+        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
+
+        let page = search_query.page.unwrap_or(1).max(1);
+
+        println!("\tpage: {}", page);
+
+        let search = SearchDatabase::new(context.pool.clone());
+        let search_results = search.search(
+            &modified_query, 
+            &instance, 
+            &community, 
+            &author, 
+            &nsfw,
+            &since,
+            &until,
+            &home_instance_actor_id,
+            page
+        ).await
+            .log_error("Error during search.", true)
+            .map_err(|err| {
+                actix_web::error::ErrorInternalServerError(err)
+            })?;
+
+        let len = search_results.1;
+        let total_pages = (len as f32 / Self::PAGE_LIMIT as f32).ceil() as i32;
 
         // tokenize the search query, remove any non-alphanumeric characters from the string
         // and remove any words that are less than 3 characters long.
@@ -233,28 +205,6 @@ impl SearchHandler {
             }).filter(|word| {
                 word.len() > 2
             }).collect::<HashSet<String>>();
-
-        // The preferred instance is sent without the https://, re-add it back.
-        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
-
-        let page = search_query.page.unwrap_or(1).max(1);
-
-        let search = SearchDatabase::new(context.pool.clone());
-        let search_results = search.search(
-            &query_terms, 
-            &instance, 
-            &community, 
-            &author, 
-            &home_instance_actor_id,
-            page
-        ).await
-            .log_error("Error during search.", true)
-            .map_err(|err| {
-                actix_web::error::ErrorInternalServerError(err)
-            })?;
-
-        let len = search_results.1;
-        let total_pages = (len as f32 / Self::PAGE_LIMIT as f32).ceil() as i32;
 
         // Capture the duration that the search took so we can report it back
         // to the user.
@@ -284,10 +234,13 @@ impl SearchHandler {
     pub async fn get_instances<'a>(
         context : Data<Context>
     ) -> Result<impl Responder> {
-        let sites = SiteDBO::new(context.pool.clone())
-            .retrieve_all()
+        let sites = Site::retrieve_all(context.pool.clone())
             .await.map_err(|err| {
                 actix_web::error::ErrorInternalServerError(err)
+            }).map(|sites| {
+                sites.into_iter().map(|site| {
+                    crate::api::lemmy::models::site::Site::from(site)
+                }).collect::<Vec<_>>()
             })?;
 
         Ok(

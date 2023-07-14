@@ -3,11 +3,30 @@ use std::{
     collections::HashMap
 };
 use postgres::types::ToSql;
-use crate::api::lemmy::models::author::Author;
+
 use super::{
     DatabaseSchema, 
     DatabaseType
 };
+
+#[derive(Debug, Clone)]
+pub struct Author {
+    pub actor_id : String,
+    pub avatar : Option<String>,
+    pub name : String,
+    pub display_name : Option<String>
+}
+
+impl From<&crate::api::lemmy::models::author::Author> for Author {
+    fn from(value: &crate::api::lemmy::models::author::Author) -> Self {
+        Self {
+            actor_id : value.actor_id.clone(),
+            avatar : value.avatar.clone(),
+            name : value.name.clone(),
+            display_name : value.display_name.clone()
+        }
+    }
+}
 
 impl DatabaseSchema for Author {
 
