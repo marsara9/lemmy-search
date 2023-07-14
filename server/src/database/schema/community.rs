@@ -3,11 +3,29 @@ use std::{
     collections::HashMap
 };
 use postgres::types::ToSql;
-use crate::api::lemmy::models::community::Community;
 use super::{
     DatabaseSchema, 
     DatabaseType
 };
+
+#[derive(Debug, Clone)]
+pub struct Community {
+    pub actor_id : String,
+    pub icon : Option<String>,
+    pub name : String,
+    pub title : Option<String>
+}
+
+impl From<&crate::api::lemmy::models::community::Community> for Community {
+    fn from(value: &crate::api::lemmy::models::community::Community) -> Self {
+        Self {
+            actor_id : value.actor_id.clone(),
+            icon : value.icon.clone(),
+            name : value.name.clone(),
+            title : value.title.clone()
+        }
+    }
+}
 
 impl DatabaseSchema for Community {
 

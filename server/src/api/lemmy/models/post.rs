@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use serde::{
     Serialize, 
     Deserialize
@@ -38,12 +39,14 @@ pub struct  PostData {
 pub struct Post {
     pub id : i64,
     pub ap_id : String,
-    pub url : Option<String>,
     pub name : String,
     pub body : Option<String>,
     pub removed : Option<bool>,
     pub deleted : Option<bool>,
-    pub language_id : i32
+    pub language_id : i32,
+    pub published : NaiveDateTime,
+    pub updated : Option<NaiveDateTime>,
+    pub nsfw : Option<bool>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

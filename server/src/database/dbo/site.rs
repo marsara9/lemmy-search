@@ -1,12 +1,6 @@
-use chrono::Utc;
-use uuid::Uuid;
 use crate::{
     error::Result,
-    database::DatabasePool,
-    api::lemmy::models::site::{
-        SiteView, 
-        Site
-    }
+    database::DatabasePool
 };
 
 use super::get_database_client;
@@ -21,53 +15,6 @@ impl SiteDBO {
         return Self {
             pool
         }
-    }
-
-    pub async fn upsert(
-        &self,
-        object : SiteView
-    ) -> Result<bool> {
-
-        get_database_client(&self.pool, move |client| {
-
-            client.execute("
-                INSERT INTO sites (\"id\", \"name\", \"actor_id\", \"last_post_page\", \"last_comment_page\", \"last_update\") 
-                    VALUES ($1, $2, $3, 0, 0, $4)
-                ON CONFLICT (actor_id)
-                DO UPDATE SET \"name\" = $2, \"last_update\" = $4
-                ",
-                    &[
-                        &Uuid::new_v4(),
-                        &object.site.name,
-                        &object.site.actor_id,
-                        &Utc::now()
-                    ]
-            ).map(|count| {
-                count == 1
-            })
-        }).await
-    }
-
-    pub async fn retrieve_all(
-        &self
-    ) -> Result<Vec<Site>> {
-
-        get_database_client(&self.pool, move |client| {
-
-            client.query("
-                SELECT actor_id, name
-                    FROM sites
-                ",
-                &[] 
-            ).map(|rows| {
-                rows.iter().map(|row| {
-                    Site { 
-                        actor_id: row.get(0),
-                        name: row.get(1)
-                    }
-                }).collect()
-            })
-        }).await
     }
 
     pub async fn set_last_post_page(

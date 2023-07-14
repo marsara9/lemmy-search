@@ -1,27 +1,29 @@
 use std::fmt::Debug;
 use reqwest::Client;
 use robotstxt::DefaultMatcher;
-use crate::error::{
-    Result,
-    LemmySearchError
+use crate::{
+    error::Result,
+    api::lemmy::models::{
+        common::{
+            ListingType, 
+            SortType
+        }, 
+        site::{
+            SiteResponse, 
+            SiteRequest,
+            FederatedInstancesResponse,
+            FederatedInstancesRequest
+        },
+        post::{
+            PostData, 
+            PostListRequest, 
+            PostListResponse, 
+        }
+    }
 };
 use serde::{
     Serialize, 
     de::DeserializeOwned
-};
-use super::models::{
-    common::SortType,
-    site::{
-        SiteRequest,
-        SiteResponse, 
-        FederatedInstancesResponse, 
-        FederatedInstancesRequest
-    },
-    post::{
-        PostData, 
-        PostListRequest, 
-        PostListResponse, 
-    }
 };
 
 pub struct Fetcher {
@@ -92,7 +94,7 @@ impl Fetcher {
         page : i32
     ) -> Result<Vec<PostData>> {
         let params = PostListRequest {
-            type_: Some(super::models::common::ListingType::All),
+            type_: Some(ListingType::All),
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
             page: page,
@@ -120,20 +122,14 @@ impl Fetcher {
         println!("Connecting to {}...", url);
         println!("\twith params {:?}...", params);
     
-        return match self.client
+        let result = self.client
             .get(url)
             .query(&params)
             .send()
-            .await {
-                Ok(response) => {
-                    response.json()
-                        .await.map_err(|err| {
-                            LemmySearchError::Network(err)
-                        })
-                }
-                Err(err) => {
-                    Err(LemmySearchError::Network(err))
-                }
-            }
+            .await?
+            .json()
+            .await?;
+
+        Ok(result)
     }
 }
