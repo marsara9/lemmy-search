@@ -230,11 +230,12 @@ impl SearchDatabase {
                         c.name AS c_name, 
                         c.title AS c_title, 
                         COUNT(p.*) AS matches,
-                        COUNT(*) OVER() AS total_results,
+                        COUNT(*) OVER() AS total_results
                     FROM posts AS p
                         INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
+                        INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
-                        AND l.instance_actor_id = $7
+                        AND l.instance_actor_id = $6
                         {instance_query}
                         {author_query}
                         {nsfw_query}
@@ -244,7 +245,7 @@ impl SearchDatabase {
                     ORDER BY 
                         matches DESC
                     LIMIT {}
-                    OFFSET $8
+                    OFFSET $7
             ", Self::PAGE_LIMIT);
 
             let offset = (Self::PAGE_LIMIT * (page - 1)) as i64;
@@ -274,7 +275,7 @@ impl SearchDatabase {
                         icon : row.get("c_icon"),
                         name : row.get("c_name"),
                         title : row.get("c_title"),
-                        number_of_matches : row.get("matches")
+                        number_of_matches : Some(row.get("matches"))
                     }
                 }).collect()
             })?;

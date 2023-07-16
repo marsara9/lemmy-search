@@ -60,7 +60,7 @@ pub struct SearchCommunity {
     pub icon : Option<String>,
     pub name : String,
     pub title : Option<String>,
-    pub number_of_matches : Option<i32>
+    pub number_of_matches : Option<i64>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

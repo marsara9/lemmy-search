@@ -83,12 +83,6 @@ function buildPageControls(total_pages) {
 function buildSearchResult(post, original_query_terms) {
     let item = $("<li/>")
         .addClass("search-result");
-    if (post.ur && isImage(post.url)) {
-        let url = $("<img/>");
-        url.addClass("post-url");
-        url.attr("src", post.url);
-        item.append(url);
-    }
 
     let post_name = $("<a/>")
         .addClass("post-name")
@@ -210,6 +204,17 @@ function isImage(url) {
 
 function onInstanceChanged() {
     onSearch();
+}
+
+function onSearch() {
+    let query = $("#search").val();
+
+    let params = {
+        "query" : query,
+        "page" : 1
+    };
+    
+    window.location = "/results?" + new URLSearchParams(params).toString();
 }
 
 function onReady() {

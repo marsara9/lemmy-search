@@ -37,17 +37,6 @@ function dropSchema(instance_actor_id) {
     return instance_actor_id.substring(8, instance_actor_id.length-1);
 }
 
-function onSearch() {
-    let query = $("#search").val();
-
-    let params = {
-        "query" : query,
-        "page" : 1
-    };
-    
-    window.location = "/results?" + new URLSearchParams(params).toString();
-}
-
 function getVersion() {
     fetchJson("/api/version", result => {
         $("#version").text(result.version);
