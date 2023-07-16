@@ -7,7 +7,7 @@ function onSearch() {
         "page" : 1
     };
     
-    window.location = "/results?" + new URLSearchParams(params).toString();
+    window.location = "/find-communities/results?" + new URLSearchParams(params).toString();
 }
 
 function onReady() {
