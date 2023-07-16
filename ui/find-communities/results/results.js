@@ -133,7 +133,11 @@ const INSTANCE_MATCH = new RegExp("^https:\/\/(?<domain>.+)\/c\/.*$");
 
 function getInstanceForCommunity(community) {
     let matches = community.actor_id.match(INSTANCE_MATCH);
-    return matches[1];
+    if(matches) {
+        return matches[1];
+    } else {
+        return null;
+    }
 }
 
 function isImage(url) {
