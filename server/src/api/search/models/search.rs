@@ -27,6 +27,15 @@ pub struct SearchResult {
     pub posts : Vec<SearchPost>
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone, Default)]
+pub struct FindCommunityResult {
+    pub original_query_terms : HashSet<String>,
+    pub total_results : i32,
+    pub total_pages : i32,
+    pub time_taken : Duration,
+    pub communities : Vec<SearchCommunity>
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SearchPost {    
     pub name : String,
@@ -50,7 +59,8 @@ pub struct SearchCommunity {
     pub actor_id : String,
     pub icon : Option<String>,
     pub name : String,
-    pub title : Option<String>
+    pub title : Option<String>,
+    pub number_of_matches : Option<i64>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
