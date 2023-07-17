@@ -30,5 +30,5 @@ function restJson(url, method, onResult, onError) {
 }
 
 function fetchJson(url, onResult, onError) {
-    restJson(url, "GET", null, false, onResult, onError)
+    restJson(url, "GET", onResult, onError)
 }
