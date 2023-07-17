@@ -5,5 +5,5 @@ function populateInitialFields() {
 }
 
 $(document).ready(function() {
-    initializeUI();
+    populateInitialFields();
 });
