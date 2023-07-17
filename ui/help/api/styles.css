@@ -1,0 +1,139 @@
+:root {
+    --color-light: #dee2e6;
+    --body-color: #222;
+    --darker-color: #1c1c1c;
+    --detail-color: #999;
+    --highlight-color: #ab52ff;
+    --input-border: #8d8d8d;
+    --link-color: #1ed2ff;
+    --border-radius: 8px;
+}
+
+html {
+    width:100vw;
+    height:100vh;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    text-decoration: underline;
+}
+  
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    /* background-color: var(--body-color); */
+    background-color: var(--color-light);
+    color: var(--color-light);
+    width:100vw;
+    height:100vh;
+    overflow: hidden;
+}
+
+header, footer {
+    flex-grow: 0;
+    position: sticky;
+    padding: 12px;
+    text-align: center;
+    background-color: var(--darker-color);
+}
+
+header {
+    top: 0;
+}
+
+footer {
+    bottom: 0;
+}
+
+section {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    min-height: 0;
+    color: var(--darker-color);
+}
+
+nav {
+    flex-grow: 0;
+    padding: 12px;
+    min-width: 128px;
+    background-color: var(--body-color);
+    border-right: 1px solid var(--input-border);
+}
+
+nav > ul {
+    list-style: none;
+    padding: 0;
+}
+
+article {
+    flex-grow: 1;
+    padding: 12px;
+    overflow: auto;
+}
+
+article table {
+    border-collapse: collapse;
+    background-color: var(--body-color);
+    border-radius: var(--border-radius);
+    color: var(--color-light);
+}
+
+article table th:first-child {
+    border-top-left-radius: var(--border-radius);
+}
+
+article table th:last-child {
+    border-top-right-radius: var(--border-radius);
+}
+
+article table tr:last-child > td:first-child {
+    border-bottom-left-radius: var(--border-radius);
+}
+
+article table tr:last-child > td:last-child {
+    border-bottom-right-radius: var(--border-radius);
+}
+
+article th  {
+    background-color: var(--darker-color);
+    white-space: nowrap;
+    padding: 8px 12px;
+    text-align: start;
+}
+
+article td {
+    padding: 12px;
+    vertical-align: baseline;
+    min-width: 192px;
+}
+
+article td:nth-child(1) {
+    background-color: #2a2a2a;
+    border-right: 1px solid var(--input-border);
+}
+
+.detail {
+    color: var(--detail-color);
+}
+
+.highlight {
+    color: var(--highlight-color);
+}
+
+.box {
+    border: 1px solid var(--input-border);
+    border-radius: var(--border-radius);
+    padding: 12px;
+    background-color: var(--body-color);
+}
