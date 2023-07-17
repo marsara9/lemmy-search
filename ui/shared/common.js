@@ -78,7 +78,9 @@ $(document).ready(function() {
     initializeUI();
     populateInitialFields();
 
-    home_instance = getCookie("home-instance");
+    if(typeof getCookie === "function") {
+        home_instance = getCookie("home-instance");
+    }
 
     if(typeof onReady === "function") {
         onReady();
