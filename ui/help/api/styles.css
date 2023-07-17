@@ -30,7 +30,6 @@ body {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
-    /* background-color: var(--body-color); */
     background-color: var(--color-light);
     color: var(--color-light);
     width:100vw;

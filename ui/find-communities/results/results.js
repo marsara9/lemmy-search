@@ -50,7 +50,7 @@ function buildPageControls(total_pages) {
             "page" : page - 1
         };
         
-        let href = "/results?" + new URLSearchParams(params).toString();
+        let href = "/find-communities/results?" + new URLSearchParams(params).toString();
 
         let previous = $("<a />")
             .attr("href", href);
@@ -69,7 +69,7 @@ function buildPageControls(total_pages) {
             "page" : page + 1
         };
         
-        let href = "/results?" + new URLSearchParams(params).toString();
+        let href = "/find-communities/results?" + new URLSearchParams(params).toString();
 
         let next = $("<a />")
             .attr("href", href);
