@@ -123,7 +123,12 @@ impl Site {
         get_database_client(&pool, move |client| {
 
             let query = format!("
-                SELECT {} FROM {}
+                SELECT {} 
+                    FROM {}
+                    WHERE 
+                        last_post_page > 0
+                    ORDER BY 
+                        last_post_page DESC
             ", Site::get_column_names().join(", "), Site::get_table_name());
 
             client.query(&query,
