@@ -6,8 +6,8 @@ function populateInstances() {
         home_instance = getCookie("home-instance") || result[0].actor_id;
         if(!result.map(instance => instance.actor_id).includes(home_instance)) {
             home_instance = result[0].actor_id;
-            setCookie("home-instance", home_instance);
         }
+        setCookie("home-instance", home_instance);
 
         let select = $("#instance-select");
         select.empty();
