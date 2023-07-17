@@ -9,8 +9,6 @@ function restJson(url, method, onResult, onError) {
         if(response.headers.get("content-type") == "application/json") {
             response.json().then(data => {
                 if(!response.ok) {
-                    let input = $(`#${data.parameter}`)
-                    input.addClass("error")
                     if(onError) {
                         onError(data)
                     }
