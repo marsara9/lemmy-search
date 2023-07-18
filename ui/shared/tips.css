@@ -1,0 +1,58 @@
+.tips {
+	background-color: #161616;
+	padding: 1rem;
+	border-radius: var(--border-radius);
+	position: relative;
+	margin-top: 12px;
+    visibility: hidden;
+}
+
+.show-tips {
+    cursor: help;
+    text-decoration: underline dotted;
+    text-underline-offset: .3em;
+}
+
+#showTips {
+    display: none;
+}
+
+#showTips:checked + .tips {
+    visibility: visible;
+}
+
+.tips ul {
+	margin: .5em 0;
+	padding-inline-start: 1.5em;
+}
+
+.tips:before {
+  content: '';
+  width: 0; 
+  height: 0; 
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid #161616;
+	position: absolute;
+	top: -10px;
+	left: calc(50% - 5px) 
+}
+
+.results .tips-section {
+    margin-left: auto;
+    margin-right: .5em;
+    position: relative;
+}
+
+.results .tips {
+    position: absolute;
+    margin-top: 15px;
+    right: -10px;
+    width: max-content;
+}
+
+.results .tips:before {
+    position: absolute;
+    right: 10px;
+    left: unset;
+}

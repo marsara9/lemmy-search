@@ -1,0 +1,41 @@
+
+.search-result {
+    padding: .9rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: .3em;
+}
+
+.search-result img {
+    width: 16px;
+    height: 16px;
+}
+
+.post-citation {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.post-citation>img {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+    border-radius: var(--border-radius);
+}
+.post-citation>.date{
+    color:#999;
+}
+
+.post-name {
+    font-size: 1.3rem;
+    line-height: 1.2;
+}
+
+.post-body {
+    margin: 0;
+}
+
+.post-body>.search-term {
+    font-weight: bold;
+}
