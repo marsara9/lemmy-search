@@ -2,11 +2,12 @@ function getQueryParameters() {
     const urlParameters = new URLSearchParams(window.location.search);
     return {
         "query": urlParameters.get("query"),
-        "page":  urlParameters.get("page") || 1
+        "page": urlParameters.get("page") || 1,
+        "mode": urlParameters.get("mode")
     };
 }
 
-function query(queryString, page, instance) {
+function query(queryString, page, mode, instance) {
 
     queryParameters = new URLSearchParams({
         "query" : queryString,
@@ -14,7 +15,7 @@ function query(queryString, page, instance) {
         "home_instance" : dropSchema(instance)
     }).toString()
 
-    fetchJson("/api/search?" + queryParameters, result => {
+    fetchJson(`/api/search/${mode}?` + queryParameters, result => {
 
         let response_time = Math.round((result.time_taken.secs + (result.time_taken.nanos / 1_000_000_000)) * 100) / 100;
 
@@ -24,10 +25,21 @@ function query(queryString, page, instance) {
 
         let list = $("<ol/>");
 
-        result.posts.forEach(post => {
-            let item = buildSearchResult(post, result.original_query_terms);
-            list.append(item);
-        });
+        switch(mode) {
+            case "posts":
+                result.posts.forEach(post => {
+                    let item = buildPostSearchResult(post, result.original_query_terms);
+                    list.append(item);
+                });
+                break;
+            case "communities":
+                result.communities.forEach(post => {
+                    let item = buildCommunitySearchResult(post, result.original_query_terms);
+                    list.append(item);
+                });
+                break;
+        }
+        
         $("#results").empty();
         $("#results").append(list);
 
@@ -80,7 +92,7 @@ function buildPageControls(total_pages) {
     }
 }
 
-function buildSearchResult(post, original_query_terms) {
+function buildPostSearchResult(post, original_query_terms) {
     let item = $("<li/>")
         .addClass("search-result");
 
@@ -198,6 +210,66 @@ function getPostQueryBody(queryTerms, body) {
     return spans;
 }
 
+function buildCommunitySearchResult(community) {
+    let item = $("<li/>")
+        .addClass("search-result");
+
+    let container = $("<div/>");
+
+    if(community.icon && isImage(community.icon)) {
+        let community_icon = $("<img />")
+            .attr("src", community.icon);
+            container.append(community_icon);
+
+        let divider1 = $("<span> | </span>");
+        container.append(divider1);
+    }
+
+    let community_link = $("<a/>");
+    if(community.actor_id.startsWith(home_instance)) {
+        community_link.attr("href", community.actor_id);
+    } else {
+        let instance = new URL(community.actor_id).hostname;
+        let href = home_instance + "c/" + community.name + "@" + instance;
+
+        community_link.attr("href", href);
+    }
+    community_link.text(community.title ?? community.name);
+    container.append(community_link);
+
+    let divider2 = $("<span> @ </span>");
+    container.append(divider2);
+
+    let instance = getInstanceForCommunity(community);
+    let instance_link = $("<a/>")
+        .attr("href", `https://${instance}/`);
+    instance_link.text(instance);
+    container.append(instance_link);
+    
+    let divider3 = $("<span> | </span>");
+    container.append(divider3);
+
+    let number_of_matches = $("<span/>")
+        .addClass("matches");
+    number_of_matches.text(`${community.number_of_matches} matches`);
+    container.append(number_of_matches);
+
+    item.append(container);
+
+    return item;
+}
+
+const INSTANCE_MATCH = new RegExp("^https:\/\/(?<domain>.+)\/c\/.*$");
+
+function getInstanceForCommunity(community) {
+    let matches = community.actor_id.match(INSTANCE_MATCH);
+    if(matches) {
+        return matches[1];
+    } else {
+        return null;
+    }
+}
+
 function isImage(url) {
     return /\.(jpg|jpeg|png|webp|avif|gif|svg)$/.test(url);
 }
@@ -229,6 +301,7 @@ function onReady() {
     query(
         queryParameters["query"],
         queryParameters["page"],
+        queryParameters["mode"],
         home_instance
     );
 }

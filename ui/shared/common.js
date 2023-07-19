@@ -11,8 +11,7 @@ function populateInstances() {
 
         let select = $("#instance-select");
         select.empty();
-        result.sort(instanceCompare)
-            .forEach(instance => {
+        result.forEach(instance => {
                 let option = $("<option />")
                     .attr("value", instance.actor_id)
                     .prop("selected", instance.actor_id == home_instance);
@@ -22,16 +21,6 @@ function populateInstances() {
             })
         NiceSelect.bind(document.getElementById("instance-select"), {searchable: true, placeholder: 'Select your home instance', searchtext: 'Search for instances'});
     })
-}
-
-function instanceCompare(lhs, rhs) {
-    if (lhs.name.toLowerCase() < rhs.name.toLowerCase()){
-        return -1;
-    }
-    if (lhs.name.toLowerCase() > rhs.name.toLowerCase()){
-        return 1;
-    }
-    return 0;
 }
 
 function dropSchema(instance_actor_id) {

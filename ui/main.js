@@ -4,7 +4,8 @@ function onSearch() {
 
     let params = {
         "query" : query,
-        "page" : 1
+        "page" : 1,
+        "mode": "posts"
     };
     
     window.location = "/results?" + new URLSearchParams(params).toString();
