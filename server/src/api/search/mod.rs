@@ -61,8 +61,8 @@ impl SearchHandler {
         }
         routes.insert("/api/version".to_string(), get().to(Self::version));
         routes.insert("/api/donate".to_string(), get().to(Self::donate));
-        routes.insert("/api/search".to_string(), get().to(Self::search));
-        routes.insert("/api/find/communities".to_string(), get().to(Self::find_community));
+        routes.insert("/api/search/posts".to_string(), get().to(Self::search_posts));
+        routes.insert("/api/search/communities".to_string(), get().to(Self::search_communities));
         routes.insert("/api/instances".to_string(), get().to(Self::get_instances));
 
         Self {
@@ -142,7 +142,7 @@ impl SearchHandler {
      * This method will tokenize the query string and extract any filters provided by
      * the user before sending that information off to the Database to query.
      */
-    pub async fn search<'a>(
+    pub async fn search_posts<'a>(
         context : Data<Context>,
         search_query: Query<SearchQuery>
     ) -> Result<impl Responder> {
@@ -227,7 +227,7 @@ impl SearchHandler {
         )
     }
 
-    pub async fn find_community<'a>(
+    pub async fn search_communities<'a>(
         context : Data<Context>,
         search_query: Query<SearchQuery>
     ) -> Result<impl Responder> {
