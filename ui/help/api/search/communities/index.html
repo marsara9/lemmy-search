@@ -14,17 +14,24 @@
         <nav>
           <ul>
             <li>
-                <a href="#Search">Search</a>
+                <a href="/help/api/search/posts">Search Posts</a>
+            </li>
+            <li>
+                <a href="/help/api/search/communities">Search Communities</a>
             </li>
           </ul>
         </nav>
         
         <article>
-            <h1>Search</h1>
+            <h1>Search Communities</h1>
             <p>
                 Makes a request to the search engine and returns a listing of posted sorted by how well they matched your search results.  The results will be returned in pages of <span class="highlight">50</span> elements.  Just increment the page number to get additional results.
             </p>
             <hr/>
+            <h2>Endpoint</h2>
+            <p>
+                /api/search/communities
+            </p>
             <h2>Request</h2>
             <table>
                 <thead>
@@ -71,7 +78,7 @@
                 </tbody>
             </table>
             <h2>Response</h2>
-            <h3>SearchResult</h3>
+            <h3>SearchCommunitiesResult</h3>
             <table>
                 <thead>
                     <th>Property</th>
@@ -132,84 +139,7 @@
                         <td>{"secs":0,"nanos":0.82}</td>
                     </tr>
                     <tr>
-                        <td>posts</td>
-                        <td>
-                            <span>Object (<a href="#SearchPost">SearchPost</a>)</span>
-                            <p class="detail">
-                                A composite object that contains a listing of the posts already ordered by how closely they matched the search terms.
-                            </p>
-                        </td>
-                        <td></td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3 id="SearchPost">SearchPost</h3>
-            <table>
-                <thead>
-                    <th>Property</th>
-                    <th>Type</th>
-                    <th>Example</th>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>name</td>
-                        <td>
-                            <span>String</span>
-                            <p class="detail">
-                                The title of the post.
-                            </p>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>body</td>
-                        <td>
-                            <span>String</span>
-                            <span class="detail">(nullable)</span>
-                            <p class="detail">
-                                The content of the post, if any.
-                            </p>
-                            <p class="detail">
-                                This property will contain up to <span class="highlight">300</span> characters and MAY contain MARKDOWN elements.
-                            </p>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>remote_id</td>
-                        <td>
-                            <span>Number</span>
-                            <p class="detail">
-                                This is the ID of the post on the user's home instance.
-                            </p>
-                            <p class="detail">
-                                You SHOULD use this to re-create the link or to lookup the post that the user wants to navigate to.
-                            </p>
-                        </td>
-                        <td>27896273</td>
-                    </tr>
-                    <tr>
-                        <td>updated</td>
-                        <td>
-                            <span>String</span>
-                            <p class="detail">
-                                A iso8601 formatted date string that contains the last date/time of when the post was either created or last updated.
-                            </p>
-                        </td>
-                        <td>2023-07-17T14:33:49.452Z</td>
-                    </tr>
-                    <tr>
-                        <td>author</td>
-                        <td>
-                            <span>Object (<a href="#SearchAuthor">SearchAuthor</a>)</span>
-                            <p class="detail">
-                                A composite object that contains data about the user who created the post.
-                            </p>
-                        </td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>community</td>
+                        <td>communities</td>
                         <td>
                             <span>Object (<a href="#SearchCommunity">SearchCommunity</a>)</span>
                             <p class="detail">
@@ -217,61 +147,6 @@
                             </p>
                         </td>
                         <td></td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3 id="SearchAuthor">SearchAuthor</h3>
-            <table>
-                <thead>
-                    <th>Property</th>
-                    <th>Type</th>
-                    <th>Example</th>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>actor_id</td>
-                        <td>
-                            <span>String</span>
-                            <p class="detail">
-                                The actor id of the given user.
-                            </p>
-                            <p class="detail">
-                                This URL will always point to the author's instance and not the user's home instance.  If you're attempting to reconstruct a link to take the user to this author's profile, you should use the `name` property instead.
-                            </p>
-                        </td>
-                        <td>https://lemmy.world/u/marsara9</td>
-                    </tr>
-                    <tr>
-                        <td>avatar</td>
-                        <td>
-                            <span>String</span>
-                            <span class="detail">(nullable)</span>
-                            <p class="detail">
-                                The URL to the user's avatar, if they have one.
-                            </p>
-                        </td>
-                        <td>https://lemmy.world/pictrs/image/b62d2d6f-25ed-4118-baec-abf2ed01ad27.png?format=webp</td>
-                    </tr>
-                    <tr>
-                        <td>name</td>
-                        <td>
-                            <span>String</span>
-                            <p class="detail">
-                                The user's name / internal id.
-                            </p>
-                        </td>
-                        <td>marsara9</td>
-                    </tr>
-                    <tr>
-                        <td>display_name</td>
-                        <td>
-                            <span>String</span>
-                            <span class="detail">(nullable)</span>
-                            <p class="detail">
-                                The user's display name, if they have one.
-                            </p>
-                        </td>
-                        <td>MarSara9</td>
                     </tr>
                 </tbody>
             </table>
@@ -328,12 +203,26 @@
                         </td>
                         <td>Fediverse</td>
                     </tr>
+                    <tr>
+                        <td>number_of_matches</td>
+                        <td>
+                            <span>Number</span>
+                            <span class="detail">(nullable)</span>
+                            <p class="detail">
+                                The number of posts found that matched the original query.
+                            </p>
+                            <p>
+                                Although this property is nullable it will never be null when searching for communities.
+                            </p>
+                        </td>
+                        <td>18</td>
+                    </tr>
                 </tbody>
             </table>
             <h3>Example Response</h3>
             <div class="box">
-                <a href="/api/search?query=search+example&page=1&home_instance=lemmy.world">
-                    /api/search?query=search+example&page=1&home_instance=lemmy.world
+                <a href="/api/search/communities?query=search+example&page=1&home_instance=lemmy.world">
+                    /api/search/communities?query=search+example&page=1&home_instance=lemmy.world
                 </a>
             </div>
         </article>
@@ -345,7 +234,7 @@
         <span>|</span>
         <a id="donate">Donate</a>
         <span>|</span>
-        <a href="/help/api">API Documentation</a>
+        <a href="/help/api/search/posts">API Documentation</a>
     </footer>
 </body>
 </html>

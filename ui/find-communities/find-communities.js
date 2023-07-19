@@ -4,10 +4,11 @@ function onSearch() {
 
     let params = {
         "query" : query,
-        "page" : 1
+        "page" : 1,
+        "mode" : "communities"
     };
     
-    window.location = "/find-communities/results?" + new URLSearchParams(params).toString();
+    window.location = "/results?" + new URLSearchParams(params).toString();
 }
 
 function onReady() {
