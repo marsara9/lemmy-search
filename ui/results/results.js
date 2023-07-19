@@ -43,11 +43,11 @@ function query(queryString, page, mode, instance) {
         $("#results").empty();
         $("#results").append(list);
 
-        buildPageControls(result.total_pages);
+        buildPageControls(result.total_pages, mode);
     })
 }
 
-function buildPageControls(total_pages) {
+function buildPageControls(total_pages, mode) {
     const urlParameters = new URLSearchParams(window.location.search);
     let query = urlParameters.get("query");
     let page = Math.max(parseInt(urlParameters.get("page"), 10) || 1, 1);
@@ -58,8 +58,8 @@ function buildPageControls(total_pages) {
     if(page > 1) {
         let params = {
             "query" : query,
-            "home_instance" : dropSchema(home_instance),
-            "page" : page - 1
+            "page" : page - 1,
+            "mode" : mode
         };
         
         let href = "/results?" + new URLSearchParams(params).toString();
@@ -77,8 +77,8 @@ function buildPageControls(total_pages) {
     if(page < total_pages) {
         let params = {
             "query" : query,
-            "home_instance" : dropSchema(home_instance),
-            "page" : page + 1
+            "page" : page + 1,
+            "mode" : mode
         };
         
         let href = "/results?" + new URLSearchParams(params).toString();
