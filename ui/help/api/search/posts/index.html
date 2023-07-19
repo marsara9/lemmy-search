@@ -1,0 +1,358 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Lemmy Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/help/api/styles.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script type="text/javascript" src="/shared/rest.js"></script>
+    <script type="text/javascript" src="/help/api/help.js"></script>
+</head>
+<body>
+    <header>API Documentation</header>
+    <section>
+        <nav>
+          <ul>
+            <li>
+                <a href="/help/api/search/posts">Search Posts</a>
+            </li>
+            <li>
+                <a href="/help/api/search/communities">Search Communities</a>
+            </li>
+          </ul>
+        </nav>
+        
+        <article>
+            <h1>Search Posts</h1>
+            <p>
+                Makes a request to the search engine and returns a listing of posted sorted by how well they matched your search results.  The results will be returned in pages of <span class="highlight">50</span> elements.  Just increment the page number to get additional results.
+            </p>
+            <hr/>
+            <h2>Endpoint</h2>
+            <p>
+                /api/search/posts
+            </p>
+            <h2>Request</h2>
+            <table>
+                <thead>
+                    <th colspan="2">Query Parameter</th>
+                    <th>Example</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>query</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                This should include EVERYTHING that is typed into the search field.  The server will automatically parse out any filters, etc... as required.
+                            </p> 
+                            <p class="detail">
+                                Make sure to URL encode the data for this parameter.
+                            </p>
+                        </td>
+                        <td>Cat OR Dog community:!fediverse@lemmy.world</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span>page</span>
+                            <span class="detail">(optional)</span>
+                        </td>
+                        <td>
+                            <span>Number</span>
+                            <p class="detail">
+                                Defaults to 1 if not passed in the URL.
+                            </p> 
+                        </td>
+                        <td>3</td>
+                    </tr>
+                    <tr>
+                        <td>home_instance</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The `https://` is optional.  Just make sure to URL encode the data for this parameter.
+                            </p> 
+                        </td>
+                        <td>lemmy.world</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2>Response</h2>
+            <h3>SearchPostsResult</h3>
+            <table>
+                <thead>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Example</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>original_query_terms</td>
+                        <td>
+                            <span>Array</span>
+                            <p class="detail">
+                                This will contain a distinct list of terms that were actually used in the search.  Essentially this should match the original search query minus any filters that were applied and any duplicate terms.
+                            </p>
+                            <p class="detail">
+                                You SHOULD use this to highlight any words in the original post.
+                            </p>
+                        </td>
+                        <td>["cat", "dog"]</td>
+                    </tr>
+                    <tr>
+                        <td>total_results</td>
+                        <td>
+                            <span>Number</span>
+                            <p class="detail">
+                                The total number of results found.  This does not represent the number of results returned in this query as that will always be <span class="highlight">50</span> or less, but rather the total number of results available for that query.
+                            </p>
+                            <p class="detail">
+                                You MAY use this to show the user how many results were found.  For example "Found 3142 results in 0.82 seconds".
+                            </p>
+                        </td>
+                        <td>3142</td>
+                    </tr>
+                    <tr>
+                        <td>total_pages</td>
+                        <td>
+                            <span>Number</span>
+                            <p class="detail">
+                                The total number of pages of results available.
+                            </p>
+                            <p class="detail">
+                                You SHOULD use this to determine if you should show a `Next` button or not.
+                            </p>
+                        </td>
+                        <td>63</td>
+                    </tr>
+                    <tr>
+                        <td>time_taken</td>
+                        <td>
+                            <span>Object</span>
+                            <p class="detail">
+                                A composite object that contains two properties `secs` and `nanos`.  This will represent how long the server took processing your query.
+                            </p>
+                            <p class="detail">
+                                You MAY use this to show the user how quickly the server returned the results to the user.
+                            </p>
+                        </td>
+                        <td>{"secs":0,"nanos":0.82}</td>
+                    </tr>
+                    <tr>
+                        <td>posts</td>
+                        <td>
+                            <span>Object (<a href="#SearchPost">SearchPost</a>)</span>
+                            <p class="detail">
+                                A composite object that contains a listing of the posts already ordered by how closely they matched the search terms.
+                            </p>
+                        </td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3 id="SearchPost">SearchPost</h3>
+            <table>
+                <thead>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Example</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>name</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The title of the post.
+                            </p>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>body</td>
+                        <td>
+                            <span>String</span>
+                            <span class="detail">(nullable)</span>
+                            <p class="detail">
+                                The content of the post, if any.
+                            </p>
+                            <p class="detail">
+                                This property will contain up to <span class="highlight">300</span> characters and MAY contain MARKDOWN elements.
+                            </p>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>remote_id</td>
+                        <td>
+                            <span>Number</span>
+                            <p class="detail">
+                                This is the ID of the post on the user's home instance.
+                            </p>
+                            <p class="detail">
+                                You SHOULD use this to re-create the link or to lookup the post that the user wants to navigate to.
+                            </p>
+                        </td>
+                        <td>27896273</td>
+                    </tr>
+                    <tr>
+                        <td>updated</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                A iso8601 formatted date string that contains the last date/time of when the post was either created or last updated.
+                            </p>
+                        </td>
+                        <td>2023-07-17T14:33:49.452Z</td>
+                    </tr>
+                    <tr>
+                        <td>author</td>
+                        <td>
+                            <span>Object (<a href="#SearchAuthor">SearchAuthor</a>)</span>
+                            <p class="detail">
+                                A composite object that contains data about the user who created the post.
+                            </p>
+                        </td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>community</td>
+                        <td>
+                            <span>Object (<a href="#SearchCommunity">SearchCommunity</a>)</span>
+                            <p class="detail">
+                                A composite object that contains data about the community that the post is within.
+                            </p>
+                        </td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3 id="SearchAuthor">SearchAuthor</h3>
+            <table>
+                <thead>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Example</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>actor_id</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The actor id of the given user.
+                            </p>
+                            <p class="detail">
+                                This URL will always point to the author's instance and not the user's home instance.  If you're attempting to reconstruct a link to take the user to this author's profile, you should use the `name` property instead.
+                            </p>
+                        </td>
+                        <td>https://lemmy.world/u/marsara9</td>
+                    </tr>
+                    <tr>
+                        <td>avatar</td>
+                        <td>
+                            <span>String</span>
+                            <span class="detail">(nullable)</span>
+                            <p class="detail">
+                                The URL to the user's avatar, if they have one.
+                            </p>
+                        </td>
+                        <td>https://lemmy.world/pictrs/image/b62d2d6f-25ed-4118-baec-abf2ed01ad27.png?format=webp</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The user's name / internal id.
+                            </p>
+                        </td>
+                        <td>marsara9</td>
+                    </tr>
+                    <tr>
+                        <td>display_name</td>
+                        <td>
+                            <span>String</span>
+                            <span class="detail">(nullable)</span>
+                            <p class="detail">
+                                The user's display name, if they have one.
+                            </p>
+                        </td>
+                        <td>MarSara9</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3 id="SearchCommunity">SearchCommunity</h3>
+            <table>
+                <thead>
+                    <th>Property</th>
+                    <th>Type</th>
+                    <th>Example</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>actor_id</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The actor id of the given community.
+                            </p>
+                            <p class="detail">
+                                NOTE: This URL will always point to the community's host instance and not the user's home instance.  If you're attempting to reconstruct a link to take the user to this community's landing page, you should use the `name` property instead.
+                            </p>
+                        </td>
+                        <td>https://lemmy.world/c/fediverse</td>
+                    </tr>
+                    <tr>
+                        <td>icon</td>
+                        <td>
+                            <span>String</span>
+                            <span class="detail">(nullable)</span>
+                            <p class="detail">
+                                The URL to the community's icon, if they have one.
+                            </p>
+                        </td>
+                        <td>https://lemmy.world/pictrs/image/eb9cfeb5-4eb5-4b1b-a75c-8d9e04c3f856.png?format=webp</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The community's name / internal id.
+                            </p>
+                        </td>
+                        <td>fediverse</td>
+                    </tr>
+                    <tr>
+                        <td>title</td>
+                        <td>
+                            <span>String</span>
+                            <span class="detail">(nullable)</span>
+                            <p class="detail">
+                                The community's display name, if they have one.
+                            </p>
+                        </td>
+                        <td>Fediverse</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>Example Response</h3>
+            <div class="box">
+                <a href="/api/search/posts?query=search+example&page=1&home_instance=lemmy.world">
+                    /api/search/posts?query=search+example&page=1&home_instance=lemmy.world
+                </a>
+            </div>
+        </article>
+    </section>
+    <footer>
+        <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
+        <span>|</span>
+        <span id="version">v0.0.0</span>
+        <span>|</span>
+        <a id="donate">Donate</a>
+        <span>|</span>
+        <a href="/help/api/search/posts">API Documentation</a>
+    </footer>
+</body>
+</html>
