@@ -214,7 +214,8 @@ function buildCommunitySearchResult(community) {
     let item = $("<li/>")
         .addClass("search-result");
 
-    let container = $("<div/>");
+    let container = $("<div/>")
+        .addClass("community");
 
     if(community.icon && isImage(community.icon)) {
         let community_icon = $("<img />")

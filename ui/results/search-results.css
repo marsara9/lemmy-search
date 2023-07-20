@@ -11,6 +11,10 @@
     height: 16px;
 }
 
+.community {
+    font-size: 1.3rem;
+}
+
 .post-citation {
     display: flex;
     align-items: center;
@@ -23,7 +27,7 @@
     vertical-align: middle;
     border-radius: var(--border-radius);
 }
-.post-citation>.date{
+.post-citation>.date, .matches{
     color:#999;
 }
 

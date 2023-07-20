@@ -133,7 +133,6 @@ main {
     flex-direction: column;
     flex-wrap: nowrap;
     min-height: 0;
-    color: var(--darker-color);
     overflow: auto;
 }
 
