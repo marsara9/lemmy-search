@@ -4,6 +4,8 @@
     <title>Lemmy Search</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/shared/styles.css" />
+    <link rel="stylesheet" href="/shared/tips.css">
+    <link rel="stylesheet" href="/shared/nice-select2.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script type="text/javascript" src="/shared/rest.js"></script>
     <script type="text/javascript" src="/shared/cookies.js"></script>
@@ -13,17 +15,7 @@
 </head>
 <body class="homepage">
     <header class="landing">
-        <div>
-            
-        </div>
-        <ul>
-            <li>
-                <a href="/find-communities">Find Communities</a>
-            </li>
-            <!-- <li>
-                <a href="/bot-tracker">Bot Tracker</a>
-            </li> -->
-        </ul>
+        <!-- Placeholder for future use -->
     </header>
     <main>
         <div id="main-search">
@@ -39,18 +31,30 @@
             <form role="search" id="search-form" action="">
                 <input type="search" id="search" required placeholder="Search Lemmy" />
                 <input type="submit" id="submit" class="button" value="Search" />
+                <div class="controls">
+                    <div class="mode">
+                        <input type="radio" name="mode" id="mode-posts" checked="checked" value="posts">
+                        <label for="mode-posts">Posts</label>
+                        <input type="radio" name="mode" id="mode-communites" value="communities">
+                        <label for="mode-communites">Communities</label>
+                    </div>
+                    <div class="info">
+                        <div class="tips-section">
+                            <label for="showTips" class="show-tips">Search Tips</label>
+                            <input type="checkbox" id="showTips" />
+                            <div class="tips">
+                                Filters you can add to your search query:<br>
+                                <ul>
+                                    <li>instance:&lt;domain&gt;</li>
+                                    <li>community:!&lt;name&gt;@&lt;domain&gt;</li>
+                                    <li>author:@&lt;name&gt;@&lt;domain&gt;</li>
+                                    <li>!safeoff</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
-        </div>
-        <label for="showTips" class="show-tips">Search tips</label>
-        <input type="checkbox" id="showTips" />
-        <div class="tips">
-            Filters you can add to your search query:<br>
-            <ul>
-                <li>instance:&lt;domain&gt;</li>
-                <li>community:!&lt;name&gt;@&lt;domain&gt;</li>
-                <li>author:@&lt;name&gt;@&lt;domain&gt;</li>
-                <li>!safeoff</li>
-            </ul>
         </div>
     </main>
     <footer id="footer">

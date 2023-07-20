@@ -1,0 +1,64 @@
+version: 2.1
+commands:
+  setup:
+    steps:
+      - checkout
+      - run:
+          name: Setup buildx and qemu
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y qemu-user-static
+            sudo apt-get install -y binfmt-support
+      - run:
+          name: Check versions
+          command: |
+            qemu-aarch64-static --version
+            update-binfmts --version 
+      - run:
+          name: Create builder
+          command: |
+            docker buildx create --name circleci
+            docker buildx use circleci
+            docker buildx inspect --bootstrap
+jobs:
+  build:
+    parameters:
+      file:
+        description: The path to the dockerfile.
+        type: string
+      tag:
+        description: The docker tag to push.
+        type: string
+    machine:
+      image: ubuntu-2204:current
+      docker_layer_caching: true
+    resource_class: large
+    steps:
+      - setup
+      - run:
+          name: Login to Docker Hub
+          command: |
+            docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run:
+          name: Build multiarch docker image and push
+          command: |
+            export DOCKER_FILE=<< parameters.file >>
+            export TAG=<< parameters.tag >>
+            docker buildx build --file $DOCKER_FILE --progress plain --platform linux/arm64,linux/amd64 --push -t marsara9/lemmy-search:$TAG .
+workflows:
+  build-and-deploy:
+    jobs:
+      - build:
+          file: docker/dev.dockerfile
+          tag: dev
+          filters:
+            branches:
+              only:
+                - develop
+      - build:
+          file: docker/dockerfile
+          tag: latest
+          filters:
+            branches:
+              only:
+                - master
