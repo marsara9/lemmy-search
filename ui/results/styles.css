@@ -68,9 +68,8 @@ header {
     padding-top: 1.4rem;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
     justify-content: stretch;
-    justify-items: start;
+    justify-items: end;
     display: grid; 
     grid-template-columns: auto minmax(max-content, 768px) 1fr auto; 
     grid-template-areas:
@@ -79,43 +78,38 @@ header {
 
 #logo {
     grid-area: logo;
-    padding: 0 24px;
+    padding: 0 12px;
 }
 
 .search-box {
     width: 100%;
     max-width: 768px;
     grid-area: search;
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
     gap: 8px;
     justify-items: start;
     align-items: baseline;
-    grid-template-columns: auto auto; 
-    grid-template-areas:
-        "search search"
-        "mode info"
-        "response .";
 }
 
-/* @media screen and (max-width: 406px) {
-    #logo {
-        display: none;
-    }
-} */
+.controls {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+}
 
 #search-form {
     width: 100%;
     text-align: justify;
-    grid-area: search;
 }
 
 #search {
     width: 100%;
     max-width: var(--max-content-width);
-}
-
-#response-time {
-    grid-area: response;
 }
 
 input[type="search"] {
@@ -137,11 +131,6 @@ input[type="search"] {
     width: 80px;
     vertical-align: bottom;
     align-self: start;
-}
-
-.info {
-    grid-area: info;
-    justify-self: end;
 }
 
 footer {
@@ -167,14 +156,6 @@ main {
     margin: 8px;
 }
 
-/* .detail {
-    color: var(--detail-color);
-}
-
-.highlight {
-    color: var(--highlight-color);
-} */
-
 input, select {
     padding: var(--input-padding);
     border: 1px solid var(--input-border);
@@ -184,7 +165,6 @@ input, select {
 }
 
 .mode {
-    grid-area: mode;
     width: 100%;
     text-align: justify;
 }
@@ -222,5 +202,9 @@ input, select {
     .instance-select {
         max-width: 256px;
         width: 100%;
+    }
+
+    #logo img {
+        width: 32px;
     }
 }
