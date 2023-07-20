@@ -7,7 +7,7 @@ function populateInstances() {
         if(!result.map(instance => instance.actor_id).includes(home_instance)) {
             home_instance = result[0].actor_id;
         }
-        setCookie("home-instance", home_instance);
+        setCookie("home-instance", home_instance, 400);
 
         let select = $("#instance-select");
         select.empty();
@@ -41,7 +41,7 @@ function initializeUI() {
 
     $("#instance-select").on("change", function() {
         home_instance = this.value;
-        setCookie("home-instance", home_instance, 3652);
+        setCookie("home-instance", home_instance, 400);
 
         if(typeof onInstanceChanged === "function") {
             onInstanceChanged();
