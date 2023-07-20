@@ -289,7 +289,7 @@ function onSearch() {
     window.location = "/results?" + new URLSearchParams(params).toString();
 }
 
-function setupControls(mode) {
+function setupControls(queryParameters) {
     $( "#mode-posts" ).on( "click", function() {
         let params = {
             "query" : queryParameters["query"],
@@ -310,7 +310,7 @@ function setupControls(mode) {
         window.location = "/results?" + new URLSearchParams(params).toString();
     });
 
-    $(`#mode-${mode}`).addClass("checked");
+    $(`#mode-${queryParameters["mode"]}`).addClass("checked");
 }
 
 function onReady() {
@@ -320,7 +320,7 @@ function onReady() {
         window.location = "/";
     }
 
-    setupControls(queryParameters["mode"])
+    setupControls(queryParameters)
 
     $("#search").val(queryParameters["query"]);
 

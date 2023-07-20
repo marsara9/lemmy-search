@@ -8,6 +8,7 @@
     --input-padding: 10px 8px;
     --link-color: #1ed2ff;
     --max-content-width: 768px;
+    --input-height: 40px;
 }
 
 html {
@@ -39,8 +40,7 @@ body {
 }
 
 select {
-    /* display: none; */
-    /* width: 256px; */
+    display: none;
     max-width: 256px;
     width: 100%;
 }
@@ -113,7 +113,6 @@ input[type="search"] {
 
 .instance-select {
     grid-area: instances;
-    width: 256px;
     box-sizing: border-box;
     align-self: baseline;
 }
@@ -191,7 +190,6 @@ input, select {
     }
 
     .instance-select {
-        max-width: 256px;
         width: 100%;
     }
 
