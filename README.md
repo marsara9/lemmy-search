@@ -6,10 +6,6 @@
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/marsara9z)
 
-# Please Read
-
-If anyone wants to help contribute to this, please feel free to reach out to me.  You can obviously find me on Lemmy, mainly https://lemmy.world/u/marsara9 or you can find me on Discord.  If you can't contribute but still want to help, feel free to raise feature requests for things you'd like to see.
-
 # Lemmy-Search
 
 The fediverse creates some unique problems when it comes to searching.  Mostly that existing search engines can't deal with the concept that multiple servers may exist that are ultimately hosting the same content.  These same search engines also aren't aware that you only have an account on one, or maybe a select few of these instances.
