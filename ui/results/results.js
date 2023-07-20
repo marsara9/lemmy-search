@@ -282,19 +282,23 @@ function onInstanceChanged() {
 function onSearch() {
     let query = $("#search").val();
 
+    const queryParameters = getQueryParameters();
+
     let params = {
         "query" : query,
-        "page" : 1
+        "page" : 1,
+        "mode" : queryParameters["mode"]
     };
     
     window.location = "/results?" + new URLSearchParams(params).toString();
 }
 
 function setupControls(queryParameters) {
+
     $( "#mode-posts" ).on( "click", function() {
         let params = {
             "query" : queryParameters["query"],
-            "page" : queryParameters["page"],
+            "page" : 1,
             "mode" : "posts"
         };
 
@@ -304,14 +308,16 @@ function setupControls(queryParameters) {
     $( "#mode-communities" ).on( "click", function() {
         let params = {
             "query" : queryParameters["query"],
-            "page" : queryParameters["page"],
+            "page" : 1,
             "mode" : "communities"
         };
 
         window.location = "/results?" + new URLSearchParams(params).toString();
     });
 
-    $(`#mode-${queryParameters["mode"]}`).addClass("checked");
+    $(`#mode-${queryParameters["mode"]}`)
+        .attr("disabled", true)
+        .addClass("checked");
 }
 
 function onReady() {
