@@ -1,5 +1,5 @@
-![docker build:latest](https://github.com/marsara9/lemmy-search/actions/workflows/build-latest.yml/badge.svg)
-![docker build:dev](https://github.com/marsara9/lemmy-search/actions/workflows/build-dev.yml/badge.svg)
+[![CircleCI](https://img.shields.io/circleci/build/github/marsara9/lemmy-search/master?label=master)](https://dl.circleci.com/status-badge/redirect/gh/marsara9/lemmy-search/tree/master)
+[![CircleCI](https://img.shields.io/circleci/build/github/marsara9/lemmy-search/develop?label=develop)](https://dl.circleci.com/status-badge/redirect/gh/marsara9/lemmy-search/tree/develop)
 
 ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/marsara9/lemmy-search)
 ![GitHub](https://img.shields.io/github/license/marsara9/lemmy-search)
