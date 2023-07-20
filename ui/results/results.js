@@ -3,7 +3,7 @@ function getQueryParameters() {
     return {
         "query": urlParameters.get("query"),
         "page": urlParameters.get("page") || 1,
-        "mode": urlParameters.get("mode")
+        "mode": urlParameters.get("mode") || "posts"
     };
 }
 
@@ -289,12 +289,38 @@ function onSearch() {
     window.location = "/results?" + new URLSearchParams(params).toString();
 }
 
+function setupControls(mode) {
+    $( "#mode-posts" ).on( "click", function() {
+        let params = {
+            "query" : queryParameters["query"],
+            "page" : queryParameters["page"],
+            "mode" : "posts"
+        };
+
+        window.location = "/results?" + new URLSearchParams(params).toString();
+    });
+
+    $( "#mode-communities" ).on( "click", function() {
+        let params = {
+            "query" : queryParameters["query"],
+            "page" : queryParameters["page"],
+            "mode" : "communities"
+        };
+
+        window.location = "/results?" + new URLSearchParams(params).toString();
+    });
+
+    $(`#mode-${mode}`).addClass("checked");
+}
+
 function onReady() {
 
     const queryParameters = getQueryParameters();
     if(!queryParameters["query"]) {
         window.location = "/";
     }
+
+    setupControls(queryParameters["mode"])
 
     $("#search").val(queryParameters["query"]);
 
