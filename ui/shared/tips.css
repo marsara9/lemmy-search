@@ -1,7 +1,7 @@
 .tips {
 	background-color: #161616;
 	padding: 1rem;
-	border-radius: var(--border-radius);
+	border-radius: 8px;
 	position: relative;
 	margin-top: 12px;
     visibility: hidden;
@@ -11,6 +11,9 @@
     cursor: help;
     text-decoration: underline dotted;
     text-underline-offset: .3em;
+    text-align: end;
+    display: inline-block;
+    width: 100%;
 }
 
 #showTips {
