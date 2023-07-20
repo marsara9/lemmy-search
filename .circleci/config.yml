@@ -44,7 +44,7 @@ jobs:
           command: |
             export DOCKER_FILE=<< parameters.file >>
             export TAG=<< parameters.tag >>
-            docker buildx build --file $DOCKER_FILE --platform linux/arm64,linux/amd64 --push -t marsara9/lemmy-search:$TAG .
+            docker buildx build --file $DOCKER_FILE --progress plain --platform linux/arm64,linux/amd64 --push -t marsara9/lemmy-search:$TAG .
 workflows:
   build-and-deploy:
     jobs:
