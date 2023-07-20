@@ -5,16 +5,8 @@
     --input-bg: var(--darker-color);
     --input-text: var(--color-light);
     --input-border: #8d8d8d;
-    --input-focus: var(--color-light);
     --input-padding: 10px 8px;
-    --input-height: 40px;
-    --result-bg: var(--darker-color);
-    --result-logo-width: 80px;
-    --results-whitespace: 90px;
     --link-color: #1ed2ff;
-    --font-color: var(--color-light);
-    --border-radius: 0.375rem;
-    --container-padding: 1rem 2rem;
     --max-content-width: 768px;
 }
 
@@ -71,7 +63,7 @@ header {
     justify-content: stretch;
     justify-items: end;
     display: grid; 
-    grid-template-columns: auto minmax(max-content, 768px) 1fr auto; 
+    grid-template-columns: auto minmax(max-content, var(--max-content-width)) 1fr auto; 
     grid-template-areas:
         "logo search . instances";
 }
@@ -83,7 +75,7 @@ header {
 
 .search-box {
     width: 100%;
-    max-width: 768px;
+    max-width: var(--max-content-width);
     grid-area: search;
     display: flex;
     flex-direction: column;
@@ -123,7 +115,6 @@ input[type="search"] {
     grid-area: instances;
     width: 256px;
     box-sizing: border-box;
-    /* padding: 0 16px; */
     align-self: baseline;
 }
 
