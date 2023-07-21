@@ -3,7 +3,7 @@ function getQueryParameters() {
     return {
         "query": urlParameters.get("query"),
         "page": urlParameters.get("page") || 1,
-        "mode": urlParameters.get("mode")
+        "mode": urlParameters.get("mode") || "posts"
     };
 }
 
@@ -43,11 +43,11 @@ function query(queryString, page, mode, instance) {
         $("#results").empty();
         $("#results").append(list);
 
-        buildPageControls(result.total_pages);
+        buildPageControls(result.total_pages, mode);
     })
 }
 
-function buildPageControls(total_pages) {
+function buildPageControls(total_pages, mode) {
     const urlParameters = new URLSearchParams(window.location.search);
     let query = urlParameters.get("query");
     let page = Math.max(parseInt(urlParameters.get("page"), 10) || 1, 1);
@@ -58,8 +58,8 @@ function buildPageControls(total_pages) {
     if(page > 1) {
         let params = {
             "query" : query,
-            "home_instance" : dropSchema(home_instance),
-            "page" : page - 1
+            "page" : page - 1,
+            "mode" : mode
         };
         
         let href = "/results?" + new URLSearchParams(params).toString();
@@ -77,8 +77,8 @@ function buildPageControls(total_pages) {
     if(page < total_pages) {
         let params = {
             "query" : query,
-            "home_instance" : dropSchema(home_instance),
-            "page" : page + 1
+            "page" : page + 1,
+            "mode" : mode
         };
         
         let href = "/results?" + new URLSearchParams(params).toString();
@@ -214,7 +214,8 @@ function buildCommunitySearchResult(community) {
     let item = $("<li/>")
         .addClass("search-result");
 
-    let container = $("<div/>");
+    let container = $("<div/>")
+        .addClass("community");
 
     if(community.icon && isImage(community.icon)) {
         let community_icon = $("<img />")
@@ -281,12 +282,42 @@ function onInstanceChanged() {
 function onSearch() {
     let query = $("#search").val();
 
+    const queryParameters = getQueryParameters();
+
     let params = {
         "query" : query,
-        "page" : 1
+        "page" : 1,
+        "mode" : queryParameters["mode"]
     };
     
     window.location = "/results?" + new URLSearchParams(params).toString();
+}
+
+function setupControls(queryParameters) {
+
+    $( "#mode-posts" ).on( "click", function() {
+        let params = {
+            "query" : queryParameters["query"],
+            "page" : 1,
+            "mode" : "posts"
+        };
+
+        window.location = "/results?" + new URLSearchParams(params).toString();
+    });
+
+    $( "#mode-communities" ).on( "click", function() {
+        let params = {
+            "query" : queryParameters["query"],
+            "page" : 1,
+            "mode" : "communities"
+        };
+
+        window.location = "/results?" + new URLSearchParams(params).toString();
+    });
+
+    $(`#mode-${queryParameters["mode"]}`)
+        .attr("disabled", true)
+        .addClass("checked");
 }
 
 function onReady() {
@@ -295,6 +326,8 @@ function onReady() {
     if(!queryParameters["query"]) {
         window.location = "/";
     }
+
+    setupControls(queryParameters)
 
     $("#search").val(queryParameters["query"]);
 

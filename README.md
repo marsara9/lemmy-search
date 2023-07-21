@@ -1,14 +1,10 @@
-![docker build:latest](https://github.com/marsara9/lemmy-search/actions/workflows/build-latest.yml/badge.svg)
-![docker build:dev](https://github.com/marsara9/lemmy-search/actions/workflows/build-dev.yml/badge.svg)
+[![CircleCI](https://img.shields.io/circleci/build/github/marsara9/lemmy-search/master?label=master)](https://dl.circleci.com/status-badge/redirect/gh/marsara9/lemmy-search/tree/master)
+[![CircleCI](https://img.shields.io/circleci/build/github/marsara9/lemmy-search/develop?label=develop)](https://dl.circleci.com/status-badge/redirect/gh/marsara9/lemmy-search/tree/develop)
 
 ![GitHub tag (latest SemVer pre-release)](https://img.shields.io/github/v/tag/marsara9/lemmy-search)
 ![GitHub](https://img.shields.io/github/license/marsara9/lemmy-search)
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/marsara9z)
-
-# Please Read
-
-If anyone wants to help contribute to this, please feel free to reach out to me.  You can obviously find me on Lemmy, mainly https://lemmy.world/u/marsara9 or you can find me on Discord.  If you can't contribute but still want to help, feel free to raise feature requests for things you'd like to see.
 
 # Lemmy-Search
 

@@ -1,0 +1,198 @@
+:root {
+    --color-light: #dee2e6;
+    --body-color: #222;
+    --darker-color: #1c1c1c;
+    --input-bg: var(--darker-color);
+    --input-text: var(--color-light);
+    --input-border: #8d8d8d;
+    --input-padding: 10px 8px;
+    --link-color: #1ed2ff;
+    --max-content-width: 768px;
+    --input-height: 40px;
+}
+
+html {
+    width:100vw;
+    height:100vh;
+}
+
+a {
+    color: var(--link-color);
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    text-decoration: underline;
+}
+  
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    background-color: var(--body-color);
+    color: var(--color-light);
+    width:100vw;
+    height:100vh;
+    overflow: hidden;
+}
+
+select {
+    display: none;
+    max-width: 256px;
+    width: 100%;
+}
+
+header, footer {
+    flex-grow: 0;
+    position: sticky;
+    padding: 12px;
+    text-align: center;
+    background-color: var(--darker-color);
+}
+
+header {
+    top: 0;
+    background-color: var(--body-color);
+    box-shadow: 0px 2px 2px 2px #181818e3;
+    padding-top: 1.4rem;
+    align-items: center;
+    gap: 8px;
+    justify-content: stretch;
+    justify-items: end;
+    display: grid; 
+    grid-template-columns: auto minmax(max-content, var(--max-content-width)) 1fr auto; 
+    grid-template-areas:
+        "logo search . instances";
+}
+
+#logo {
+    grid-area: logo;
+    padding: 0 12px;
+}
+
+.search-box {
+    width: 100%;
+    max-width: var(--max-content-width);
+    grid-area: search;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 8px;
+    justify-items: start;
+    align-items: baseline;
+}
+
+.controls {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    gap: 8px;
+    width: 100%;
+}
+
+#search-form {
+    width: 100%;
+    text-align: justify;
+}
+
+#search {
+    width: 100%;
+    max-width: var(--max-content-width);
+}
+
+input[type="search"] {
+    font-size: 1.2rem;
+    padding: var(--input-padding);
+    padding-left: 40px;
+    background: var(--input-bg) url("../imgs/search.svg") no-repeat 13px center;
+}
+
+.instance-select {
+    grid-area: instances;
+    box-sizing: border-box;
+    align-self: baseline;
+}
+
+#logo img {
+    width: 80px;
+    vertical-align: bottom;
+    align-self: start;
+}
+
+footer {
+    bottom: 0;
+}
+
+main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 0;
+    overflow: auto;
+}
+
+#page-control {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px;
+}
+
+input, select {
+    padding: var(--input-padding);
+    border: 1px solid var(--input-border);
+    border-radius: 999px;
+    background-color: var(--input-bg);
+    color: var(--input-text);
+}
+
+.mode {
+    width: 100%;
+    text-align: justify;
+}
+
+.mode > button {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    border: 1px solid var(--input-border);
+    border-radius: 999px;
+    background-color: var(--body-color);
+    cursor:pointer;
+    color: var(--link-color);
+}
+
+.mode > button:not(.checked):hover {
+    border-color: var(--color-light);
+}
+
+.mode > button.checked {
+    background-color: var(--link-color);
+    border: none;
+    color: var(--darker-color);
+}
+
+@media screen and (max-width: 768px) {
+    header {
+        grid-template-columns: auto minmax(max-content, 1fr); 
+        grid-template-areas:
+            "logo instances"
+            "search search"
+            "mode info";
+    }
+
+    .instance-select {
+        width: 100%;
+    }
+
+    #logo img {
+        width: 32px;
+    }
+}
