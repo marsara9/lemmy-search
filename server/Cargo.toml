@@ -5,22 +5,22 @@ edition = "2021"
 authors = ["MarSara9"]
 
 [dependencies]
-env_logger = "0.10.*"
-async-recursion = "1.0.*"
-lazy_static = "1.4.*"
-robotstxt = "0.3.*"
-deadpool = "0.9.*"
-deadpool-r2d2 = "0.2.*"
-serde = { version = "1.0.*", features = ["derive"] }
-once_cell = "1.18.*"
-reqwest = { version = "0.11.*", features = ["json"] }
-tokio = { version = "1.29.*", features = ["rt-multi-thread", "fs"] }
-actix-web = { version = "4.3.*", features = [] }
-actix-files = "0.6.*"
-clokwerk = "0.4.*"
-chrono = { version = "0.4.*", features = ["serde"] }
-config-file = { version = "0.2.*", features = ["yaml"] }
-uuid = { version = "1.4.*", features = ["v4"] }
-postgres = { version = "0.19.*", features = ["with-uuid-1", "with-chrono-0_4"] }
-r2d2_postgres = { version = "0.18.*", features = [] }
-regex = { version  = "1.9.*", features = [] }
+env_logger = { version = "0.10.*", default-features=false, features=[] }
+async-recursion = { version = "1.0.*", default-features=false, features=[] }
+lazy_static = { version = "1.4.*", default-features=false, features=[] }
+robotstxt = { version = "0.3.*", default-features=false, features=[] }
+deadpool = { version = "0.9.*", default-features=false, features=["rt_tokio_1"] }
+deadpool-r2d2 = { version = "0.2.*", default-features=false, features=[] }
+serde = { version = "1.0.*", default-features=false, features=["derive"] }
+once_cell = { version = "1.18.*", default-features=false, features=[] }
+reqwest = { version = "0.11.*", default-features=false, features=["json"] }
+tokio = { version = "1.29.*", default-features=false, features=["rt-multi-thread", "fs"] }
+actix-web = { version = "4.3.*", default-features=false, features=["macros"] }
+actix-files = { version = "0.6.*", default-features=false, features=[] }
+clokwerk = { version = "0.4.*", default-features=false, features=["async"] }
+chrono = { version = "0.4.*", default-features=false, features=["serde"] }
+config-file = { version = "0.2.*", default-features=false, features=["yaml"] }
+uuid = { version = "1.4.*", default-features=false, features=["v4"] }
+postgres = { version = "0.19.*", default-features=false, features=["with-uuid-1", "with-chrono-0_4"] }
+r2d2_postgres = { version = "0.18.*", default-features=false, features=[] }
+regex = { version  = "1.9.*", default-features=false, features=[] }
