@@ -49,12 +49,14 @@ footer {
 
 main {
     display: flex;
-    align-items: center;
     margin-right: auto;
     margin-left: auto;
     max-width: 768px;
     flex-grow: 1;
     flex-shrink: 0;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
 }
 
 #main-search {
