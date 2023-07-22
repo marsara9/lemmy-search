@@ -37,7 +37,7 @@ impl std::fmt::Display for LemmySearchError {
             Self::DatabaseBuildError(err) => err.fmt(f),
             Self::DatabaseConnection(r2d2_postgres) => r2d2_postgres.fmt(f),
             Self::Network(reqwest) => reqwest.fmt(f),
-            Self::InvalidUri(invalidUri) => invalidUri.fmt(f),
+            Self::InvalidUri(invalid_uri) => invalid_uri.fmt(f),
             Self::JoinError(join_error) => join_error.fmt(f),
             Self::DatabaseInteractionError(err) => err.fmt(f),
             Self::DatabasePoolError(err) => err.fmt(f)
