@@ -3,8 +3,9 @@
 	padding: 1rem;
 	border-radius: 8px;
 	position: relative;
-	margin-top: 12px;
+    margin-top: 12px;
     visibility: hidden;
+    white-space: nowrap;
 }
 
 .show-tips {
@@ -14,6 +15,7 @@
     text-align: end;
     display: inline-block;
     width: 100%;
+    white-space: nowrap;
 }
 
 #showTips {
@@ -29,18 +31,6 @@
 	padding-inline-start: 1.5em;
 }
 
-.tips:before {
-  content: '';
-  width: 0; 
-  height: 0; 
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 10px solid #161616;
-	position: absolute;
-	top: -10px;
-	left: calc(50% - 5px) 
-}
-
 .results .tips-section {
     margin-left: auto;
     margin-right: .5em;
@@ -49,13 +39,39 @@
 
 .results .tips {
     position: absolute;
-    margin-top: 15px;
-    right: -10px;
-    width: max-content;
+    right: 0;
 }
 
 .results .tips:before {
     position: absolute;
     right: 10px;
     left: unset;
+}
+
+@media screen and (max-width: 768px) {
+    .results .tips-section {
+        position: unset;
+    }
+
+    .tips {
+        position: absolute;
+        display: table;
+        margin: 12px auto; 
+        left: 12px;
+        right: 12px; 
+    }
+}
+
+@media screen and (min-width: 768px) {
+    .tips:before {
+        content: '';
+        width: 0; 
+        height: 0; 
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-bottom: 10px solid #161616;
+          position: absolute;
+          top: -10px;
+          right: 24px;
+      }
 }
