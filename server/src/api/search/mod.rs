@@ -1,14 +1,23 @@
 pub mod models;
 pub mod filters;
 
-use self::models::search::Version;
-use super::lemmy::crawler::LemmyCrawler;
+use self::models::{
+    search::Version, 
+    redirect::{
+        Redirect, 
+        RedirectType
+    }
+};
+use super::lemmy::{
+    crawler::LemmyCrawler, 
+    models::id::LemmyId
+};
 use std::{
     collections::{
         HashMap, 
         HashSet
     }, 
-    time::Instant
+    time::Instant, str::FromStr
 };
 use actix_web::{
     web::{
@@ -19,8 +28,10 @@ use actix_web::{
     }, 
     Responder, 
     Result, 
-    Route
+    Route, 
+    http::Uri
 };
+use reqwest::StatusCode;
 use crate::{
     error::LogError,
     api::search::{
@@ -64,6 +75,7 @@ impl SearchHandler {
         routes.insert("/api/search/posts".to_string(), get().to(Self::search_posts));
         routes.insert("/api/search/communities".to_string(), get().to(Self::search_communities));
         routes.insert("/api/instances".to_string(), get().to(Self::get_instances));
+        routes.insert("/api/redirect".to_string(), get().to(Self::redirect));
 
         Self {
             routes
@@ -333,5 +345,88 @@ impl SearchHandler {
                 .customize()
                 .insert_header(("cache-control", "public, max-age=86400"))
         )
+    }
+
+    pub async fn redirect<'a>(
+        context : Data<Context>,
+        source : Query<Redirect>
+    ) -> Result<impl Responder> {
+
+        match source.redirect_type {
+            RedirectType::Post => {
+                let internal_id = LemmyId::find(
+                    context.pool.clone(), 
+                    source.actor_id.clone(),
+                    source.home_instance.clone()
+                ).await.map_err(|err| {
+                    actix_web::error::ErrorInternalServerError(err)
+                })?;
+        
+                let location = format!("{}post/{}", source.home_instance, internal_id);
+                
+                Ok(""
+                    .customize()
+                    .append_header(("location", location))
+                    .with_status(StatusCode::SEE_OTHER)
+                )
+            },
+            RedirectType::Author => {
+                let location = Self::build_redirect_url_simple(
+                    &source.actor_id, 
+                    &source.home_instance, 
+                    "u"
+                ).map_err(|err| {
+                    actix_web::error::ErrorInternalServerError(err)
+                })?;
+
+                Ok(""
+                    .customize()
+                    .append_header(("location", location))
+                    .with_status(StatusCode::SEE_OTHER)
+                )
+            },
+            RedirectType::Community => {
+                let location = Self::build_redirect_url_simple(
+                    &source.actor_id, 
+                    &source.home_instance, 
+                    "c"
+                ).map_err(|err| {
+                    actix_web::error::ErrorInternalServerError(err)
+                })?;
+
+                Ok(""
+                    .customize()
+                    .append_header(("location", location))
+                    .with_status(StatusCode::SEE_OTHER)
+                )
+            },
+        }
+    }
+
+    fn build_redirect_url_simple(
+        target_actor_id : &str,
+        home_instance_actor_id : &str,
+        path_part : &str
+    ) -> crate::error::Result<String> {
+        let target_actor_id = target_actor_id.to_owned();
+        let home_instance_actor_id = home_instance_actor_id.to_owned();
+
+        let actor_uri = Uri::from_str(&target_actor_id)?;
+        let actor_name = actor_uri.path()
+            .split("/")
+            .collect::<Vec<_>>()
+            .get(2)
+            .unwrap()
+            .to_owned();
+        let actor_domain = actor_uri.host().unwrap();
+        let home_uri = Uri::from_str(&home_instance_actor_id)?;
+        let home_domain = home_uri.host()
+            .unwrap();
+
+        if actor_domain == home_domain {
+            Ok(format!("https://{}/{}/{}", home_domain, path_part, actor_name))
+        } else {
+            Ok(format!("https://{}/{}/{}@{}", home_domain, path_part, actor_name, actor_domain))
+        }
     }
 }
