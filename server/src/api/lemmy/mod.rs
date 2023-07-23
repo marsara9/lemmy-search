@@ -1,7 +1,5 @@
 use std::str::FromStr;
-
 use actix_web::http::Uri;
-
 use super::common::ActorType;
 
 pub mod models;
@@ -26,9 +24,6 @@ pub fn build_lemmy_redirect_url(
     home_instance_actor_id : &str,
     path_part : &str
 ) -> crate::error::Result<String> {
-    let target_actor_id = target_actor_id.to_owned();
-    let home_instance_actor_id = home_instance_actor_id.to_owned();
-
     let actor_uri = Uri::from_str(&target_actor_id)?;
     let actor_name = actor_uri.path()
         .split("/")

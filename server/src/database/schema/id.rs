@@ -19,9 +19,12 @@ use super::{
 impl LemmyId {
     pub async fn find(
         pool : DatabasePool,
-        post_actor_id : String,
-        instance_actor_id : String
+        post_actor_id : &str,
+        instance_actor_id : &str
     ) -> Result<i64> {
+
+        let post_actor_id = post_actor_id.to_owned();
+        let instance_actor_id = instance_actor_id.to_owned();
 
         Ok(get_database_client(&pool, move |client| {
 

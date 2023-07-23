@@ -9,7 +9,6 @@ use super::{
     lemmy::{
         crawler::LemmyCrawler, 
         models::id::LemmyId,
-        get_lemmy_actor_type, 
         build_lemmy_redirect_url
     }, 
     common::ActorType
@@ -38,19 +37,22 @@ use crate::{
         LogError, 
         LemmySearchError
     },
-    api::search::{
-        models::search::{
-            SearchQuery,
-            SearchResult, 
-            FindCommunityResult
+    api::{
+        search::{
+            models::search::{
+                SearchQuery,
+                SearchResult, 
+                FindCommunityResult
+            }, 
+            filters::{
+                instance::InstanceFilter, 
+                community::CommunityFilter, 
+                author::AuthorFilter, 
+                nsfw::NSFWFilter, 
+                date::DateFilter
+            }
         }, 
-        filters::{
-            instance::InstanceFilter, 
-            community::CommunityFilter, 
-            author::AuthorFilter, 
-            nsfw::NSFWFilter, 
-            date::DateFilter
-        }
+        common::get_actor_type
     }, 
     database::{
         dbo::search::SearchDatabase,
@@ -356,13 +358,15 @@ impl SearchHandler {
         source : Query<Redirect>
     ) -> Result<impl Responder> {
 
-        match get_lemmy_actor_type(&source.actor_id) {
+        println!("Redirecting to: {}", source.actor_id);
+
+        match get_actor_type(&source.actor_id) {
             Some(actor_type) => match actor_type {
                 ActorType::Post => {
                     let internal_id = LemmyId::find(
                         context.pool.clone(), 
-                        source.actor_id.clone(),
-                        source.home_instance.clone()
+                        &source.actor_id,
+                        &source.home_instance
                     ).await.map_err(|err| {
                         actix_web::error::ErrorInternalServerError(err)
                     })?;

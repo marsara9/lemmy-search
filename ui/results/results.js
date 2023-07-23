@@ -98,7 +98,7 @@ function buildPostSearchResult(post, original_query_terms) {
 
     let post_name = $("<a/>")
         .addClass("post-name")
-        .attr("href", home_instance + "post/" + post.remote_id);
+        .attr("href", getRedirectUrl(post.actor_id));
     post_name.text(post.name);
     item.append(post_name);
 
@@ -112,14 +112,7 @@ function buildPostSearchResult(post, original_query_terms) {
     }
 
     let post_author = $("<a/>");
-    if(post.author.actor_id.startsWith(home_instance)) {
-        post_author.attr("href", post.author.actor_id);
-    } else {
-        let instance = new URL(post.author.actor_id).hostname;
-        let href = home_instance + "u/" + post.author.name + "@" + instance;
-
-        post_author.attr("href", href);
-    }
+    post_author.attr("href", getRedirectUrl(post.author.actor_id));
     post_author.text(post.author.display_name ?? post.author.name);
     post_citation.append(post_author);
 
@@ -134,14 +127,7 @@ function buildPostSearchResult(post, original_query_terms) {
     }
 
     let post_community = $("<a/>");
-    if(post.community.actor_id.startsWith(home_instance)) {
-        post_community.attr("href", post.community.actor_id);
-    } else {
-        let instance = new URL(post.community.actor_id).hostname;
-        let href = home_instance + "c/" + post.community.name + "@" + instance;
-
-        post_community.attr("href", href);
-    }
+    post_community.attr("href", getRedirectUrl(post.community.actor_id));
     post_community.text(post.community.title ?? post.community.name);
     post_citation.append(post_community);
 
@@ -227,14 +213,7 @@ function buildCommunitySearchResult(community) {
     }
 
     let community_link = $("<a/>");
-    if(community.actor_id.startsWith(home_instance)) {
-        community_link.attr("href", community.actor_id);
-    } else {
-        let instance = new URL(community.actor_id).hostname;
-        let href = home_instance + "c/" + community.name + "@" + instance;
-
-        community_link.attr("href", href);
-    }
+    community_link.attr("href", getRedirectUrl(community.actor_id));
     community_link.text(community.title ?? community.name);
     container.append(community_link);
 
@@ -258,6 +237,16 @@ function buildCommunitySearchResult(community) {
     item.append(container);
 
     return item;
+}
+
+function getRedirectUrl(actor_id) {
+
+    let queryParameters = new URLSearchParams({
+        "actor_id" : actor_id,
+        "home_instance" : home_instance
+    }).toString();
+
+    return `/api/redirect?${queryParameters}`
 }
 
 const INSTANCE_MATCH = new RegExp("^https:\/\/(?<domain>.+)\/c\/.*$");

@@ -88,7 +88,7 @@ impl SearchDatabase {
 
             let query_string = format!("
             SELECT 
-                    p.ap_id as p_actor_id
+                    p.ap_id as p_actor_id,
                     p.name as p_name,
                     left(p.body, 300) as p_body,
                     p.updated as p_updated,
