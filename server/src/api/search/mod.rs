@@ -3,21 +3,23 @@ pub mod filters;
 
 use self::models::{
     search::Version, 
-    redirect::{
-        Redirect, 
-        RedirectType
-    }
+    redirect::Redirect
 };
-use super::lemmy::{
-    crawler::LemmyCrawler, 
-    models::id::LemmyId
+use super::{
+    lemmy::{
+        crawler::LemmyCrawler, 
+        models::id::LemmyId,
+        get_lemmy_actor_type, 
+        build_lemmy_redirect_url
+    }, 
+    common::ActorType
 };
 use std::{
     collections::{
         HashMap, 
         HashSet
     }, 
-    time::Instant, str::FromStr
+    time::Instant
 };
 use actix_web::{
     web::{
@@ -28,12 +30,14 @@ use actix_web::{
     }, 
     Responder, 
     Result, 
-    Route, 
-    http::Uri
+    Route
 };
 use reqwest::StatusCode;
 use crate::{
-    error::LogError,
+    error::{
+        LogError, 
+        LemmySearchError
+    },
     api::search::{
         models::search::{
             SearchQuery,
@@ -352,81 +356,59 @@ impl SearchHandler {
         source : Query<Redirect>
     ) -> Result<impl Responder> {
 
-        match source.redirect_type {
-            RedirectType::Post => {
-                let internal_id = LemmyId::find(
-                    context.pool.clone(), 
-                    source.actor_id.clone(),
-                    source.home_instance.clone()
-                ).await.map_err(|err| {
-                    actix_web::error::ErrorInternalServerError(err)
-                })?;
-        
-                let location = format!("{}post/{}", source.home_instance, internal_id);
-                
-                Ok(""
-                    .customize()
-                    .append_header(("location", location))
-                    .with_status(StatusCode::SEE_OTHER)
-                )
+        match get_lemmy_actor_type(&source.actor_id) {
+            Some(actor_type) => match actor_type {
+                ActorType::Post => {
+                    let internal_id = LemmyId::find(
+                        context.pool.clone(), 
+                        source.actor_id.clone(),
+                        source.home_instance.clone()
+                    ).await.map_err(|err| {
+                        actix_web::error::ErrorInternalServerError(err)
+                    })?;
+            
+                    let location = format!("{}post/{}", source.home_instance, internal_id);
+                    
+                    Ok(""
+                        .customize()
+                        .append_header(("location", location))
+                        .with_status(StatusCode::SEE_OTHER)
+                    )
+                },
+                ActorType::Author => {
+                    let location = build_lemmy_redirect_url(
+                        &source.actor_id, 
+                        &source.home_instance, 
+                        "u"
+                    ).map_err(|err| {
+                        actix_web::error::ErrorInternalServerError(err)
+                    })?;
+    
+                    Ok(""
+                        .customize()
+                        .append_header(("location", location))
+                        .with_status(StatusCode::SEE_OTHER)
+                    )
+                },
+                ActorType::Community => {
+                    let location = build_lemmy_redirect_url(
+                        &source.actor_id, 
+                        &source.home_instance, 
+                        "c"
+                    ).map_err(|err| {
+                        actix_web::error::ErrorInternalServerError(err)
+                    })?;
+    
+                    Ok(""
+                        .customize()
+                        .append_header(("location", location))
+                        .with_status(StatusCode::SEE_OTHER)
+                    )
+                }
             },
-            RedirectType::Author => {
-                let location = Self::build_redirect_url_simple(
-                    &source.actor_id, 
-                    &source.home_instance, 
-                    "u"
-                ).map_err(|err| {
-                    actix_web::error::ErrorInternalServerError(err)
-                })?;
-
-                Ok(""
-                    .customize()
-                    .append_header(("location", location))
-                    .with_status(StatusCode::SEE_OTHER)
-                )
-            },
-            RedirectType::Community => {
-                let location = Self::build_redirect_url_simple(
-                    &source.actor_id, 
-                    &source.home_instance, 
-                    "c"
-                ).map_err(|err| {
-                    actix_web::error::ErrorInternalServerError(err)
-                })?;
-
-                Ok(""
-                    .customize()
-                    .append_header(("location", location))
-                    .with_status(StatusCode::SEE_OTHER)
-                )
-            },
-        }
-    }
-
-    fn build_redirect_url_simple(
-        target_actor_id : &str,
-        home_instance_actor_id : &str,
-        path_part : &str
-    ) -> crate::error::Result<String> {
-        let target_actor_id = target_actor_id.to_owned();
-        let home_instance_actor_id = home_instance_actor_id.to_owned();
-
-        let actor_uri = Uri::from_str(&target_actor_id)?;
-        let actor_name = actor_uri.path()
-            .split("/")
-            .collect::<Vec<_>>()
-            .get(2)
-            .unwrap()
-            .to_owned();
-        let actor_domain = actor_uri.host().unwrap();
-        let home_uri = Uri::from_str(&home_instance_actor_id)?;
-        let home_domain = home_uri.host()
-            .unwrap();
-
-        if actor_domain == home_domain {
-            Ok(format!("https://{}/{}/{}", home_domain, path_part, actor_name))
-        } else {
-            Ok(format!("https://{}/{}/{}@{}", home_domain, path_part, actor_name, actor_domain))
+            None => {
+                Err(actix_web::error::ErrorNotAcceptable(LemmySearchError::Generic("Invalid actor_id URL.")))
+            }
         }
     }
 }
