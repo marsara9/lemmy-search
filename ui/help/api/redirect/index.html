@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Lemmy Search</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/help/api/styles.css" />
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script type="text/javascript" src="/shared/rest.js"></script>
+    <script type="text/javascript" src="/help/api/help.js"></script>
+</head>
+<body>
+    <header>API Documentation</header>
+    <section>
+        <nav>
+          <ul>
+            <li>
+                <a href="/help/api/search/posts">Search Posts</a>
+            </li>
+            <li>
+                <a href="/help/api/search/communities">Search Communities</a>
+            </li>
+            <li>
+                <a href="/help/api/redirect">Redirect</a>
+            </li>
+          </ul>
+        </nav>
+        
+        <article>
+            <h1>Redirect</h1>
+            <p>
+                Given a actor id and a home instance this will return a <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/303">HTTP 303 (See Other)</a> with the location header set to the actual destination of the content.  While the <a href="/help/api/search/posts#SearchPost">SearchPost</a> or <a href="/help/api/search/communities#SearchCommunity">SearchCommunity</a> will generally contain enough data to reconstruct the URL yourself, it should be preferred to use this service to handle that instead.  As, as more and more instance types are supported (i.e. Kbin, Mastodon, etc...) this endpoint will always provide the correct mapping.
+            </p>
+            <hr/>
+            <h2>Endpoint</h2>
+            <p>
+                /api/redirect
+            </p>
+            <h2>Request</h2>
+            <table>
+                <thead>
+                    <th colspan="2">Query Parameter</th>
+                    <th>Example</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>actor_id</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                This should be the actor_id that you want to ultimately navigate to.
+                            </p> 
+                            <p class="detail">
+                                Make sure to URL encode the data for this parameter.
+                            </p>
+                        </td>
+                        <td>https://lemmy.world/post/963301</td>
+                    </tr>
+                    <tr>
+                        <td>home_instance</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The actor_id of the user's home-instance.
+                            </p> 
+                            <p class="detail">
+                                The trailing slash is required.  See the <a href="/help/api/instances">instances</a> API for a listing of available home-instances.
+                            </p> 
+                        </td>
+                        <td>https://lemmy.world/</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h2>Response</h2>
+            <p>
+                The response body will always be empty but the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Location">location</a> header will be set to the URL of the actor on the user's home instance.
+            </p>
+            <h3>Example Response</h3>
+            <div class="box">
+                <a href="/api/redirect?actor_id=https%3A%2F%2Flemmy.world%2Fpost%2F963301&home_instance=https%3A%2F%2Flemmy.world%2F">
+                    /api/redirect?actor_id=https%3A%2F%2Flemmy.world%2Fpost%2F963301&home_instance=https%3A%2F%2Flemmy.world%2F
+                </a>
+            </div>
+        </article>
+    </section>
+    <footer>
+        <a href="https://github.com/marsara9/lemmy-search">GitHub</a>
+        <span>|</span>
+        <span id="version">v0.0.0</span>
+        <span>|</span>
+        <a id="donate">Donate</a>
+        <span>|</span>
+        <a href="/help/api/search/posts">API Documentation</a>
+    </footer>
+</body>
+</html>

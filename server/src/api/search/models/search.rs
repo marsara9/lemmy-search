@@ -42,7 +42,8 @@ pub struct FindCommunityResult {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SearchPost {    
+pub struct SearchPost {
+    pub actor_id : String,
     pub name : String,
     pub body : Option<String>,
     pub updated : DateTime<Utc>,
