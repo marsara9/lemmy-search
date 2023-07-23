@@ -17,6 +17,15 @@ html {
 a {
     color: var(--link-color);
     text-decoration: none;
+    white-space: nowrap;
+}
+
+p {
+    background-color: var(--body-color);
+    color: var(--color-light);
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 1.5rem;
 }
 
 a:hover,
@@ -65,7 +74,6 @@ section {
 nav {
     flex-grow: 0;
     padding: 12px;
-    min-width: 128px;
     background-color: var(--body-color);
     border-right: 1px solid var(--input-border);
 }
@@ -73,6 +81,10 @@ nav {
 nav > ul {
     list-style: none;
     padding: 0;
+}
+
+nav > ul > li {
+    padding: 12px;
 }
 
 article {

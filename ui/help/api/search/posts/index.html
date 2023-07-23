@@ -19,6 +19,9 @@
             <li>
                 <a href="/help/api/search/communities">Search Communities</a>
             </li>
+            <li>
+                <a href="/help/api/redirect">Redirect</a>
+            </li>
           </ul>
         </nav>
         
@@ -159,6 +162,19 @@
                 </thead>
                 <tbody>
                     <tr>
+                        <td>actor_id</td>
+                        <td>
+                            <span>String</span>
+                            <p class="detail">
+                                The actor id of the post.
+                            </p>
+                            <p class="detail">
+                                Ideally you should use the <a href="/help/api/redirect">redirect</a> API to handle getting the URL for the user's home instance.  But this may not always be possible, especially for mobile applications.  In the case that you can use the redirect API you should pass this as the <span class="highlight">actor_id</span> after URL encoding the value.
+                            </p>
+                        </td>
+                        <td>https://lemmy.world/post/963301</td>
+                    </tr>
+                    <tr>
                         <td>name</td>
                         <td>
                             <span>String</span>
@@ -190,7 +206,7 @@
                                 This is the ID of the post on the user's home instance.
                             </p>
                             <p class="detail">
-                                You SHOULD use this to re-create the link or to lookup the post that the user wants to navigate to.
+                                You MAY use this to re-create the link or to lookup the post that the user wants to navigate to.
                             </p>
                         </td>
                         <td>27896273</td>

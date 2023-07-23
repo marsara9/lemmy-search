@@ -88,6 +88,7 @@ impl SearchDatabase {
 
             let query_string = format!("
             SELECT 
+                    p.ap_id as p_actor_id,
                     p.name as p_name,
                     left(p.body, 300) as p_body,
                     p.updated as p_updated,
@@ -148,7 +149,8 @@ impl SearchDatabase {
                     let temp : i64 = row.get("total_results");
                     total_results = temp as i32;
 
-                    SearchPost {                        
+                    SearchPost {
+                        actor_id : row.get("p_actor_id"),                  
                         name : row.get("p_name"),
                         body : row.get("p_body"),
                         updated: row.get("p_updated"),

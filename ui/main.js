@@ -5,7 +5,7 @@ function onSearch() {
     let params = {
         "query" : query,
         "page" : 1,
-        "mode": "posts"
+        "mode": $("input[name='mode']:checked").val()
     };
     
     window.location = "/results?" + new URLSearchParams(params).toString();

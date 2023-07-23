@@ -1,8 +1,18 @@
 pub mod models;
 pub mod filters;
 
-use self::models::search::Version;
-use super::lemmy::crawler::LemmyCrawler;
+use self::models::{
+    search::Version, 
+    redirect::Redirect
+};
+use super::{
+    lemmy::{
+        crawler::LemmyCrawler, 
+        models::id::LemmyId,
+        build_lemmy_redirect_url
+    }, 
+    common::ActorType
+};
 use std::{
     collections::{
         HashMap, 
@@ -21,21 +31,28 @@ use actix_web::{
     Result, 
     Route
 };
+use reqwest::StatusCode;
 use crate::{
-    error::LogError,
-    api::search::{
-        models::search::{
-            SearchQuery,
-            SearchResult, 
-            FindCommunityResult
+    error::{
+        LogError, 
+        LemmySearchError
+    },
+    api::{
+        search::{
+            models::search::{
+                SearchQuery,
+                SearchResult, 
+                FindCommunityResult
+            }, 
+            filters::{
+                instance::InstanceFilter, 
+                community::CommunityFilter, 
+                author::AuthorFilter, 
+                nsfw::NSFWFilter, 
+                date::DateFilter
+            }
         }, 
-        filters::{
-            instance::InstanceFilter, 
-            community::CommunityFilter, 
-            author::AuthorFilter, 
-            nsfw::NSFWFilter, 
-            date::DateFilter
-        }
+        common::get_actor_type
     }, 
     database::{
         dbo::search::SearchDatabase,
@@ -64,6 +81,7 @@ impl SearchHandler {
         routes.insert("/api/search/posts".to_string(), get().to(Self::search_posts));
         routes.insert("/api/search/communities".to_string(), get().to(Self::search_communities));
         routes.insert("/api/instances".to_string(), get().to(Self::get_instances));
+        routes.insert("/api/redirect".to_string(), get().to(Self::redirect));
 
         Self {
             routes
@@ -333,5 +351,68 @@ impl SearchHandler {
                 .customize()
                 .insert_header(("cache-control", "public, max-age=86400"))
         )
+    }
+
+    pub async fn redirect<'a>(
+        context : Data<Context>,
+        source : Query<Redirect>
+    ) -> Result<impl Responder> {
+
+        println!("Redirecting to: {}", source.actor_id);
+
+        match get_actor_type(&source.actor_id) {
+            Some(actor_type) => match actor_type {
+                ActorType::Post => {
+                    let internal_id = LemmyId::find(
+                        context.pool.clone(), 
+                        &source.actor_id,
+                        &source.home_instance
+                    ).await.map_err(|err| {
+                        actix_web::error::ErrorInternalServerError(err)
+                    })?;
+            
+                    let location = format!("{}post/{}", source.home_instance, internal_id);
+                    
+                    Ok(""
+                        .customize()
+                        .append_header(("location", location))
+                        .with_status(StatusCode::SEE_OTHER)
+                    )
+                },
+                ActorType::Author => {
+                    let location = build_lemmy_redirect_url(
+                        &source.actor_id, 
+                        &source.home_instance, 
+                        "u"
+                    ).map_err(|err| {
+                        actix_web::error::ErrorInternalServerError(err)
+                    })?;
+    
+                    Ok(""
+                        .customize()
+                        .append_header(("location", location))
+                        .with_status(StatusCode::SEE_OTHER)
+                    )
+                },
+                ActorType::Community => {
+                    let location = build_lemmy_redirect_url(
+                        &source.actor_id, 
+                        &source.home_instance, 
+                        "c"
+                    ).map_err(|err| {
+                        actix_web::error::ErrorInternalServerError(err)
+                    })?;
+    
+                    Ok(""
+                        .customize()
+                        .append_header(("location", location))
+                        .with_status(StatusCode::SEE_OTHER)
+                    )
+                }
+            },
+            None => {
+                Err(actix_web::error::ErrorNotAcceptable(LemmySearchError::Generic("Invalid actor_id URL.")))
+            }
+        }
     }
 }

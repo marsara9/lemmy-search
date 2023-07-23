@@ -1,3 +1,4 @@
+use actix_web::http::uri::InvalidUri;
 use deadpool::managed::BuildError;
 use deadpool_r2d2::{
     InteractError, 
@@ -18,6 +19,7 @@ pub enum LemmySearchError {
     DatabaseBuildError(BuildError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>),
     DatabaseConnection(r2d2_postgres::r2d2::Error),
     Network(reqwest::Error),
+    InvalidUri(InvalidUri),
     JoinError(JoinError),
     DatabaseInteractionError(InteractError),
     DatabasePoolError(PoolError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>),
@@ -35,6 +37,7 @@ impl std::fmt::Display for LemmySearchError {
             Self::DatabaseBuildError(err) => err.fmt(f),
             Self::DatabaseConnection(r2d2_postgres) => r2d2_postgres.fmt(f),
             Self::Network(reqwest) => reqwest.fmt(f),
+            Self::InvalidUri(invalid_uri) => invalid_uri.fmt(f),
             Self::JoinError(join_error) => join_error.fmt(f),
             Self::DatabaseInteractionError(err) => err.fmt(f),
             Self::DatabasePoolError(err) => err.fmt(f)
@@ -81,6 +84,12 @@ impl From<r2d2_postgres::r2d2::Error> for LemmySearchError {
 impl From<reqwest::Error> for LemmySearchError {
     fn from(value: reqwest::Error) -> Self {
         LemmySearchError::Network(value)
+    }
+}
+
+impl From<InvalidUri> for LemmySearchError {
+    fn from(value: InvalidUri) -> Self {
+        LemmySearchError::InvalidUri(value)
     }
 }
 
