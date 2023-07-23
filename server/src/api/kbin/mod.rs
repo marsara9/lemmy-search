@@ -1,3 +1,5 @@
+pub mod models;
+
 use super::common::ActorType;
 
 pub fn get_kbin_actor_type(
