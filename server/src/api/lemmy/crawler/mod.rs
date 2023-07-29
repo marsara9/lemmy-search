@@ -31,13 +31,13 @@ use crate::{
     }
 };
 
+use super::models::{comment::CommentData, site::Instance};
+
 pub struct LemmyCrawler {
     pub instance : String,
 
     context : Context,
-    fetcher : Fetcher,
-
-    just_update_remote_ids : bool
+    fetcher : Fetcher
 }
 
 static APP_USER_AGENT: &str = concat!(
@@ -51,8 +51,6 @@ impl LemmyCrawler {
     pub fn new(
         instance : String,
         context : Context,
-
-        just_update_remote_ids : bool
     ) -> Result<Self> {
         let client = Client::builder()
             .user_agent(APP_USER_AGENT)
@@ -63,12 +61,10 @@ impl LemmyCrawler {
         Ok(Self {
             instance: instance.clone(),
             context,
-            fetcher: Fetcher::new(client, instance),
-            just_update_remote_ids
+            fetcher: Fetcher::new(client, instance)
         })
     }
 
-    #[async_recursion]
     pub async fn crawl(
         &self
     ) -> Result<()> {
@@ -92,50 +88,41 @@ impl LemmyCrawler {
                 println!("\t...failed to update {} during crawl.", Site::get_table_name());
             }
 
-        if self.just_update_remote_ids {
-            self.fetch_remote_ids(&site_actor_id)
-                .await?;
-        } else {
-            self.fetch_posts(&site_actor_id)
-                .await?;
+        self.fetch_posts(&site_actor_id)
+            .await?;
 
-            if !self.context.config.crawler.single_instance_only.unwrap_or(false) {
-                let federated_instances = self.fetcher.fetch_instances()
+        if !self.context.config.crawler.single_instance_only.unwrap_or(false) {
+
+            let federated_instances = self.fetcher.fetch_instances()
                 .await?
                 .federated_instances
                 .linked;
-    
-                for instance in federated_instances {
-                    if !match instance.software {
-                        Some(value) => value.to_lowercase() == "lemmy",
-                        None => false
-                    } {
-                        // Federated instance isn't a lemmy instance; skip.
-                        continue;
-                    }
 
-                    if instance.domain == self.instance {
-                        // Federated instance is self; skip.
-                        continue;
-                    }
-
-                    let crawler = LemmyCrawler::new(
-                        instance.domain, 
-                        self.context.clone(), 
-                        true
-                    );
-                    
-                    let _ = match crawler {
-                        Ok(crawler) => crawler.crawl().await,
-                        Err(_) => Ok(())
-                    };
-                }
-            }
+            futures::future::join_all(federated_instances.into_iter()
+                .map(|instance| {
+                    self.spawn_crawler(instance)
+                })).await;
         }
 
         println!("\t...done.");
 
         Ok(())
+    }
+
+    #[async_recursion]
+    async fn spawn_crawler(
+        &self,
+        instance : Instance
+    ) -> Result<()> {
+        let instance = instance.clone();
+
+        match LemmyCrawler::new(
+            instance.domain, 
+            self.context.clone()
+        ) {
+            Ok(crawler) => crawler.crawl().await,
+            Err(_) => Ok(())
+        }
     }
 
     async fn fetch_posts(
@@ -177,10 +164,14 @@ impl LemmyCrawler {
                     (post_data.post.id, Post::from(&post_data))
                 }).collect::<HashMap<_, _>>();
 
+            let raw_posts = filtered_posts.iter().map(|(_, post)| {
+                post.to_owned()
+            }).collect::<Vec<_>>();
+
             let all_comments = futures::future::join_all(filtered_posts.keys()
                 .into_iter()
                 .map(|remote_id| {
-                    self.fetcher.fetch_comments(remote_id.clone())
+                    self.fetch_comments_for_post(remote_id)
                 }).collect::<Vec<_>>())
                     .await
                     .into_iter()
@@ -202,13 +193,10 @@ impl LemmyCrawler {
 
             let filtered_count = filtered_posts.len();
 
-            let site_actor_id_string = site_actor_id.to_string();
-
             let mut crawler_database = CrawlerDatabase::init(self.context.pool.clone()).await?;
 
             crawler_database.bulk_update_post(
-                &site_actor_id_string, 
-                &filtered_posts,
+                &raw_posts,
                 &grouped_comments
             ).await
                 .log_error("\t...Bulk insert failed.", true)?;
@@ -225,41 +213,37 @@ impl LemmyCrawler {
         Ok(())
     }
 
-    async fn fetch_remote_ids(
+    async fn fetch_comments_for_post(
         &self,
-        site_actor_id : &str
-    ) -> Result<()> {
+        remote_post_id : &i64
+    ) -> Result<Vec<CommentData>> {
 
-        let site_dbo = SiteDBO::new(self.context.pool.clone());
+        let mut all_comments = Vec::new();
 
-        let last_page = site_dbo.get_last_post_page(site_actor_id)
-            .await?;
-
-        let mut crawler_database = CrawlerDatabase::init(self.context.pool.clone()).await?;
-
-        let mut page = last_page;
+        let mut page = 1;
         loop {
-            let posts = self.fetcher.fetch_posts(page+1)
-                .await
-                .log_error("\tfailed to fetch another page of 'post ids'...", self.context.config.crawler.log)?
-                .into_iter()
-                .map(|post_data| {
-                    (post_data.post.id, Post::from(&post_data))
-                }).collect::<HashMap<_, _>>();
+            let mut comments = match self.fetcher.fetch_comments(
+                remote_post_id.clone(),
+                page
+            ).await
+            .log_error(format!("\tfailed to fetch another page of Comments...").as_str(), self.context.config.crawler.log) {
+                Ok(value) => value,
+                Err(_) => {
+                    // Fetch failed wait for 1 second and then try again.
+                    tokio::time::sleep(Duration::from_secs(1))
+                        .await;
+                    continue
+                }
+            };
 
-            if posts.is_empty() {
+            if comments.is_empty() {
                 break;
             }
 
-            println!("\tfetched another {} 'post ids'...", posts.len());
-
-            crawler_database.bulk_update_lemmy_ids(site_actor_id, &posts).await?;
-
-            site_dbo.set_last_post_page(&site_actor_id, page)
-                .await?;
+            all_comments.append(&mut comments);
             page += 1;
         }
 
-        Ok(())
+        Ok(all_comments)
     }
 }

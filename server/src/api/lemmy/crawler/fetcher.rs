@@ -99,7 +99,7 @@ impl Fetcher {
         page : i32
     ) -> Result<Vec<PostData>> {
         let params = PostListRequest {
-            type_: Some(ListingType::All),
+            type_: Some(ListingType::Local),
             sort: Some(SortType::Old),
             limit: Self::DEFAULT_LIMIT,
             page: page,
@@ -117,10 +117,13 @@ impl Fetcher {
 
     pub async fn fetch_comments(
         &self,
-        remote_post_id : i64
+        remote_post_id : i64,
+        page : i32
     ) -> Result<Vec<CommentData>> {
         let params = CommentListRequest {
             post_id: Some(remote_post_id),
+            limit: Self::DEFAULT_LIMIT,
+            page,
             ..Default::default()
         };
 

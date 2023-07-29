@@ -138,8 +138,7 @@ impl SearchHandler {
         tokio::spawn(async move {
             let crawler = LemmyCrawler::new(
                 config.crawler.seed_instance.clone(), 
-                (*context.into_inner()).clone(), 
-                false
+                (*context.into_inner()).clone()
             ).unwrap();
 
             let _ = crawler.crawl()

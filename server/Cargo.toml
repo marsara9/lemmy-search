@@ -24,3 +24,4 @@ uuid = { version = "1.4.*", default-features=false, features=["v4"] }
 postgres = { version = "0.19.*", default-features=false, features=["with-uuid-1", "with-chrono-0_4"] }
 r2d2_postgres = { version = "0.18.*", default-features=false, features=[] }
 regex = { version  = "1.9.*", default-features=false, features=[] }
+futures = { version = "0.3.*", default-features=false, features=[] }
