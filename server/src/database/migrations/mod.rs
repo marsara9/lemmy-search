@@ -1,10 +1,7 @@
 pub mod to_0_4_0;
 
 use std::collections::HashSet;
-use crate::{
-    error::Result, 
-    api::lemmy::models::id::LemmyId
-};
+use crate::error::Result;
 use super::{
     Context, 
     dbo::get_database_client, 
@@ -48,8 +45,6 @@ impl DatabaseMigrations {
             .await?;
         self.update_table_column::<Post>()
             .await?;
-        self.update_table_column::<LemmyId>()
-            .await?;
 
         self.drop_table_column::<Site>()
             .await?;
@@ -58,8 +53,6 @@ impl DatabaseMigrations {
         self.drop_table_column::<Community>()
             .await?;
         self.drop_table_column::<Post>()
-            .await?;
-        self.drop_table_column::<LemmyId>()
             .await?;
 
         Ok(())

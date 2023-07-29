@@ -12,6 +12,7 @@ robotstxt = { version = "0.3.*", default-features=false, features=[] }
 deadpool = { version = "0.9.*", default-features=false, features=["rt_tokio_1"] }
 deadpool-r2d2 = { version = "0.2.*", default-features=false, features=[] }
 serde = { version = "1.0.*", default-features=false, features=["derive"] }
+serde_json = {version = "1.0.*", default-features=false, features=[] }
 once_cell = { version = "1.18.*", default-features=false, features=[] }
 reqwest = { version = "0.11.*", default-features=false, features=["json", "default-tls"] }
 tokio = { version = "1.29.*", default-features=false, features=["rt-multi-thread", "fs"] }

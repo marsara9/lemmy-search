@@ -1,8 +1,15 @@
 use std::fmt::Debug;
 use reqwest::Client;
 use robotstxt::DefaultMatcher;
+use serde_json::{
+    Map, 
+    Value
+};
 use crate::{
-    error::Result,
+    error::{
+        Result, 
+        LemmySearchError
+    },
     api::lemmy::models::{
         common::{
             ListingType, 
@@ -134,6 +141,59 @@ impl Fetcher {
             .map(|view: CommentListResponse| {
                 view.comments
             })
+    }
+
+    pub async fn get_internal_id(
+        &self,
+        actor_id : &str   
+    ) -> Result<Option<i64>> {
+
+        let url = self.get_url("/api/v3/resolve_object");
+
+        #[derive(Serialize, Debug)]
+        struct ResolveObjectRequest {
+            q : String
+        }
+
+        let json = self.fetch_json(&url, ResolveObjectRequest {
+            q : actor_id.to_string()
+        }).await
+            .map(|result : serde_json::Value| {
+                result.as_object()
+                    .map(|m| m.to_owned())
+                    .ok_or(LemmySearchError::JsonError)
+            })??;
+
+        if json.contains_key("error") {
+            Ok(None)
+        } else if json.contains_key("post") {
+            Ok(self.get_actor_internal_id(json, "post"))
+        } else if json.contains_key("comment") {
+            Ok(self.get_actor_internal_id(json, "comment"))
+        } else if json.contains_key("person") {
+            Ok(self.get_actor_internal_id(json, "person"))
+        } else if json.contains_key("community") {
+            Ok(self.get_actor_internal_id(json, "community"))
+        } else {
+            Err(LemmySearchError::JsonError)
+        }
+    }
+
+    fn get_actor_internal_id(
+        &self,
+        json : Map<String, Value>,
+        type_ : &str
+    ) -> Option<i64> {
+        json.get(type_)
+            .map(|v| {
+                v.get(type_)
+            }).flatten()
+            .map(|v| {
+                v.get("id")
+            }).flatten()
+            .map(|v| {
+                v.as_i64()
+            }).flatten()
     }
 
     async fn fetch_json<T, R>(

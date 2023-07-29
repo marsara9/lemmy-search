@@ -14,6 +14,7 @@ use tokio::task::JoinError;
 pub enum LemmySearchError {
     Generic(&'static str),
     Unknown(String),
+    JsonError,
     IO(std::io::Error),
     Database(postgres::Error),
     DatabaseBuildError(BuildError<<Manager<PostgresConnectionManager<NoTls>> as deadpool::managed::Manager>::Error>),
@@ -32,6 +33,7 @@ impl std::fmt::Display for LemmySearchError {
         match &self {
             Self::Generic(string) => write!(f, "Error '{}'", string),
             Self::Unknown(string) => write!(f, "Unknown Error '{}'", string),
+            Self::JsonError => write!(f, "There was an error parsing the json body"),
             Self::IO(err) => err.fmt(f),
             Self::Database(postgres) => postgres.fmt(f),
             Self::DatabaseBuildError(err) => err.fmt(f),

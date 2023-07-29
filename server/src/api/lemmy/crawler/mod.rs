@@ -40,7 +40,7 @@ pub struct LemmyCrawler {
     fetcher : Fetcher
 }
 
-static APP_USER_AGENT: &str = concat!(
+pub static APP_USER_AGENT: &str = concat!(
     env!("CARGO_PKG_NAME"),
     "/",
     env!("CARGO_PKG_VERSION"),

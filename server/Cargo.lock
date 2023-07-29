@@ -916,6 +916,7 @@ dependencies = [
  "reqwest",
  "robotstxt",
  "serde",
+ "serde_json",
  "tokio",
  "uuid",
 ]
