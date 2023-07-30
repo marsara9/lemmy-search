@@ -107,6 +107,7 @@ impl SearchDatabase {
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
+                        AND p.dmca == FALSE
                         {instance_query}
                         {community_query}
                         {author_query}

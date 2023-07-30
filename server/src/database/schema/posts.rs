@@ -28,6 +28,7 @@ pub struct Post {
     pub score : i32,
     pub author : Author,
     pub community : Community,
+    pub dmca : bool
 }
 
 pub struct Comment {
@@ -54,7 +55,8 @@ impl From<&PostData> for Post {
             nsfw : post_data.post.nsfw.unwrap_or(false),
             score : post_data.counts.score.clone(),
             author: Author::from(&post_data.creator),
-            community: Community::from(&post_data.community)
+            community: Community::from(&post_data.community),
+            dmca : false
         }
     }
 }
@@ -79,6 +81,7 @@ impl DatabaseSchema for Post {
             "score".to_string(),
             "author_actor_id".to_string(),
             "community_ap_id".to_string(),
+            "dmca".to_string(),
         ]
     }
 
@@ -93,7 +96,8 @@ impl DatabaseSchema for Post {
             ("nsfw".to_string(), DatabaseType::Bool.not_null()),
             ("score".to_string(), DatabaseType::I32.not_null()),
             ("author_actor_id".to_string(), DatabaseType::String(0).not_null()),
-            ("community_ap_id".to_string(), DatabaseType::String(0).not_null())
+            ("community_ap_id".to_string(), DatabaseType::String(0).not_null()),
+            ("dmca".to_string(), DatabaseType::Bool.not_null())
         ])
     }
 
