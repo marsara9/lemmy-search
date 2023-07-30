@@ -114,6 +114,7 @@ impl DatabaseSchema for Post {
             &self.score,
             &self.author.actor_id,
             &self.community.actor_id,
+            &self.dmca
         ]
     }
 }
