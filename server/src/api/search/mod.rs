@@ -188,9 +188,6 @@ impl SearchHandler {
         // Log search query
         println!("\tfor '{}'", modified_query);
 
-        // The preferred instance is sent without the https://, re-add it back.
-        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
-
         let page = search_query.page.unwrap_or(1).max(1);
 
         println!("\tpage: {}", page);
@@ -204,7 +201,6 @@ impl SearchHandler {
             &nsfw,
             &since,
             &until,
-            &home_instance_actor_id,
             page
         ).await
             .log_error("Error during search.", true)
@@ -272,9 +268,6 @@ impl SearchHandler {
         // Log search query
         println!("\tfor '{}'", modified_query);
 
-        // The preferred instance is sent without the https://, re-add it back.
-        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
-
         let page = search_query.page.unwrap_or(1).max(1);
 
         println!("\tpage: {}", page);
@@ -287,7 +280,6 @@ impl SearchHandler {
             &nsfw,
             &since,
             &until,
-            &home_instance_actor_id,
             page
         ).await
             .log_error("Error during search.", true)

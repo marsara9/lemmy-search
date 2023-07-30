@@ -1,4 +1,6 @@
 use std::fmt::Debug;
+use lazy_static::lazy_static;
+use regex::Regex;
 use reqwest::Client;
 use robotstxt::DefaultMatcher;
 use serde_json::{
@@ -37,6 +39,10 @@ use serde::{
     de::DeserializeOwned
 };
 
+lazy_static! {
+    static ref INSTANCE : Regex = Regex::new(r"https://(?P<domain>.+)/").unwrap();
+}
+
 #[derive(Clone)]
 pub struct Fetcher {
     instance : String,
@@ -51,6 +57,15 @@ impl Fetcher {
         client : Client,
         instance : String
     ) -> Self {
+        let instance = match INSTANCE.captures(&instance) {
+            Some(caps) => {
+                caps["domain"].to_owned()
+            },
+            None => {
+                instance
+            }
+        };
+
         Self {
             client,
             instance

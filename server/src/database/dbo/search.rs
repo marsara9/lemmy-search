@@ -39,7 +39,6 @@ impl SearchDatabase {
         nsfw : &bool,
         since: &Option<DateTime<Utc>>,
         until: &Option<DateTime<Utc>>,
-        home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchPost>, i32)> {
 
@@ -50,7 +49,6 @@ impl SearchDatabase {
         let nsfw = nsfw.to_owned();
         let since = since.to_owned();
         let until = until.to_owned();
-        let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -119,7 +117,7 @@ impl SearchDatabase {
                     rank DESC,
                     p.score DESC
                 LIMIT {}
-                OFFSET $8
+                OFFSET $7
             ", Self::PAGE_LIMIT);
 
             let mut total_results = 0;
@@ -133,8 +131,7 @@ impl SearchDatabase {
                 &author,        // $4
                 &since,         // $5
                 &until,         // $6
-                &home_instance, // $7
-                &offset         // $8
+                &offset         // $7
             ];
 
             let results = client.query(
@@ -179,7 +176,6 @@ impl SearchDatabase {
         nsfw : &bool,
         since: &Option<DateTime<Utc>>,
         until: &Option<DateTime<Utc>>,
-        home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchCommunity>, i32)> {
 
@@ -189,7 +185,6 @@ impl SearchDatabase {
         let nsfw = nsfw.to_owned();
         let since = since.to_owned();
         let until = until.to_owned();
-        let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -240,7 +235,7 @@ impl SearchDatabase {
                     ORDER BY 
                         matches DESC
                     LIMIT {}
-                    OFFSET $7
+                    OFFSET $6
             ", Self::PAGE_LIMIT);
 
             let offset = (Self::PAGE_LIMIT * (page - 1)) as i64;
@@ -251,8 +246,7 @@ impl SearchDatabase {
                     &author,        // $3
                     &since,         // $4
                     &until,         // $5
-                    &home_instance, // $6
-                    &offset         // $7
+                    &offset         // $6
                 ];
 
             let mut total_results = 0;

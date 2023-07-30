@@ -99,7 +99,9 @@ impl LemmyCrawler {
                 .linked;
 
             futures::future::join_all(federated_instances.into_iter()
-                .map(|instance| {
+                .filter(|instance| {
+                    instance.software.clone().unwrap_or("".to_owned()) == "lemmy" && instance.domain != self.instance
+                }).map(|instance| {
                     self.spawn_crawler(instance)
                 })).await;
         }
