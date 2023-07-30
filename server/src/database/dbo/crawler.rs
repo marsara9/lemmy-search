@@ -42,6 +42,7 @@ impl CrawlerDatabase {
         })
     }
 
+    #[allow(unused_variables)]
     pub async fn bulk_update_post(
         &mut self,
         posts : &Vec<Post>,

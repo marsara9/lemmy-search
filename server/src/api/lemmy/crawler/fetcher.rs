@@ -137,25 +137,28 @@ impl Fetcher {
             })
     }
 
+    #[allow(unused_variables)]
     pub async fn fetch_comments(
         &self,
         remote_post_id : i64,
         page : i32
     ) -> Result<Vec<CommentData>> {
-        let params = CommentListRequest {
-            post_id: Some(remote_post_id),
-            limit: Self::DEFAULT_LIMIT,
-            page,
-            ..Default::default()
-        };
+        // let params = CommentListRequest {
+        //     post_id: Some(remote_post_id),
+        //     limit: Self::DEFAULT_LIMIT,
+        //     page,
+        //     ..Default::default()
+        // };
 
-        let url = self.get_url("/api/v3/comment/list");
+        // let url = self.get_url("/api/v3/comment/list");
 
-        self.fetch_json(&url, params)
-            .await
-            .map(|view: CommentListResponse| {
-                view.comments
-            })
+        // self.fetch_json(&url, params)
+        //     .await
+        //     .map(|view: CommentListResponse| {
+        //         view.comments
+        //     })
+
+        Ok(Vec::new())
     }
 
     pub async fn get_internal_id(
