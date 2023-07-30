@@ -149,7 +149,7 @@ impl Fetcher {
             ..Default::default()
         };
 
-        let url = self.get_url("/api/v3/post/list");
+        let url = self.get_url("/api/v3/comment/list");
 
         self.fetch_json(&url, params)
             .await

@@ -170,28 +170,28 @@ impl LemmyCrawler {
                 post.to_owned()
             }).collect::<Vec<_>>();
 
-            // let all_comments = futures::future::join_all(filtered_posts.keys()
-            //     .into_iter()
-            //     .map(|remote_id| {
-            //         self.fetch_comments_for_post(remote_id)
-            //     }).collect::<Vec<_>>())
-            //         .await
-            //         .into_iter()
-            //         .collect::<Result<Vec<_>>>()?
-            //         .into_iter()
-            //         .flatten()
-            //         .filter(|comment| {
-            //             !comment.comment.deleted && !comment.comment.removed
-            //         }).collect::<Vec<_>>();
+            let all_comments = futures::future::join_all(filtered_posts.keys()
+                .into_iter()
+                .map(|remote_id| {
+                    self.fetch_comments_for_post(remote_id)
+                }).collect::<Vec<_>>())
+                    .await
+                    .into_iter()
+                    .collect::<Result<Vec<_>>>()?
+                    .into_iter()
+                    .flatten()
+                    .filter(|comment| {
+                        !comment.comment.deleted && !comment.comment.removed
+                    }).collect::<Vec<_>>();
 
-            // let mut grouped_comments = HashMap::<String, Vec<Comment>>::new();
+            let mut grouped_comments = HashMap::<String, Vec<Comment>>::new();
 
-            // for comment in all_comments {
-            //     let group = grouped_comments.entry(comment.post.ap_id.clone())
-            //         .or_insert(vec![]);
+            for comment in all_comments {
+                let group = grouped_comments.entry(comment.post.ap_id.clone())
+                    .or_insert(vec![]);
 
-            //     group.push(Comment::from(&comment));
-            // }
+                group.push(Comment::from(&comment));
+            }
 
             let filtered_count = filtered_posts.len();
 
@@ -199,7 +199,7 @@ impl LemmyCrawler {
 
             crawler_database.bulk_update_post(
                 &raw_posts,
-                &HashMap::new()// &grouped_comments
+                &grouped_comments
             ).await
                 .log_error("\t...Bulk insert failed.", true)?;
 
@@ -228,15 +228,15 @@ impl LemmyCrawler {
                 remote_post_id.clone(),
                 page + 1
             ).await
-            .log_error(format!("\tfailed to fetch another page of Comments...").as_str(), self.context.config.crawler.log) {
-                Ok(value) => value,
-                Err(_) => {
-                    // Fetch failed wait for 1 second and then try again.
-                    tokio::time::sleep(Duration::from_secs(1))
-                        .await;
-                    continue
-                }
-            };
+                .log_error(format!("\tfailed to fetch another page of Comments...").as_str(), self.context.config.crawler.log) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        // Fetch failed wait for 1 second and then try again.
+                        tokio::time::sleep(Duration::from_secs(1))
+                            .await;
+                        continue
+                    }
+                };
 
             if comments.is_empty() {
                 break;
