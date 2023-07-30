@@ -1,5 +1,8 @@
 use crate::{
-    database::{DatabasePool, dbo::get_database_client}, 
+    database::{
+        DatabasePool, 
+        dbo::get_database_client
+    }, 
     error::Result
 };
 

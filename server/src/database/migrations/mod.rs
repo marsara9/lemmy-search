@@ -1,4 +1,5 @@
 pub mod to_0_4_0;
+pub mod to_0_5_0;
 
 use std::collections::HashSet;
 use crate::error::Result;
@@ -29,6 +30,8 @@ impl DatabaseMigrations {
         &self
     ) -> Result<()> {
         to_0_4_0::migrate(self.context.pool.clone())
+            .await?;
+        to_0_5_0::migrate(self.context.pool.clone())
             .await?;
 
         Ok(())

@@ -93,8 +93,6 @@ impl SearchDatabase {
                     left(p.body, 300) as p_body,
                     p.updated as p_updated,
                     
-                    l.post_remote_id as p_remote_id,
-                    
                     a.ap_id as a_actor_id,
                     a.avatar as a_avatar,
                     a.name as a_name,
@@ -110,9 +108,7 @@ impl SearchDatabase {
                 FROM posts AS p
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
-                    INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
-                        AND l.instance_actor_id = $7
                         {instance_query}
                         {community_query}
                         {author_query}
@@ -154,7 +150,6 @@ impl SearchDatabase {
                         name : row.get("p_name"),
                         body : row.get("p_body"),
                         updated: row.get("p_updated"),
-                        remote_id : row.get("p_remote_id"),
                         author : SearchAuthor {
                             actor_id: row.get("a_actor_id"),
                             avatar : row.get("a_avatar"),
@@ -235,9 +230,7 @@ impl SearchDatabase {
                         COUNT(*) OVER() AS total_results
                     FROM posts AS p
                         INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
-                        INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
-                        AND l.instance_actor_id = $6
                         {instance_query}
                         {author_query}
                         {nsfw_query}

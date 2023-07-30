@@ -47,7 +47,6 @@ pub struct SearchPost {
     pub name : String,
     pub body : Option<String>,
     pub updated : DateTime<Utc>,
-    pub remote_id : i64,
     pub author : SearchAuthor,
     pub community: SearchCommunity,
 }
