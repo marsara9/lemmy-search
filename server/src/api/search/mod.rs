@@ -385,7 +385,7 @@ impl SearchHandler {
             
                     let location = match internal_id {
                         Some(internal_id) => format!("{}post/{}", source.home_instance, internal_id),
-                        None => format!("/not-found?orignal={}", source.actor_id)
+                        None => format!("/not-found?actor_id={}", source.actor_id)
                     };
                     
                     Ok(""

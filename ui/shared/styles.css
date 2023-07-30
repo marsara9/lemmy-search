@@ -157,3 +157,23 @@ input:focus-visible {
     border: none;
     color: var(--darker-color);
 }
+
+.alert {
+    max-width: 768px;
+    background-color: var(--darker-color);
+    font-size: 1.2rem;
+    text-align: center;
+    border: 1px solid var(--input-border);
+    border-radius: 12px;
+
+    width: calc(100% - 24px);
+    margin: 12px;
+    padding: 12px;
+    box-sizing: border-box;
+
+    position: absolute;
+    left: calc(50% - 12px);
+    top: calc(50% - 12px);
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
