@@ -55,15 +55,15 @@ impl SearchDatabase {
         get_database_client(&self.pool, move |client| {
 
             let instance_query = match instance {
-                Some(_) => "AND c.ap_id LIKE $2 || '%'",
+                Some(_) => "AND LOWER(c.ap_id) LIKE $2 || '%'",
                 None => "AND $2 = $2"
             };
             let community_query = match community {
-                Some(_) => "AND c.ap_id = $3",
+                Some(_) => "AND LOWER(c.ap_id) = $3",
                 None => "AND $3 = $3"
             };
             let author_query = match author {
-                Some(_) => "AND p.author_actor_id = $4",
+                Some(_) => "AND LOWER(p.author_actor_id) = $4",
                 None => "AND $4 = $4"
             };
             let nsfw_query: &str = if nsfw {
