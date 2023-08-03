@@ -6,6 +6,10 @@
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/marsara9z)
 
+# PLEASE READ
+
+While I'm keeping the server (https://www.search-lemmy.com) online, some performance issues has surfaced in Lemmy itself that is preventing this search engine from getting new posts from the server.  Until I can research a new way to get historical data, all new development on this project is sadly on hold.  If no solution can be found, I will have to shutdown the project.
+
 # Lemmy-Search
 
 The fediverse creates some unique problems when it comes to searching.  Mostly that existing search engines can't deal with the concept that multiple servers may exist that are ultimately hosting the same content.  These same search engines also aren't aware that you only have an account on one, or maybe a select few of these instances.
