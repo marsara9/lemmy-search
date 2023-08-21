@@ -40,6 +40,8 @@ pub struct CommentData {
 pub struct Comment {
     pub ap_id : String,
     pub content : String,
+    pub deleted : bool,
+    pub removed : bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]

@@ -8,7 +8,6 @@ use self::models::{
 use super::{
     lemmy::{
         crawler::LemmyCrawler, 
-        models::id::LemmyId,
         build_lemmy_redirect_url
     }, 
     common::ActorType
@@ -18,7 +17,10 @@ use std::{
         HashMap, 
         HashSet
     }, 
-    time::Instant
+    time::{
+        Instant, 
+        Duration
+    }
 };
 use actix_web::{
     web::{
@@ -31,7 +33,7 @@ use actix_web::{
     Result, 
     Route
 };
-use reqwest::StatusCode;
+use reqwest::{StatusCode, Client};
 use crate::{
     error::{
         LogError, 
@@ -52,7 +54,7 @@ use crate::{
                 date::DateFilter
             }
         }, 
-        common::get_actor_type
+        common::get_actor_type, lemmy::crawler::{fetcher::Fetcher, APP_USER_AGENT}
     }, 
     database::{
         dbo::search::SearchDatabase,
@@ -138,8 +140,7 @@ impl SearchHandler {
         tokio::spawn(async move {
             let crawler = LemmyCrawler::new(
                 config.crawler.seed_instance.clone(), 
-                (*context.into_inner()).clone(), 
-                false
+                (*context.into_inner()).clone()
             ).unwrap();
 
             let _ = crawler.crawl()
@@ -187,9 +188,6 @@ impl SearchHandler {
         // Log search query
         println!("\tfor '{}'", modified_query);
 
-        // The preferred instance is sent without the https://, re-add it back.
-        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
-
         let page = search_query.page.unwrap_or(1).max(1);
 
         println!("\tpage: {}", page);
@@ -203,7 +201,6 @@ impl SearchHandler {
             &nsfw,
             &since,
             &until,
-            &home_instance_actor_id,
             page
         ).await
             .log_error("Error during search.", true)
@@ -271,9 +268,6 @@ impl SearchHandler {
         // Log search query
         println!("\tfor '{}'", modified_query);
 
-        // The preferred instance is sent without the https://, re-add it back.
-        let home_instance_actor_id = format!("https://{}/", search_query.home_instance);
-
         let page = search_query.page.unwrap_or(1).max(1);
 
         println!("\tpage: {}", page);
@@ -286,7 +280,6 @@ impl SearchHandler {
             &nsfw,
             &since,
             &until,
-            &home_instance_actor_id,
             page
         ).await
             .log_error("Error during search.", true)
@@ -354,24 +347,38 @@ impl SearchHandler {
     }
 
     pub async fn redirect<'a>(
-        context : Data<Context>,
         source : Query<Redirect>
     ) -> Result<impl Responder> {
 
         println!("Redirecting to: {}", source.actor_id);
 
+        let client = Client::builder()
+            .user_agent(APP_USER_AGENT)
+            .connect_timeout(Duration::from_secs(1))
+            .timeout(Duration::from_secs(10))
+            .build()
+            .map_err(|err| {
+                actix_web::error::ErrorInternalServerError(err)
+            })?;
+
+        let fetcher = Fetcher::new(
+            client,
+            source.home_instance.clone()
+        );
+
         match get_actor_type(&source.actor_id) {
             Some(actor_type) => match actor_type {
                 ActorType::Post => {
-                    let internal_id = LemmyId::find(
-                        context.pool.clone(), 
-                        &source.actor_id,
-                        &source.home_instance
-                    ).await.map_err(|err| {
-                        actix_web::error::ErrorInternalServerError(err)
-                    })?;
+                    let internal_id = fetcher.get_internal_id(&source.actor_id)
+                        .await
+                        .map_err(|err| {
+                            actix_web::error::ErrorInternalServerError(err)
+                        })?;
             
-                    let location = format!("{}post/{}", source.home_instance, internal_id);
+                    let location = match internal_id {
+                        Some(internal_id) => format!("{}post/{}", source.home_instance, internal_id),
+                        None => format!("/not-found?actor_id={}", source.actor_id)
+                    };
                     
                     Ok(""
                         .customize()

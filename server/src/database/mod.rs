@@ -20,8 +20,7 @@ use crate::{
         Result, 
         LemmySearchError, 
         LogError
-    }, 
-    api::lemmy::models::id::LemmyId
+    }
 };
 use deadpool_r2d2::Runtime;
 use postgres::NoTls;
@@ -101,8 +100,6 @@ impl Database {
         self.create_table_from_schema::<Community>(drop_table)
             .await?;
         self.create_table_from_schema::<Post>(drop_table)
-            .await?;
-        self.create_table_from_schema::<LemmyId>(drop_table)
             .await?;
 
         println!("Performing table migrations...");

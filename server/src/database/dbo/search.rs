@@ -39,7 +39,6 @@ impl SearchDatabase {
         nsfw : &bool,
         since: &Option<DateTime<Utc>>,
         until: &Option<DateTime<Utc>>,
-        home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchPost>, i32)> {
 
@@ -50,7 +49,6 @@ impl SearchDatabase {
         let nsfw = nsfw.to_owned();
         let since = since.to_owned();
         let until = until.to_owned();
-        let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -93,8 +91,6 @@ impl SearchDatabase {
                     left(p.body, 300) as p_body,
                     p.updated as p_updated,
                     
-                    l.post_remote_id as p_remote_id,
-                    
                     a.ap_id as a_actor_id,
                     a.avatar as a_avatar,
                     a.name as a_name,
@@ -110,9 +106,8 @@ impl SearchDatabase {
                 FROM posts AS p
                     INNER JOIN authors AS a ON a.ap_id = p.author_actor_id
                     INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
-                    INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
-                        AND l.instance_actor_id = $7
+                        AND p.dmca == FALSE
                         {instance_query}
                         {community_query}
                         {author_query}
@@ -123,7 +118,7 @@ impl SearchDatabase {
                     rank DESC,
                     p.score DESC
                 LIMIT {}
-                OFFSET $8
+                OFFSET $7
             ", Self::PAGE_LIMIT);
 
             let mut total_results = 0;
@@ -137,8 +132,7 @@ impl SearchDatabase {
                 &author,        // $4
                 &since,         // $5
                 &until,         // $6
-                &home_instance, // $7
-                &offset         // $8
+                &offset         // $7
             ];
 
             let results = client.query(
@@ -154,7 +148,6 @@ impl SearchDatabase {
                         name : row.get("p_name"),
                         body : row.get("p_body"),
                         updated: row.get("p_updated"),
-                        remote_id : row.get("p_remote_id"),
                         author : SearchAuthor {
                             actor_id: row.get("a_actor_id"),
                             avatar : row.get("a_avatar"),
@@ -184,7 +177,6 @@ impl SearchDatabase {
         nsfw : &bool,
         since: &Option<DateTime<Utc>>,
         until: &Option<DateTime<Utc>>,
-        home_instance : &str,
         page : i32
     ) -> Result<(Vec<SearchCommunity>, i32)> {
 
@@ -194,7 +186,6 @@ impl SearchDatabase {
         let nsfw = nsfw.to_owned();
         let since = since.to_owned();
         let until = until.to_owned();
-        let home_instance = home_instance.to_owned();
 
         get_database_client(&self.pool, move |client| {
 
@@ -235,9 +226,7 @@ impl SearchDatabase {
                         COUNT(*) OVER() AS total_results
                     FROM posts AS p
                         INNER JOIN communities AS c ON c.ap_id = p.community_ap_id
-                        INNER JOIN lemmy_ids AS l ON l.post_actor_id = p.ap_id
                     WHERE p.com_search @@ websearch_to_tsquery($1)
-                        AND l.instance_actor_id = $6
                         {instance_query}
                         {author_query}
                         {nsfw_query}
@@ -247,7 +236,7 @@ impl SearchDatabase {
                     ORDER BY 
                         matches DESC
                     LIMIT {}
-                    OFFSET $7
+                    OFFSET $6
             ", Self::PAGE_LIMIT);
 
             let offset = (Self::PAGE_LIMIT * (page - 1)) as i64;
@@ -258,8 +247,7 @@ impl SearchDatabase {
                     &author,        // $3
                     &since,         // $4
                     &until,         // $5
-                    &home_instance, // $6
-                    &offset         // $7
+                    &offset         // $6
                 ];
 
             let mut total_results = 0;

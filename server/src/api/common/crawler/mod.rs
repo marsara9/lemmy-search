@@ -95,7 +95,7 @@ impl Runner {
         context : Context
     ) {
         println!("Crawler is starting to index '{}'...", context.config.crawler.seed_instance);
-            let _ = LemmyCrawler::new(context.config.crawler.seed_instance.clone(), context.clone(), false)
+            let _ = LemmyCrawler::new(context.config.crawler.seed_instance.clone(), context.clone())
                     .unwrap()
                     .crawl()
                     .await

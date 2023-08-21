@@ -1,5 +1,8 @@
 use std::{
-    collections::{HashSet, HashMap}, 
+    collections::{
+        HashSet, 
+        HashMap
+    }, 
     fmt::Debug,
 };
 use deadpool::managed::Object;
@@ -14,11 +17,13 @@ use crate::{
             DatabaseSchema, 
             author::Author, 
             community::Community,
-            posts::Post
+            posts::{
+                Post, 
+                Comment
+            }
         }
     }, 
-    error::Result,
-    api::lemmy::models::id::LemmyId
+    error::Result    
 };
 
 pub struct CrawlerDatabase {
@@ -37,58 +42,31 @@ impl CrawlerDatabase {
         })
     }
 
+    #[allow(unused_variables)]
     pub async fn bulk_update_post(
         &mut self,
-        instance_actor_id : &str,
-        posts : &HashMap<i64, Post>
+        posts : &Vec<Post>,
+        comments: &HashMap::<String, Vec<Comment>>
     ) -> Result<()> {
 
         let mut authors = HashSet::<_>::new();
-        let mut communities = HashSet::<_>::new();
-        let mut lemmy_ids = HashSet::<_>::new();
+        let mut communities = HashSet::<_>::new();        
 
-        for (remote_id, post) in posts {
+        for post in posts {
             authors.insert(post.author.clone());
             communities.insert(post.community.clone());
-            lemmy_ids.insert(LemmyId {
-                post_remote_id : remote_id.clone(),
-                post_actor_id : post.ap_id.clone(),
-                instance_actor_id : instance_actor_id.to_string()
-            });
         }
 
         self.update_authors(&authors).await?;
         self.update_communities(&communities).await?;
 
-        let posts2 = posts.values().map(|v| {
+        let posts2 = posts.into_iter().map(|v| {
             v.to_owned()
         }).collect::<HashSet<_>>();
         
         self.update_posts(&posts2).await?;
 
-        self.update_lemmy_ids(&lemmy_ids).await?;
-
         Ok(())
-    }
-
-    pub async fn bulk_update_lemmy_ids(
-        &mut self,
-        instance_actor_id : &str,
-        posts : &HashMap<i64, Post>
-    ) -> Result<u64> {
-
-        let mut lemmy_ids = HashSet::<_>::new();
-
-        for (remote_id, post) in posts {
-            lemmy_ids.insert(LemmyId {
-                post_remote_id : remote_id.clone(),
-                post_actor_id : post.ap_id.clone(),
-                instance_actor_id : instance_actor_id.to_string()
-            });
-        }
-
-        self.update_lemmy_ids(&lemmy_ids)
-            .await
     }
 
     fn bulk_get_query<T : DatabaseSchema + Debug + Clone>(
@@ -225,24 +203,24 @@ impl CrawlerDatabase {
         }).await??)
     }
 
-    async fn update_lemmy_ids(
-        &mut self,
-        objects : &HashSet<LemmyId>
-    ) -> Result<u64> {
-        let objects = objects.clone();
-        
-        Ok(self.client.interact(move |client| {
-            let q = Self::bulk_get_query(&objects);
+    // async fn update_comments(
+    //     &mut self,
+    //     post_ap_id : &String,
+    //     objects : &HashSet<Comment>
+    // ) -> Result<u64> {
+    //     let objects = objects.clone();
 
-            let params = objects.get_values();
+    //     Ok(self.client.interact(move |client| {
+    //         let q = Self::bulk_get_query(&objects);
 
-            match q {
-                Some(query) => {
-                    client.execute(&query, &params)
-                },
-                None => Ok(0)
-            }
-        }).await??)
-    }
+    //         let params = objects.get_values();
 
+    //         match q {
+    //             Some(query) => {
+    //                 client.execute(&query, &params)
+    //             },
+    //             None => Ok(0)
+    //         }
+    //     }).await??)
+    // }
 }

@@ -1,5 +1,8 @@
 use crate::{
-    database::{DatabasePool, dbo::get_database_client}, 
+    database::{
+        DatabasePool, 
+        dbo::get_database_client
+    }, 
     error::Result
 };
 
@@ -16,7 +19,8 @@ pub async fn migrate(
             ALTER TABLE posts 
                 ADD COLUMN IF NOT EXISTS com_search TSVECTOR
                 GENERATED ALWAYS AS	(
-                    to_tsvector('english', \"name\") || ' ' || to_tsvector('english', coalesce(body, ''))
+                    setweight(to_tsvector('english', \"name\"), 'B') || 
+                    setweight(to_tsvector('english', coalesce(body, '')), 'A')
                 ) stored;
             
             CREATE INDEX IF NOT EXISTS idx_search ON posts USING GIN(com_search);

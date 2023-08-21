@@ -7,7 +7,10 @@ use chrono::{
     Utc
 };
 use postgres::types::ToSql;
-use crate::api::lemmy::models::post::PostData;
+use crate::api::lemmy::models::{
+    post::PostData, 
+    comment::CommentData
+};
 use super::{
     DatabaseSchema, 
     DatabaseType, 
@@ -25,6 +28,19 @@ pub struct Post {
     pub score : i32,
     pub author : Author,
     pub community : Community,
+    pub dmca : bool
+}
+
+pub struct Comment {
+    pub content : String
+}
+
+impl From<&CommentData> for Comment {
+    fn from(value: &CommentData) -> Self {
+        Self {
+            content: value.comment.content.clone()
+        }
+    }
 }
 
 impl From<&PostData> for Post {
@@ -39,7 +55,8 @@ impl From<&PostData> for Post {
             nsfw : post_data.post.nsfw.unwrap_or(false),
             score : post_data.counts.score.clone(),
             author: Author::from(&post_data.creator),
-            community: Community::from(&post_data.community)
+            community: Community::from(&post_data.community),
+            dmca : false
         }
     }
 }
@@ -64,6 +81,7 @@ impl DatabaseSchema for Post {
             "score".to_string(),
             "author_actor_id".to_string(),
             "community_ap_id".to_string(),
+            "dmca".to_string(),
         ]
     }
 
@@ -78,7 +96,8 @@ impl DatabaseSchema for Post {
             ("nsfw".to_string(), DatabaseType::Bool.not_null()),
             ("score".to_string(), DatabaseType::I32.not_null()),
             ("author_actor_id".to_string(), DatabaseType::String(0).not_null()),
-            ("community_ap_id".to_string(), DatabaseType::String(0).not_null())
+            ("community_ap_id".to_string(), DatabaseType::String(0).not_null()),
+            ("dmca".to_string(), DatabaseType::Bool.not_null())
         ])
     }
 
@@ -95,6 +114,7 @@ impl DatabaseSchema for Post {
             &self.score,
             &self.author.actor_id,
             &self.community.actor_id,
+            &self.dmca
         ]
     }
 }
